@@ -312,9 +312,12 @@ compensation sequence while the window remains held:
 
    ```bash
    RECOVERY_JSON=$(recovery_ids); echo "inspector rc=$? $RECOVERY_JSON"
-   test "$(recovery_field sha)" = "$PRIOR_PAIR_SHA" &&
-     test "$(recovery_field pages_deployment_id)" = "$PRIOR_PAGES_DEPLOYMENT_ID" &&
-     test "$(recovery_field worker_version_id)" = "$PRIOR_WORKER_VERSION_ID" &&
+   OBSERVED_GATE_VALUE=$(recovery_field sha) &&
+   test "$OBSERVED_GATE_VALUE" = "$PRIOR_PAIR_SHA" &&
+     OBSERVED_GATE_VALUE=$(recovery_field pages_deployment_id) &&
+     test "$OBSERVED_GATE_VALUE" = "$PRIOR_PAGES_DEPLOYMENT_ID" &&
+     OBSERVED_GATE_VALUE=$(recovery_field worker_version_id) &&
+     test "$OBSERVED_GATE_VALUE" = "$PRIOR_WORKER_VERSION_ID" &&
      echo "PRIOR PAIR OK" || echo "STOP: prior pair readback"
    ```
 
@@ -349,7 +352,9 @@ compensation sequence while the window remains held:
    `x-release-sha` headers name `PRIOR_PAIR_SHA` with the exact prior provider
    IDs; canonical `main` and the DEV/editor Worker's `x-release-sha` name
    `PRIOR_SHA`; and the DEV static `spine-build` equals `PRIOR_SHA`'s committed
-   `spine_build_id`. See
+   `spine_build_id`. For compensation C4, run the DEV-static spine comparison
+   from the clean prior clone (`$PRIOR_DIR/tree`, `HEAD` at `PRIOR_SHA`),
+   never from the operations clone. See
    [Two prior SHAs](#two-prior-shas-prior_pair_sha-and-prior_sha).
 
 `restore_canonical_ref_exact` is not a general-purpose Git writer or a history
@@ -415,25 +420,35 @@ if test ! -e "$OPS_REPO"; then
 fi
 # Reject linked worktrees, shared Git directories, and object alternates.
 test -d "$OPS_REPO/.git"
-test "$(trusted_git -C "$OPS_REPO" rev-parse --absolute-git-dir)" = "$OPS_REPO/.git"
-test "$(trusted_git -C "$OPS_REPO" rev-parse --path-format=absolute --git-common-dir)" = "$OPS_REPO/.git"
+OBSERVED_GATE_VALUE=$(trusted_git -C "$OPS_REPO" rev-parse --absolute-git-dir) || exit 1
+test "$OBSERVED_GATE_VALUE" = "$OPS_REPO/.git"
+OBSERVED_GATE_VALUE=$(trusted_git -C "$OPS_REPO" rev-parse --path-format=absolute --git-common-dir) || exit 1
+test "$OBSERVED_GATE_VALUE" = "$OPS_REPO/.git"
 test ! -e "$OPS_REPO/.git/objects/info/alternates"
-test "$(trusted_git -C "$OPS_REPO" remote get-url origin)" = "$CANONICAL_REMOTE_URL"
+OBSERVED_GATE_VALUE=$(trusted_git -C "$OPS_REPO" remote get-url origin) || exit 1
+test "$OBSERVED_GATE_VALUE" = "$CANONICAL_REMOTE_URL"
 # Refuse dirty existing checkouts before changing their detached release pin.
-test -z "$(trusted_git -C "$OPS_REPO" status --porcelain --untracked-files=all)"
+OPS_STATUS=$(trusted_git -C "$OPS_REPO" status --porcelain --untracked-files=all) || exit 1
+test -z "$OPS_STATUS" || exit 1
 trusted_git -C "$OPS_REPO" checkout --detach "$REVIEWED_OPS_COMMIT"
-test "$(trusted_git -C "$OPS_REPO" rev-parse --abbrev-ref HEAD)" = HEAD
+OBSERVED_GATE_VALUE=$(trusted_git -C "$OPS_REPO" rev-parse --abbrev-ref HEAD) || exit 1
+test "$OBSERVED_GATE_VALUE" = HEAD
 
 test "${OPS_REPO#/}" != "$OPS_REPO"
 test "${DAEMON_REPO#/}" != "$DAEMON_REPO"
 test "${RECEIPT_DIR#/}" != "$RECEIPT_DIR"
 test -n "$WINDOW_OWNER"
 test -n "$HOST_IDENTITY"
-test "$(/usr/bin/env -i /usr/bin/readlink -f -- "$OPS_REPO")" = "$OPS_REPO"
-test "$(/usr/bin/env -i /usr/bin/readlink -f -- "$CAS")" = "$CAS"
-test "$(/usr/bin/env -i /usr/bin/readlink -f -- "$DAEMON_REPO")" = "$DAEMON_REPO"
-test "$(trusted_git -C "$OPS_REPO" rev-parse --verify HEAD)" = "$REVIEWED_OPS_COMMIT"
-test -z "$(trusted_git -C "$OPS_REPO" status --porcelain --untracked-files=all)"
+OBSERVED_GATE_VALUE=$(/usr/bin/env -i /usr/bin/readlink -f -- "$OPS_REPO") || exit 1
+test "$OBSERVED_GATE_VALUE" = "$OPS_REPO"
+OBSERVED_GATE_VALUE=$(/usr/bin/env -i /usr/bin/readlink -f -- "$CAS") || exit 1
+test "$OBSERVED_GATE_VALUE" = "$CAS"
+OBSERVED_GATE_VALUE=$(/usr/bin/env -i /usr/bin/readlink -f -- "$DAEMON_REPO") || exit 1
+test "$OBSERVED_GATE_VALUE" = "$DAEMON_REPO"
+OBSERVED_GATE_VALUE=$(trusted_git -C "$OPS_REPO" rev-parse --verify HEAD) || exit 1
+test "$OBSERVED_GATE_VALUE" = "$REVIEWED_OPS_COMMIT"
+OPS_STATUS=$(trusted_git -C "$OPS_REPO" status --porcelain --untracked-files=all) || exit 1
+test -z "$OPS_STATUS" || exit 1
 REVIEWED_CAS_BLOB=$(trusted_git -C "$OPS_REPO" rev-parse \
   "$REVIEWED_OPS_COMMIT:tools/canonical_ref_cas.py")
 ACTUAL_CAS_BLOB=$(trusted_git -C "$OPS_REPO" hash-object -- "$CAS")
@@ -495,12 +510,33 @@ Git resolver;
 if it is nonzero, the CAS tool is inoperable on that host and the production
 window must not open.
 
+Before opening the window, an authenticated CAS `--dry-run` against the real
+SHA-256-pinned remote must pass: use the forward dry-run block below with the
+reviewed candidate already available locally and a fresh receipt path. Require
+`remote_push_auth_probe` to be `"passed"`, an empty mutation list, and all
+readbacks at the prior SHA. Anonymous `ls-remote` success is insufficient.
+Missing or invalid push credentials are a pre-window **no-go**. Repeat the
+rehearsal under the fence immediately before the live transition.
+
+All four CAS invocations pipe `gh auth token` directly to
+`python3 "$OPS_REPO/tools/canonical_ref_cas.py"` through the pinned `$CAS` alias
+and isolated interpreter below, with `--remote-token-stdin`. Never echo the
+token, put it in an argument, enable shell tracing, or save it in a receipt.
+Use `set -o pipefail` so a failed credential producer also fails the pipeline.
+Git still ignores global/system config and credential helpers; only the verified
+remote's child process receives its URL-scoped Basic authorization header.
+The no-op `push --dry-run --porcelain` probes receive-pack authentication using
+the exact current remote main SHA before any owned mutation. It does not prove
+that branch policy will accept a later changed ref; the live CAS still can fail.
+
 With the daemon lock and the entire six-actor window still held, first prove
 the exact Git compensation preconditions without mutation:
 
 ```bash
+set -o pipefail
 CAS_RESTORE_DRY_RECEIPT="$RECEIPT_DIR/canonical-ref-restore-dry-run.json"
-/usr/bin/env -i /usr/bin/python3 -I "$CAS" restore \
+gh auth token | /usr/bin/env -i /usr/bin/python3 -I "$CAS" restore \
+  --remote-token-stdin \
   --repo "$DAEMON_REPO" \
   --remote origin \
   --branch main \
@@ -516,7 +552,8 @@ Then perform that same exact candidate-to-prior CAS:
 
 ```bash
 CAS_RESTORE_RECEIPT="$RECEIPT_DIR/canonical-ref-restore.json"
-/usr/bin/env -i /usr/bin/python3 -I "$CAS" restore \
+gh auth token | /usr/bin/env -i /usr/bin/python3 -I "$CAS" restore \
+  --remote-token-stdin \
   --repo "$DAEMON_REPO" \
   --remote origin \
   --branch main \
@@ -677,19 +714,20 @@ SHA, and the result of each check:
    after the candidate's ignored inputs have been regenerated (OQ-10):
 
    ```bash
-   PRIOR_MAP_DIR=$(mktemp -d)
-   git clone --quiet --no-hardlinks --no-checkout "$CONTROLLED_REPO" "$PRIOR_MAP_DIR/tree"
-   git -C "$PRIOR_MAP_DIR/tree" checkout --quiet --detach "$PRIOR_PAIR_SHA"
-   test "$(git -C "$PRIOR_MAP_DIR/tree" rev-parse HEAD)" = "$PRIOR_PAIR_SHA"
-   ( cd "$PRIOR_MAP_DIR/tree" &&
-     python3 tools/build_site.py --check &&
-     python3 tools/build_worker_personas.py &&
-     python3 tools/build_instructor_bundle.py &&
-     python3 tools/build_history.py &&
-     node app/worker/scripts/bundle-editor-data.mjs )
-   echo "prior build rc=$?"
-   python3 - "$PRIOR_MAP_DIR/tree/build/editor-map.generated.json" \
-     "$CONTROLLED_REPO/build/editor-map.generated.json" <<'PY'
+   if PRIOR_MAP_DIR=$(mktemp -d) &&
+      git clone --quiet --no-hardlinks --no-checkout "$CONTROLLED_REPO" "$PRIOR_MAP_DIR/tree" &&
+      git -C "$PRIOR_MAP_DIR/tree" checkout --quiet --detach "$PRIOR_PAIR_SHA" &&
+      OBSERVED_GATE_VALUE=$(git -C "$PRIOR_MAP_DIR/tree" rev-parse HEAD) &&
+      test "$OBSERVED_GATE_VALUE" = "$PRIOR_PAIR_SHA"; then
+     if ( cd "$PRIOR_MAP_DIR/tree" &&
+         python3 tools/build_site.py --check &&
+         python3 tools/build_worker_personas.py &&
+         python3 tools/build_instructor_bundle.py &&
+         python3 tools/build_history.py &&
+         node app/worker/scripts/bundle-editor-data.mjs ); then
+       echo "prior build rc=0"
+       python3 - "$PRIOR_MAP_DIR/tree/build/editor-map.generated.json" \
+         "$CONTROLLED_REPO/build/editor-map.generated.json" <<'PY'
    import json, sys
    prior, candidate = (json.load(open(path, encoding="utf-8")) for path in sys.argv[1:3])
    a, b = set(prior["pages"]), set(candidate["pages"])
@@ -701,7 +739,13 @@ SHA, and the result of each check:
    }, sort_keys=True))
    sys.exit(0 if a == b and a else 1)
    PY
-   echo "check-1 rc=$?"
+       echo "check-1 rc=$?"
+     else
+       echo "STOP: prior build rc=$?"
+     fi
+   else
+     echo "STOP: prior map checkout failed or HEAD unreadable or unequal to PRIOR_PAIR_SHA"
+   fi
    ```
 
    Require `prior build rc=0`, `check-1 rc=0`, nonzero key counts, and two
@@ -936,10 +980,16 @@ worktree, after reviewing the full diff:
 git add data site/platform app/worker/personas/personas.generated.json
 git status --short --untracked-files=all   # nothing may remain unstaged or untracked
 git commit -m "feat(day-zero): materialize Day Zero dates and legalpracticum.org identifiers"
-CANDIDATE_SHA=$(git rev-parse HEAD)
-test "${#CANDIDATE_SHA}" -eq 40
-test "$(git rev-parse HEAD^)" = "$PRIOR_SHA"
-test "$(git rev-list --count "$PRIOR_SHA..$CANDIDATE_SHA")" = 1
+if CANDIDATE_SHA=$(git rev-parse HEAD) &&
+   test "${#CANDIDATE_SHA}" -eq 40 &&
+   OBSERVED_GATE_VALUE=$(git rev-parse HEAD^) &&
+   test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA" &&
+   OBSERVED_GATE_VALUE=$(git rev-list --count "$PRIOR_SHA..$CANDIDATE_SHA") &&
+   test "$OBSERVED_GATE_VALUE" = 1; then
+  echo "candidate ancestry OK"
+else
+  echo "STOP: candidate SHA or ancestry unreadable or unexpected"
+fi
 ```
 
 Never use `git commit -a` or `git add -A` here, and never force-add `build/`
@@ -1400,24 +1450,35 @@ missing/unreadable bundle fails as
 the approved baseline for this production host before opening the window:
 
 ```bash
-builtin test "$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout rev-parse --verify 'HEAD^{commit}')" = \
-  '<reviewed-release-commit-SHA>' || exit 72
-builtin test "$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout rev-parse '<reviewed-release-commit-SHA>:tools/prove_queues_empty.py')" = \
-  '<reviewed-verifier-Git-blob-OID>' || exit 73
-builtin test "$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout hash-object -- /home/damienriehl/.local/share/sonsteng-ops/checkout/tools/prove_queues_empty.py)" = \
-  '<reviewed-verifier-Git-blob-OID>' || exit 74
 (
-  builtin exec -c /usr/bin/env -i LC_ALL=C \
-    /usr/bin/python3 -I -B --check-hash-based-pycs always \
-    /proc/self/fd/9 \
-    --preflight \
-    --release-commit '<reviewed-release-commit-SHA>' \
-    --verifier-blob '<reviewed-verifier-Git-blob-OID>' \
-    --ledger-origin https://sonsteng-chat.damienriehl.workers.dev \
-    --receipt-path '<absolute-preflight-receipt-path>.json'
-) 9</home/damienriehl/.local/share/sonsteng-ops/checkout/tools/prove_queues_empty.py
+  OBSERVED_GATE_VALUE=$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout rev-parse --verify 'HEAD^{commit}') || exit 72
+  builtin test "$OBSERVED_GATE_VALUE" = \
+    '<reviewed-release-commit-SHA>' || exit 72
+  OBSERVED_GATE_VALUE=$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout rev-parse '<reviewed-release-commit-SHA>:tools/prove_queues_empty.py') || exit 73
+  builtin test "$OBSERVED_GATE_VALUE" = \
+    '<reviewed-verifier-Git-blob-OID>' || exit 73
+  OBSERVED_GATE_VALUE=$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout hash-object -- /home/damienriehl/.local/share/sonsteng-ops/checkout/tools/prove_queues_empty.py) || exit 74
+  builtin test "$OBSERVED_GATE_VALUE" = \
+    '<reviewed-verifier-Git-blob-OID>' || exit 74
+  (
+    builtin exec -c /usr/bin/env -i LC_ALL=C \
+      /usr/bin/python3 -I -B --check-hash-based-pycs always \
+      /proc/self/fd/9 \
+      --preflight \
+      --release-commit '<reviewed-release-commit-SHA>' \
+      --verifier-blob '<reviewed-verifier-Git-blob-OID>' \
+      --ledger-origin https://sonsteng-chat.damienriehl.workers.dev \
+      --receipt-path '<absolute-preflight-receipt-path>.json'
+  ) 9</home/damienriehl/.local/share/sonsteng-ops/checkout/tools/prove_queues_empty.py
+)
 queue_proof_preflight_rc=$?
+if test "$queue_proof_preflight_rc" -ne 0; then
+  echo "STOP: queue proof preflight rc=$queue_proof_preflight_rc"
+fi
 ```
+
+The outer subshell contains identity-check exits 72/73/74; the parent shell
+retains `queue_proof_preflight_rc` and prints STOP on failure.
 
 This preflight intentionally reports `all_queues_empty:false`: it checks that
 the proof machinery is ready, not the live queues. Treat any skipped comparison
@@ -1490,14 +1551,21 @@ or nonzero result as a stop before the window.
       regenerate the ignored Worker inputs there (OQ-10):
 
       ```bash
-      PRIOR_DIR=$(mktemp -d)
-      git clone --quiet --no-hardlinks --no-checkout "$DAEMON_REPO" "$PRIOR_DIR/tree"
-      git -C "$PRIOR_DIR/tree" checkout --quiet --detach "$PRIOR_SHA"
-      test "$(git -C "$PRIOR_DIR/tree" rev-parse HEAD)" = "$PRIOR_SHA"
-      cd "$PRIOR_DIR/tree"
-      python3 tools/build_site.py --check && python3 tools/build_worker_personas.py &&
-        python3 tools/build_instructor_bundle.py && python3 tools/build_history.py &&
-        node app/worker/scripts/bundle-editor-data.mjs; echo "prior regen rc=$?"
+      if PRIOR_DIR=$(mktemp -d) &&
+         git clone --quiet --no-hardlinks --no-checkout "$DAEMON_REPO" "$PRIOR_DIR/tree" &&
+         git -C "$PRIOR_DIR/tree" checkout --quiet --detach "$PRIOR_SHA" &&
+         OBSERVED_GATE_VALUE=$(git -C "$PRIOR_DIR/tree" rev-parse HEAD) &&
+         test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA"; then
+        cd "$PRIOR_DIR/tree" &&
+          python3 tools/build_site.py --check &&
+          python3 tools/build_worker_personas.py &&
+          python3 tools/build_instructor_bundle.py &&
+          python3 tools/build_history.py &&
+          node app/worker/scripts/bundle-editor-data.mjs
+        echo "prior regen rc=$?"
+      else
+        echo "STOP: prior checkout failed or HEAD unreadable or unequal to PRIOR_SHA"
+      fi
       ```
 
       Then, still in `$PRIOR_DIR/tree`, run the OQ-10 `spine_build_id`
@@ -1938,7 +2006,7 @@ or nonzero result as a stop before the window.
    ignores user-site and Python environment path injection. The Bash builtin
    command boundary prevents PATH entries or slash-named shell functions from
    intercepting Git or Python, and a pre-existing readonly launcher makes setup
-   exit `69`. Every
+   print STOP and retain `opening_queue_proof_rc=69` without closing the window. Every
    invocation independently requires the named checkout to be
    at the reviewed commit, requires that commit to contain the reviewed blob,
    and hashes the working verifier bytes to reject a dirty or substituted copy.
@@ -1971,12 +2039,12 @@ or nonzero result as a stop before the window.
 
    <!-- queue-proof-launcher:start -->
    ```bash
-   builtin readonly QUEUE_PROOF_CHECKOUT=/home/damienriehl/.local/share/sonsteng-ops/checkout || exit 68
-   builtin readonly QUEUE_PROOF_VERIFIER="$QUEUE_PROOF_CHECKOUT/tools/prove_queues_empty.py" || exit 68
-   builtin readonly QUEUE_PROOF_RELEASE_COMMIT='<reviewed-release-commit-SHA>' || exit 68
-   builtin readonly QUEUE_PROOF_VERIFIER_BLOB='<reviewed-verifier-Git-blob-OID>' || exit 68
-   builtin readonly QUEUE_PROOF_NONCE_FILE='<absolute-mode-0600-window-nonce-file>' || exit 68
-   builtin unset -f run_queue_proof 2>/dev/null || exit 69
+   if builtin readonly QUEUE_PROOF_CHECKOUT=/home/damienriehl/.local/share/sonsteng-ops/checkout &&
+   builtin readonly QUEUE_PROOF_VERIFIER="$QUEUE_PROOF_CHECKOUT/tools/prove_queues_empty.py" &&
+   builtin readonly QUEUE_PROOF_RELEASE_COMMIT='<reviewed-release-commit-SHA>' &&
+   builtin readonly QUEUE_PROOF_VERIFIER_BLOB='<reviewed-verifier-Git-blob-OID>' &&
+   builtin readonly QUEUE_PROOF_NONCE_FILE='<absolute-mode-0600-window-nonce-file>'; then
+   if builtin unset -f run_queue_proof 2>/dev/null; then
 
    run_queue_proof() {
      builtin local observed_checkout observed_commit committed_blob working_blob window_phase receipt_path
@@ -2031,10 +2099,21 @@ or nonzero result as a stop before the window.
          --receipt-path "$receipt_path"
      ) 9<"$QUEUE_PROOF_VERIFIER"
    }
-   builtin readonly -f run_queue_proof
-
-   run_queue_proof opening '<absolute-opening-receipt-path>.json'
-   opening_queue_proof_rc=$?
+   if builtin readonly -f run_queue_proof; then
+     run_queue_proof opening '<absolute-opening-receipt-path>.json'
+     opening_queue_proof_rc=$?
+   else
+     opening_queue_proof_rc=69
+     echo "STOP: cannot pin queue proof function"
+   fi
+   else
+     opening_queue_proof_rc=69
+     echo "STOP: cannot replace queue proof launcher"
+   fi
+   else
+     opening_queue_proof_rc=68
+     echo "STOP: cannot establish queue proof constants"
+   fi
    ```
    <!-- queue-proof-launcher:end -->
 
@@ -2295,7 +2374,8 @@ or nonzero result as a stop before the window.
    CONTROLLED_REPO=/absolute/path/for/the/new/controlled-worktree
    test "${CONTROLLED_REPO#/}" != "$CONTROLLED_REPO" && test ! -e "$CONTROLLED_REPO" && echo "path OK" || echo "STOP: path relative or exists"
    git -C "$DAEMON_REPO" worktree add --detach "$CONTROLLED_REPO" "$PRIOR_SHA"
-   test "$(git -C "$CONTROLLED_REPO" rev-parse HEAD)" = "$PRIOR_SHA" && echo "controlled worktree at PRIOR_SHA" || echo "STOP: controlled worktree HEAD"
+   OBSERVED_GATE_VALUE=$(git -C "$CONTROLLED_REPO" rev-parse HEAD) &&
+   test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA" && echo "controlled worktree at PRIOR_SHA" || echo "STOP: controlled worktree HEAD"
    cd "$CONTROLLED_REPO"
    ```
 
@@ -2392,8 +2472,10 @@ or nonzero result as a stop before the window.
 
    ```bash
    RECOVERY_JSON=$(recovery_ids); echo "inspector rc=$? $RECOVERY_JSON"
-   test "$(recovery_field sha)" = "$CANDIDATE_SHA" && echo "new pair sha OK" || echo "STOP: new pair sha"
-   test "$(recovery_field worker_version_id)" = "$NEW_WORKER_VERSION_ID" && echo "new worker id OK" || echo "STOP: new worker id"
+   OBSERVED_GATE_VALUE=$(recovery_field sha) &&
+   test "$OBSERVED_GATE_VALUE" = "$CANDIDATE_SHA" && echo "new pair sha OK" || echo "STOP: new pair sha"
+   OBSERVED_GATE_VALUE=$(recovery_field worker_version_id) &&
+   test "$OBSERVED_GATE_VALUE" = "$NEW_WORKER_VERSION_ID" && echo "new worker id OK" || echo "STOP: new worker id"
    NEW_PAGES_DEPLOYMENT_ID=$(recovery_field pages_deployment_id)
    test "${#NEW_PAGES_DEPLOYMENT_ID}" -eq 36 && echo "new pages id len OK" || echo "STOP: new pages id is not a 36-character canonical id"
    ```
@@ -2427,9 +2509,12 @@ or nonzero result as a stop before the window.
      npx wrangler@4 versions deploy "$PRIOR_WORKER_VERSION_ID" --env production --yes )
    echo "worker rollback rc=$?"
    RECOVERY_JSON=$(recovery_ids); echo "inspector rc=$? $RECOVERY_JSON"
-   test "$(recovery_field sha)" = "$PRIOR_PAIR_SHA" &&
-     test "$(recovery_field pages_deployment_id)" = "$PRIOR_PAGES_DEPLOYMENT_ID" &&
-     test "$(recovery_field worker_version_id)" = "$PRIOR_WORKER_VERSION_ID" &&
+   OBSERVED_GATE_VALUE=$(recovery_field sha) &&
+   test "$OBSERVED_GATE_VALUE" = "$PRIOR_PAIR_SHA" &&
+     OBSERVED_GATE_VALUE=$(recovery_field pages_deployment_id) &&
+     test "$OBSERVED_GATE_VALUE" = "$PRIOR_PAGES_DEPLOYMENT_ID" &&
+     OBSERVED_GATE_VALUE=$(recovery_field worker_version_id) &&
+     test "$OBSERVED_GATE_VALUE" = "$PRIOR_WORKER_VERSION_ID" &&
      echo "PRIOR PAIR OK" || echo "STOP: prior pair readback"
 
    ( cd "$CONTROLLED_REPO/app/worker" &&
@@ -2438,9 +2523,12 @@ or nonzero result as a stop before the window.
    credential-helper-that-prints-only-the-Cloudflare-bearer | pages_rollback "$NEW_PAGES_DEPLOYMENT_ID"
    echo "pages forward rc=$?"
    RECOVERY_JSON=$(recovery_ids); echo "inspector rc=$? $RECOVERY_JSON"
-   test "$(recovery_field sha)" = "$CANDIDATE_SHA" &&
-     test "$(recovery_field pages_deployment_id)" = "$NEW_PAGES_DEPLOYMENT_ID" &&
-     test "$(recovery_field worker_version_id)" = "$NEW_WORKER_VERSION_ID" &&
+   OBSERVED_GATE_VALUE=$(recovery_field sha) &&
+   test "$OBSERVED_GATE_VALUE" = "$CANDIDATE_SHA" &&
+     OBSERVED_GATE_VALUE=$(recovery_field pages_deployment_id) &&
+     test "$OBSERVED_GATE_VALUE" = "$NEW_PAGES_DEPLOYMENT_ID" &&
+     OBSERVED_GATE_VALUE=$(recovery_field worker_version_id) &&
+     test "$OBSERVED_GATE_VALUE" = "$NEW_WORKER_VERSION_ID" &&
      echo "NEW PAIR OK" || echo "STOP: new pair readback"
    ```
 
@@ -2453,7 +2541,9 @@ or nonzero result as a stop before the window.
     canonical `main` (CAS readback), both production `x-release-sha` headers
     (inspector), and the DEV/editor Worker `x-release-sha` equal
     `CANDIDATE_SHA`. The DEV static `spine-build` equals the candidate's
-    committed `spine_build_id`. The editor surface
+    committed `spine_build_id`. Run this DEV-static spine comparison from the
+    controlled candidate worktree with `HEAD` at `CANDIDATE_SHA`, never from
+    `$OPS_REPO`: the operations clone never contains the candidate. The editor surface
     (`edit.legalpracticum.org`) is the same `sonsteng-chat` Worker overlaying
     that DEV static origin, so those two proofs cover it;
 11. at window close, rerun the readonly function from item 2 with the same
@@ -2502,8 +2592,10 @@ verification have passed and while the daemon lock and six-actor window remain
 held, rehearse the Git-only transition:
 
 ```bash
+set -o pipefail
 CAS_FORWARD_DRY_RECEIPT="$RECEIPT_DIR/canonical-ref-forward-dry-run.json"
-/usr/bin/env -i /usr/bin/python3 -I "$CAS" forward \
+gh auth token | /usr/bin/env -i /usr/bin/python3 -I "$CAS" forward \
+  --remote-token-stdin \
   --repo "$DAEMON_REPO" \
   --remote origin \
   --branch main \
@@ -2519,7 +2611,8 @@ Then perform the exact same transition without `--dry-run`:
 
 ```bash
 CAS_FORWARD_RECEIPT="$RECEIPT_DIR/canonical-ref-forward.json"
-/usr/bin/env -i /usr/bin/python3 -I "$CAS" forward \
+gh auth token | /usr/bin/env -i /usr/bin/python3 -I "$CAS" forward \
+  --remote-token-stdin \
   --repo "$DAEMON_REPO" \
   --remote origin \
   --branch main \
@@ -2625,6 +2718,68 @@ Every possible `transition_outcome` has an operator rule:
   moved production after this command's CAS; keep the window fenced and
   escalate, and do not treat even a complete mutation ledger as authority to
   compensate.
+
+  For the attempt-4 case only (local main and HEAD at `CANDIDATE_SHA`, remote
+  main and `origin/main` still at `PRIOR_SHA`), retain the fence and daemon
+  lock. Inspect the ledger and prove this exact split state, the pinned remote
+  URL, and a clean candidate worktree before applying the local inverse below.
+  Do not run ordinary `restore`, whose precondition is remote at the candidate.
+  This is `update-ref refs/heads/main <prior> <candidate>` followed by
+  `read-tree -m -u <prior>` in the daemon repository using the CAS Git environment.
+  Stop on any failed check; do not substitute another SHA or discard edits.
+
+  ```bash
+  (
+    set -euo pipefail
+    recovery_git() {
+      /usr/bin/env -i LC_ALL=C GIT_CONFIG_COUNT=0 \
+        GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 \
+        GIT_CONFIG_SYSTEM=/dev/null GIT_NO_REPLACE_OBJECTS=1 \
+        GIT_SSH_COMMAND=/dev/null GIT_TERMINAL_PROMPT=0 \
+        /usr/bin/git -c core.hooksPath=/dev/null "$@"
+    }
+    cd "$DAEMON_REPO"
+    OBSERVED_GATE_VALUE=$(recovery_git remote get-url --all origin) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$CANONICAL_REMOTE_URL"
+    OBSERVED_GATE_VALUE=$(recovery_git remote get-url --push --all origin) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$CANONICAL_REMOTE_URL"
+    OBSERVED_GATE_VALUE=$(printf %s "$CANONICAL_REMOTE_URL" | /usr/bin/sha256sum | cut -d' ' -f1) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$EXPECTED_REMOTE_URL_SHA256"
+    OBSERVED_GATE_VALUE=$(recovery_git symbolic-ref HEAD) || exit 1
+    test "$OBSERVED_GATE_VALUE" = refs/heads/main
+    OBSERVED_GATE_VALUE=$(recovery_git rev-parse refs/heads/main) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$CANDIDATE_SHA"
+    OBSERVED_GATE_VALUE=$(recovery_git rev-parse HEAD) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$CANDIDATE_SHA"
+    OBSERVED_GATE_VALUE=$(recovery_git rev-parse refs/remotes/origin/main) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA"
+    RECOVERY_STATUS=$(recovery_git status --porcelain --untracked-files=all) || exit 1
+    test -z "$RECOVERY_STATUS" || exit 1
+    # Query from /dev to exclude daemon transport configuration, as CAS does.
+    EXPECTED_REMOTE_LINE=$(printf '%s\trefs/heads/main' "$PRIOR_SHA")
+    OBSERVED_GATE_VALUE=$(recovery_git -C /dev ls-remote --refs --exit-code "$CANONICAL_REMOTE_URL" refs/heads/main) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$EXPECTED_REMOTE_LINE"
+    recovery_git update-ref refs/heads/main "$PRIOR_SHA" "$CANDIDATE_SHA"
+    recovery_git -c core.symlinks=true read-tree -m -u "$PRIOR_SHA"
+    OBSERVED_GATE_VALUE=$(recovery_git rev-parse refs/heads/main) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA"
+    OBSERVED_GATE_VALUE=$(recovery_git rev-parse HEAD) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA"
+    OBSERVED_GATE_VALUE=$(recovery_git rev-parse refs/remotes/origin/main) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA"
+    RECOVERY_STATUS=$(recovery_git status --porcelain --untracked-files=all) || exit 1
+    test -z "$RECOVERY_STATUS" || exit 1
+    OBSERVED_GATE_VALUE=$(recovery_git -C /dev ls-remote --refs --exit-code "$CANONICAL_REMOTE_URL" refs/heads/main) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$EXPECTED_REMOTE_LINE"
+    recovery_git rev-parse HEAD refs/heads/main refs/remotes/origin/main
+    recovery_git -C /dev ls-remote --refs --exit-code "$CANONICAL_REMOTE_URL" refs/heads/main
+  )
+  ```
+
+  Preserve these readbacks with the failed receipt before planning another
+  authenticated rehearsal. If the remote is no longer prior, this recovery is
+  inapplicable and must stop before the local inverse.
+
 - `not-landed`: no mutation was confirmed and the target was not fully
   observed. This is not proof that an unreadable remote stayed at `--from`,
   especially when validation failed before readback. Keep the window fenced,

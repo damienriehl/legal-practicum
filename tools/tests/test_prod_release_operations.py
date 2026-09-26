@@ -134,10 +134,19 @@ def test_day_zero_verifier_sources_use_standalone_pinned_operations_clone():
     assert runbook.count(f"OPS_REPO={ops}\n") == 2
     assert 'trusted_git clone --no-local -- "$CANONICAL_REMOTE_URL" "$OPS_REPO"' in runbook
     assert 'trusted_git -C "$OPS_REPO" checkout --detach "$REVIEWED_OPS_COMMIT"' in runbook
-    assert 'rev-parse --path-format=absolute --git-common-dir)" = "$OPS_REPO/.git"' in runbook
-    assert 'rev-parse --abbrev-ref HEAD)" = HEAD' in runbook
-    assert 'rev-parse --verify HEAD)" = "$REVIEWED_OPS_COMMIT"' in runbook
-    assert 'test -z "$(trusted_git -C "$OPS_REPO" status --porcelain --untracked-files=all)"' in runbook
+    assert ('OBSERVED_GATE_VALUE=$(trusted_git -C "$OPS_REPO" '
+            'rev-parse --path-format=absolute --git-common-dir) || exit 1\n'
+            'test "$OBSERVED_GATE_VALUE" = "$OPS_REPO/.git"') in runbook
+    assert ('OBSERVED_GATE_VALUE=$(trusted_git -C "$OPS_REPO" '
+            'rev-parse --abbrev-ref HEAD) || exit 1\n'
+            'test "$OBSERVED_GATE_VALUE" = HEAD') in runbook
+    assert ('OBSERVED_GATE_VALUE=$(trusted_git -C "$OPS_REPO" '
+            'rev-parse --verify HEAD) || exit 1\n'
+            'test "$OBSERVED_GATE_VALUE" = "$REVIEWED_OPS_COMMIT"') in runbook
+    assert runbook.count(
+        'OPS_STATUS=$(trusted_git -C "$OPS_REPO" status --porcelain --untracked-files=all) || exit 1\n'
+        'test -z "$OPS_STATUS" || exit 1'
+    ) == 2
     preflight = runbook.split("Before pencils-down or either timer is changed,", 1)[1].split("queue_proof_preflight_rc=$?", 1)[0]
     assert f"/usr/bin/git -C {ops} rev-parse --verify 'HEAD^{{commit}}'" in preflight
     assert f"/usr/bin/git -C {ops} rev-parse '<reviewed-release-commit-SHA>:tools/prove_queues_empty.py'" in preflight
