@@ -21,6 +21,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 import direct_apply_daemon as dad  # noqa: E402
@@ -361,6 +362,19 @@ def _stale_remote_fixture(root, branch="main"):
 
 
 class TestExecuteRevertGit(unittest.TestCase):
+    def setUp(self):
+        # execute_revert's default lock is in the real checkout, independent of
+        # repo_root. Keep real flock behavior, but isolate each test's lock.
+        lock_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(lock_dir.cleanup)
+        real_apply_lock = dad.apply_lock
+        lock_patch = patch.object(
+            dad, "apply_lock",
+            lambda: real_apply_lock(os.path.join(lock_dir.name, "apply.lock")),
+        )
+        lock_patch.start()
+        self.addCleanup(lock_patch.stop)
+
     def test_clean_run_range_reverts_to_prior_content(self):
         with tempfile.TemporaryDirectory() as td:
             _init_repo(td)

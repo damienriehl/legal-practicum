@@ -335,6 +335,11 @@ compensation sequence while the window remains held:
    prove_provenance https://sonsteng-chat.damienriehl.workers.dev/edit/release-provenance 204 "$PRIOR_SHA"
    ```
 
+   After activation, retry the DEV `prove_provenance` check every 5 seconds
+   for up to 60 seconds; activation propagation took about 20 seconds. Require
+   the same exact status and SHA checks on every attempt. If it still fails at
+   the deadline, stop compensation and escalate; do not continue on stale proof.
+
    Only if that version cannot be activated, rebuild instead: regenerate the
    ignored Worker inputs in a clean `PRIOR_SHA` checkout (OQ-10) and run the
    OQ-13 part (b) upload, view, and deploy with `TARGET_SHA=$PRIOR_SHA`; and
@@ -1006,7 +1011,10 @@ prints `VIEW OK` and `view rc=0`. The helper checks the exact 40-character
 `PROD_RELEASE_LEDGER` values from `wrangler.jsonc`; any other result is a stop.
 Do not read the plain `versions view` table instead: Wrangler 4.141 truncates
 values of 40 or more characters to 37 plus `...`, so a SHA can never be
-confirmed there. Then prove the Worker:
+confirmed there. Then prove the Worker. After activation, retry this DEV
+provenance check every 5 seconds for up to 60 seconds (activation propagation
+took about 20 seconds), keeping the exact status and SHA requirements. If it
+still fails at the deadline, stop; do not advance to the next step:
 
 ```bash
 prove_provenance https://sonsteng-chat.damienriehl.workers.dev/edit/release-provenance 204 "$TARGET_SHA"
@@ -1168,6 +1176,11 @@ window; the numbered sequence below is the authority.
 
 ## Pre-window ledger backfill (2026-09-25 decision)
 
+**Completed once on 2026-09-25:** release ID `ledger-backfill-20260925`,
+11 batches. Do not re-run the backfill: it is bootstrap-only and will refuse
+another bootstrap now that the release record exists. The procedure below is
+retained as the execution record, including its lost-response recovery path.
+
 The first Packet D window (2026-09-25) stopped at the opening queue proof with
 `frontier-response-malformed`. The ledger on the `sonsteng-chat` Worker still
 listed eleven DEV apply batches as pending publication, ten of them legacy rows
@@ -1215,6 +1228,11 @@ review-revision evidence. This is the intended post-bootstrap state. There is
 no rollback: never delete or edit the record. If it is wrong, keep the window
 closed and escalate.
 
+**History/revert hold after backfill.** No History reverts until
+`tools/direct_apply_daemon.py` attaches `review_revision` evidence to reverts.
+Without that evidence, `completeCanonicalMutation` refuses with
+`missing_revision_evidence`, and the daemon would wedge.
+
 **Preconditions.** Deploy the Worker that carries the backfill route to the
 ledger Worker (`sonsteng-chat`, top-level environment) through the normal
 reviewed DEV lane with `RELEASE_SHA` set, and prove its provenance, before the
@@ -1261,7 +1279,8 @@ The reviewed batch set, as the observer frontier reported it on 2026-09-26
    token = open(sys.argv[1], encoding="utf-8").read().strip().split("=", 1)[1]
    request = urllib.request.Request(
        "https://sonsteng-chat.damienriehl.workers.dev/edit/v1/prod/releases/frontier",
-       headers={"Authorization": "Bearer " + token, "Accept": "application/json"})
+       headers={"Authorization": "Bearer " + token, "Accept": "application/json",
+                "User-Agent": "sonsteng-queue-proof/1.0"})
    with urllib.request.build_opener(NoRedirect).open(request, timeout=20) as response:
        context = json.load(response)["context"]
    batches = [{"batch_id": b["batch_id"], "commit_sha": b["commit_sha"]} for b in context["batches"]]
@@ -1313,7 +1332,8 @@ The reviewed batch set, as the observer frontier reported it on 2026-09-26
    token = open(sys.argv[1], encoding="utf-8").read().strip().split("=", 1)[1]
    request = urllib.request.Request(
        "https://sonsteng-chat.damienriehl.workers.dev/edit/v1/prod/releases/frontier",
-       headers={"Authorization": "Bearer " + token, "Accept": "application/json"})
+       headers={"Authorization": "Bearer " + token, "Accept": "application/json",
+                "User-Agent": "sonsteng-queue-proof/1.0"})
    with urllib.request.build_opener(NoRedirect).open(request, timeout=20) as response:
        context = json.load(response)["context"]
    base = context.get("base_sha") or ""
@@ -1595,7 +1615,11 @@ or nonzero result as a stop before the window.
       before `versions deploy`, so the live editor is still on the pre-1a
       version. The API returns secret names, never values. `prove_provenance`
       must print `OK` (`204`, one header, 40 characters, equal to
-      `PRIOR_SHA`).
+      `PRIOR_SHA`). After activation, retry this DEV provenance check every
+      5 seconds for up to 60 seconds; activation propagation took about
+      20 seconds. Keep all exact status/header/SHA checks on each attempt.
+      If it still fails at the deadline, treat it as a step-1a failure and
+      follow the compensation below.
 
       Then run one read-only observer `GET` of the operation frontier. It
       prints only the HTTP status and two fields, never the token:
