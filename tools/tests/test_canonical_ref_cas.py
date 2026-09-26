@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
+import io
 import json
 import os
 import re
@@ -197,6 +199,7 @@ def invoke(
     expected_remote_url_sha256: str | None | object = AUTO_REMOTE_EXPECTATION,
     receipt_path: Path | None = None,
     close_stdout: bool = False,
+    token_input: str | None = None,
     window_owner: str | None = WINDOW_OWNER,
 ):
     if env is None:
@@ -238,6 +241,8 @@ def invoke(
         )
     if dry_run:
         command.append("--dry-run")
+    if token_input is not None:
+        command.append("--remote-token-stdin")
     if close_stdout:
         return subprocess.run(
             command,
@@ -247,8 +252,11 @@ def invoke(
             text=True,
             env=env,
             preexec_fn=lambda: os.close(1),
+            input=token_input,
         )
-    return subprocess.run(command, cwd=ROOT, capture_output=True, text=True, env=env)
+    return subprocess.run(
+        command, cwd=ROOT, capture_output=True, text=True, env=env, input=token_input
+    )
 
 
 def receipt(completed: subprocess.CompletedProcess[str]) -> dict:
@@ -376,6 +384,7 @@ def test_happy_forward(repositories: Repositories):
         "result": "success",
         "transition_outcome": "succeeded",
         "verb": "forward",
+        "remote_push_auth_probe": "passed",
     }
     assert sha(repositories.daemon, "refs/heads/main") == repositories.candidate
     assert sha(repositories.daemon) == repositories.candidate
@@ -1754,6 +1763,7 @@ def test_restore_happy(repositories: Repositories):
         "result": "success",
         "transition_outcome": "succeeded",
         "verb": "restore",
+        "remote_push_auth_probe": "passed",
     }
     assert git(repositories.daemon, "status", "--porcelain", "--untracked-files=all").stdout == ""
     assert not (repositories.daemon / "added-by-candidate.txt").exists()
@@ -2413,12 +2423,12 @@ def test_validated_readback_is_last_git_interaction_before_success(
     stages: list[str] = []
     remote_snapshot_args: list[list[str]] = []
 
-    def recording_run_git(operation, args, *, stage, check=True, cwd=None, env=None):
+    def recording_run_git(operation, args, *, stage, check=True, cwd=None, env=None, **kwargs):
         stages.append(stage)
         if stage == "remote ref snapshot readback":
             remote_snapshot_args.append(list(args))
         return original_run_git(
-            operation, args, stage=stage, check=check, cwd=cwd, env=env
+            operation, args, stage=stage, check=check, cwd=cwd, env=env, **kwargs
         )
 
     monkeypatch.setattr(cas, "_run_git", recording_run_git)
@@ -2565,12 +2575,12 @@ def test_push_uses_pinned_url_and_fully_qualified_main_refspec(
     original_run_git = cas._run_git
     push_args = None
 
-    def recording_run_git(operation, args, *, stage, check=True, cwd=None, env=None):
+    def recording_run_git(operation, args, *, stage, check=True, cwd=None, env=None, **kwargs):
         nonlocal push_args
         if stage == "remote main compare-and-swap":
             push_args = list(args)
         return original_run_git(
-            operation, args, stage=stage, check=check, cwd=cwd, env=env
+            operation, args, stage=stage, check=check, cwd=cwd, env=env, **kwargs
         )
 
     monkeypatch.setattr(cas, "_run_git", recording_run_git)
@@ -2610,13 +2620,13 @@ def test_remote_url_change_is_detected_without_retargeting_push(
     original_run_git = cas._run_git
     retargeted = False
 
-    def racing_run_git(operation, args, *, stage, check=True, cwd=None, env=None):
+    def racing_run_git(operation, args, *, stage, check=True, cwd=None, env=None, **kwargs):
         nonlocal retargeted
         if stage == "remote main compare-and-swap" and not retargeted:
             retargeted = True
             git(repositories.daemon, "remote", "set-url", "origin", str(decoy))
         return original_run_git(
-            operation, args, stage=stage, check=check, cwd=cwd, env=env
+            operation, args, stage=stage, check=check, cwd=cwd, env=env, **kwargs
         )
 
     monkeypatch.setattr(cas, "_run_git", racing_run_git)
@@ -2745,7 +2755,7 @@ def test_restore_alignment_does_not_overwrite_raced_local_main(
     original_run_git = cas._run_git
     raced = False
 
-    def racing_run_git(operation, args, *, stage, check=True, cwd=None, env=None):
+    def racing_run_git(operation, args, *, stage, check=True, cwd=None, env=None, **kwargs):
         nonlocal raced
         if stage == "daemon worktree alignment" and not raced:
             raced = True
@@ -2757,7 +2767,7 @@ def test_restore_alignment_does_not_overwrite_raced_local_main(
                 repositories.prior,
             )
         return original_run_git(
-            operation, args, stage=stage, check=check, cwd=cwd, env=env
+            operation, args, stage=stage, check=check, cwd=cwd, env=env, **kwargs
         )
 
     monkeypatch.setattr(cas, "_run_git", racing_run_git)
@@ -2799,13 +2809,13 @@ def test_forward_cas_does_not_overwrite_coherent_ancestor_race(
     original_run_git = cas._run_git
     raced = False
 
-    def racing_run_git(operation, args, *, stage, check=True, cwd=None, env=None):
+    def racing_run_git(operation, args, *, stage, check=True, cwd=None, env=None, **kwargs):
         nonlocal raced
         if stage == "local main compare-and-swap" and not raced:
             raced = True
             git(repositories.daemon, "reset", "--hard", "-q", competitor)
         return original_run_git(
-            operation, args, stage=stage, check=check, cwd=cwd, env=env
+            operation, args, stage=stage, check=check, cwd=cwd, env=env, **kwargs
         )
 
     monkeypatch.setattr(cas, "_run_git", racing_run_git)
@@ -2910,7 +2920,7 @@ def test_forward_pushes_immutable_candidate_during_local_ref_race(
     original_run_git = cas._run_git
     raced = False
 
-    def racing_run_git(operation, args, *, stage, check=True, cwd=None, env=None):
+    def racing_run_git(operation, args, *, stage, check=True, cwd=None, env=None, **kwargs):
         nonlocal raced
         if stage == "remote main compare-and-swap" and not raced:
             raced = True
@@ -2922,7 +2932,7 @@ def test_forward_pushes_immutable_candidate_during_local_ref_race(
                 repositories.candidate,
             )
         return original_run_git(
-            operation, args, stage=stage, check=check, cwd=cwd, env=env
+            operation, args, stage=stage, check=check, cwd=cwd, env=env, **kwargs
         )
 
     monkeypatch.setattr(cas, "_run_git", racing_run_git)
@@ -5039,3 +5049,296 @@ def test_malformed_remote_url_produces_bounded_receipt_without_traceback(
     assert result["remote_url"] == "[redacted]"
     assert result["error"] == "remote URL could not be parsed safely"
     assert result["mutations"] == []
+
+
+TOKEN_SENTINEL = "cas-token-SENTINEL-7e920a"
+AUTH_HEADER = "Basic " + base64.b64encode(
+    ("x-access-token:" + TOKEN_SENTINEL).encode("ascii")
+).decode("ascii")
+
+
+@pytest.fixture
+def authenticated_remote(repositories):
+    git(repositories.remote, "config", "http.receivepack", "true")
+    requests = []
+    class Handler(SimpleHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(
+                *args,
+                directory=str(repositories.remote.parent),
+                **kwargs,
+            )
+
+        def _serve_git(self) -> None:
+            parsed = urlsplit(self.path)
+            if "git-receive-pack" in self.path and self.headers.get("Authorization") != AUTH_HEADER:
+                self.send_response(401)
+                self.send_header("WWW-Authenticate", 'Basic realm="CAS"')
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            content_length = int(self.headers.get("Content-Length", "0"))
+            request_body = self.rfile.read(content_length)
+            backend_environment = _test_git_environment()
+            backend_environment.update(
+                {
+                    "CONTENT_LENGTH": str(content_length),
+                    "CONTENT_TYPE": self.headers.get("Content-Type", ""),
+                    "GIT_HTTP_EXPORT_ALL": "1",
+                    "GIT_PROJECT_ROOT": str(repositories.remote.parent),
+                    "PATH_INFO": parsed.path,
+                    "QUERY_STRING": parsed.query,
+                    "REMOTE_ADDR": self.client_address[0],
+                    "REQUEST_METHOD": self.command,
+                }
+            )
+            completed = subprocess.run(
+                [cas.GIT_PATH, "http-backend"],
+                input=request_body,
+                capture_output=True,
+                env=backend_environment,
+                check=False,
+            )
+            header_block, separator, response_body = completed.stdout.partition(
+                b"\r\n\r\n"
+            )
+            if not separator:
+                header_block, separator, response_body = completed.stdout.partition(
+                    b"\n\n"
+                )
+            assert separator
+            status = 200
+            response_headers: list[tuple[str, str]] = []
+            for line in header_block.decode("latin-1").splitlines():
+                name, value = line.split(":", 1)
+                assert name
+                if name.lower() == "status":
+                    status = int(value.strip().split()[0])
+                else:
+                    response_headers.append((name, value.strip()))
+            self.send_response(status)
+            for name, value in response_headers:
+                self.send_header(name, value)
+            self.send_header("Content-Length", str(len(response_body)))
+            self.end_headers()
+            self.wfile.write(response_body)
+            requests.append((self.command, self.path))
+
+        def do_GET(self) -> None:  # noqa: N802
+            self._serve_git()
+
+        def do_POST(self) -> None:  # noqa: N802
+            self._serve_git()
+
+        def log_message(self, _format: str, *_args: object) -> None:
+            return
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    url = f"http://127.0.0.1:{server.server_port}/{repositories.remote.name}"
+    git(repositories.daemon, "remote", "set-url", "origin", url)
+    try:
+        yield url
+    finally:
+        server.shutdown()
+        thread.join(timeout=5)
+        server.server_close()
+
+
+@pytest.mark.parametrize("verb", ["forward", "restore"])
+@pytest.mark.parametrize("dry_run", [False, True])
+@pytest.mark.parametrize("token", [None, "wrong-token", TOKEN_SENTINEL])
+def test_receive_pack_requires_stdin_auth_before_mutation(
+    repositories, authenticated_remote, verb, dry_run, token,
+):
+    if verb == "restore":
+        # Establish candidate locally through the file transport before testing auth.
+        git(repositories.daemon, "remote", "set-url", "origin", str(repositories.remote))
+        assert invoke(repositories, "forward").returncode == 0
+        git(repositories.daemon, "remote", "set-url", "origin", authenticated_remote)
+    before = sha(repositories.daemon)
+    completed = invoke(repositories, verb, dry_run=dry_run,
+                       token_input=None if token is None else token + "\n")
+    result = receipt(completed)
+    if token == TOKEN_SENTINEL:
+        assert completed.returncode == 0, completed.stderr
+        assert result["remote_push_auth_probe"] == "passed"
+        target = repositories.candidate if verb == "forward" else repositories.prior
+        assert sha(repositories.daemon) == (before if dry_run else target)
+        assert sha(repositories.remote, "main") == (before if dry_run else target)
+    else:
+        assert completed.returncode != 0
+        assert result["error_code"] == "remote-push-auth-failed"
+        assert result["mutations"] == []
+        assert sha(repositories.daemon) == before
+        assert sha(repositories.remote, "main") == before
+    outputs = completed.stdout + completed.stderr
+    outputs += "".join(path.read_text() for path in repositories.remote.parent.glob("cas-receipt-*.json"))
+    assert TOKEN_SENTINEL not in outputs
+    assert AUTH_HEADER not in outputs
+
+
+@pytest.mark.parametrize("raw", [b"", b"\n", b" \n", b"a b\n", b"a\r\n", b"a\nb\n",
+                                  b"a\n\n", b"a\t\n", b"a\x00", b"\xff", b"a" * 4097])
+def test_token_input_refuses_invalid_bytes(monkeypatch, raw):
+    monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(io.BytesIO(raw)))
+    with pytest.raises(cas.CasError, match="invalid remote token input"):
+        cas._read_remote_token()
+
+
+@pytest.mark.parametrize("suffix", [b"", b"\n"])
+def test_token_input_accepts_one_bounded_line(monkeypatch, suffix):
+    monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(io.BytesIO(TOKEN_SENTINEL.encode() + suffix)))
+    assert cas._read_remote_token() == "Authorization: " + AUTH_HEADER
+
+
+def test_auth_config_is_child_only_and_url_scoped(repositories, monkeypatch):
+    url = "https://example.invalid/repository.git"
+    operation = cas.Operation("forward", repositories.daemon, "origin", "main",
+                              repositories.prior, repositories.candidate, True,
+                              remote_auth=(url, "Authorization: " + AUTH_HEADER))
+    calls = []
+    def run(argv, **kwargs):
+        calls.append((argv, kwargs["env"]))
+        return subprocess.CompletedProcess(argv, 0, "", "")
+    monkeypatch.setattr(cas.subprocess, "run", run)
+    cas._run_git(operation, ["status"], stage="test")
+    cas._run_git(operation, ["push", "--dry-run", url], stage="test", network_url=url)
+    assert calls[0][1]["GIT_CONFIG_COUNT"] == "0"
+    assert calls[1][1]["GIT_CONFIG_KEY_0"] == f"http.{url}.extraHeader"
+    assert calls[1][1]["GIT_CONFIG_VALUE_0"] == "Authorization: " + AUTH_HEADER
+    assert calls[1][1]["GIT_CONFIG_VALUE_1"] == ""
+    assert calls[1][1]["GIT_CONFIG_VALUE_2"] == "false"
+    for argv, env in calls:
+        assert TOKEN_SENTINEL not in str(argv)
+        assert AUTH_HEADER not in str(argv)
+        assert env["GIT_CONFIG_GLOBAL"] == os.devnull
+        assert env["GIT_CONFIG_NOSYSTEM"] == "1"
+        assert env["GIT_TERMINAL_PROMPT"] == "0"
+        assert "HOME" not in env
+    assert AUTH_HEADER not in repr(operation)
+    with pytest.raises(cas.CasError, match="scope mismatch"):
+        cas._run_git(operation, ["push"], stage="test", network_url=url + "/other")
+
+
+@pytest.mark.parametrize("failure_path", ["success", "probe", "push", "handler", "outermost", "publication"])
+def test_stdin_token_never_leaks_on_any_output_path(
+    repositories, monkeypatch, capfd, caplog, failure_path,
+):
+    monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(
+        io.BytesIO((TOKEN_SENTINEL + "\n").encode())))
+    original_run = cas.subprocess.run
+    seen_probe = False
+
+    def run(argv, **kwargs):
+        nonlocal seen_probe
+        if "push" in argv:
+            assert TOKEN_SENTINEL not in str(argv)
+            assert AUTH_HEADER not in str(argv)
+            assert kwargs["env"]["GIT_CONFIG_VALUE_0"] == "Authorization: " + AUTH_HEADER
+            if "--dry-run" in argv:
+                seen_probe = True
+                assert "--porcelain" in argv
+                assert argv[-1] == f"{repositories.prior}:refs/heads/main"
+                assert sha(repositories.daemon) == repositories.prior
+                assert sha(repositories.remote, "main") == repositories.prior
+            if failure_path in {"probe", "handler"} or (
+                failure_path == "push" and "--dry-run" not in argv
+            ):
+                return subprocess.CompletedProcess(argv, 128, TOKEN_SENTINEL, AUTH_HEADER)
+        return original_run(argv, **kwargs)
+
+    monkeypatch.setattr(cas.subprocess, "run", run)
+    if failure_path == "handler":
+        def failed_readback(*args):
+            raise RuntimeError(TOKEN_SENTINEL + AUTH_HEADER)
+        monkeypatch.setattr(cas, "_best_effort_readback", failed_readback)
+    if failure_path == "outermost":
+        original_forward = cas.forward
+        def failed_forward(*args, **kwargs):
+            original_forward(*args, **kwargs)
+            raise RuntimeError(TOKEN_SENTINEL + AUTH_HEADER)
+        monkeypatch.setattr(cas, "forward", failed_forward)
+    if failure_path == "publication":
+        def failed_write(*args):
+            raise OSError(TOKEN_SENTINEL + AUTH_HEADER)
+        monkeypatch.setattr(cas, "_write_receipt", failed_write)
+    target = repositories.remote.parent / "secret-safe-receipt.json"
+    code = cas.main([
+        "forward", "--repo", str(repositories.daemon), "--remote", "origin",
+        "--branch", "main", "--from", repositories.prior, "--to", repositories.candidate,
+        "--expect-remote-url-sha256", remote_url_sha256(repositories),
+        "--window-owner", WINDOW_OWNER, "--receipt-path", str(target),
+        "--remote-token-stdin",
+    ])
+    assert seen_probe
+    assert code == (0 if failure_path == "success" else 1)
+    captured = capfd.readouterr()
+    outputs = captured.out + captured.err + caplog.text
+    outputs += "".join(path.read_text() for path in target.parent.glob("*receipt*.json"))
+    outputs += "".join(path.read_text() for path in target.parent.glob(".*.tmp"))
+    assert TOKEN_SENTINEL not in outputs
+    assert AUTH_HEADER not in outputs
+    if failure_path != "publication":
+        result = json.loads(target.read_text())
+        if failure_path in {"probe", "handler"}:
+            assert result["mutations"] == []
+        if failure_path == "outermost":
+            assert result["transition_outcome_source"] == "outermost-fallback"
+
+
+@pytest.mark.parametrize("verb", ["forward", "restore"])
+@pytest.mark.parametrize("dry_run", [False, True])
+def test_push_auth_refusal_precedes_owned_mutations_without_sockets(
+    repositories, monkeypatch, verb, dry_run,
+):
+    if verb == "restore":
+        cas.forward(repositories.daemon, "origin", "main", repositories.prior,
+                    repositories.candidate,
+                    expected_remote_url_sha256=remote_url_sha256(repositories),
+                    window_owner=WINDOW_OWNER)
+    before = sha(repositories.daemon)
+    original_run = cas._run_git
+    def deny_receive_pack(operation, args, **kwargs):
+        if "push" in args:
+            raise cas.CasError("Git operation failed during " + kwargs["stage"])
+        return original_run(operation, args, **kwargs)
+    monkeypatch.setattr(cas, "_run_git", deny_receive_pack)
+    source, target = (repositories.prior, repositories.candidate) if verb == "forward" else (
+        repositories.candidate, repositories.prior)
+    with pytest.raises(cas.CasFailure) as failure:
+        getattr(cas, verb)(repositories.daemon, "origin", "main", source, target,
+                          dry_run=dry_run,
+                          expected_remote_url_sha256=remote_url_sha256(repositories),
+                          window_owner=WINDOW_OWNER)
+    assert failure.value.receipt["error_code"] == "remote-push-auth-failed"
+    assert failure.value.receipt["mutations"] == []
+    assert sha(repositories.daemon) == before
+    assert sha(repositories.remote, "main") == before
+
+
+@pytest.mark.parametrize("token_input", [TOKEN_SENTINEL + "\nsecond\n", TOKEN_SENTINEL + "\r\n"])
+def test_invalid_stdin_receipt_is_bounded_and_secret_free(repositories, token_input):
+    completed = invoke(repositories, "forward", token_input=token_input)
+    result = receipt(completed)
+    assert result["error_code"] == "invalid-remote-token"
+    assert result["mutations"] == []
+    outputs = completed.stdout + completed.stderr
+    outputs += "".join(path.read_text() for path in repositories.remote.parent.glob("cas-receipt-*.json"))
+    assert TOKEN_SENTINEL not in outputs
+    assert AUTH_HEADER not in outputs
+    assert sha(repositories.daemon) == repositories.prior
+
+
+def test_runbook_requires_authenticated_rehearsal_and_split_state_recovery():
+    documentation = (ROOT / "docs/day-zero-migration-operations.md").read_text()
+    assert documentation.count('gh auth token | /usr/bin/env -i /usr/bin/python3 -I "$CAS"') == 4
+    assert documentation.count('  --remote-token-stdin \\\n') == 4
+    prose = re.sub(r"\s+", " ", documentation)
+    assert 'Before opening the window, an authenticated CAS `--dry-run` against the real' in prose
+    assert 'controlled candidate worktree' in prose
+    assert 'For compensation C4' in prose
+    assert 'from the clean prior clone (`$PRIOR_DIR/tree`, `HEAD` at `PRIOR_SHA`)' in prose
+    assert 'recovery_git update-ref refs/heads/main "$PRIOR_SHA" "$CANDIDATE_SHA"' in documentation
+    assert 'recovery_git -c core.symlinks=true read-tree -m -u "$PRIOR_SHA"' in documentation

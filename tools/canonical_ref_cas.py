@@ -9,6 +9,7 @@ writer.
 from __future__ import annotations
 
 import argparse
+import base64
 import datetime
 import enum
 import hashlib
@@ -20,8 +21,9 @@ import secrets
 import shutil
 import stat
 import subprocess
+import sys
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 from typing import Callable, Mapping, Sequence
 from urllib.parse import urlsplit, urlunsplit
 
@@ -29,6 +31,7 @@ from urllib.parse import urlsplit, urlunsplit
 SHA_RE = re.compile(r"[0-9a-f]{40}")
 SHA256_RE = re.compile(r"[0-9a-f]{64}")
 REMOTE_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
+TOKEN_MAX_BYTES = 4096
 TIMEOUT_SECONDS = 120
 GIT_INTERNAL_ENV = frozenset({"GIT_INDEX_FILE", "GIT_OPTIONAL_LOCKS"})
 GIT_CONFIG_ENV_NAMES = frozenset(
@@ -266,6 +269,8 @@ class Operation:
     dry_run: bool
     expected_remote_url_sha256: str | None = None
     window_owner: str | None = None
+    remote_token_stdin: bool = False
+    remote_auth: tuple[str, str] | None = field(default=None, repr=False)
 
     @property
     def local_ref(self) -> str:
@@ -318,6 +323,7 @@ def _run_git(
     check: bool = True,
     cwd: pathlib.Path | None = None,
     env: Mapping[str, str] | None = None,
+    network_url: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
     if GIT_PATH is None:
         raise CasError(f"Git operation failed during {stage}")
@@ -338,6 +344,23 @@ def _run_git(
             "LC_ALL": "C",
         }
     )
+    if network_url is not None and operation.remote_auth is not None:
+        verified_url, header = operation.remote_auth
+        if network_url != verified_url:
+            raise CasError("remote authentication scope mismatch")
+        # Only isolated, explicitly targeted network calls receive this secret.
+        # Refuse redirects so URL matching cannot forward it to another endpoint.
+        environment.update(
+            {
+                "GIT_CONFIG_COUNT": "3",
+                "GIT_CONFIG_KEY_0": f"http.{verified_url}.extraHeader",
+                "GIT_CONFIG_VALUE_0": header,
+                "GIT_CONFIG_KEY_1": "credential.helper",
+                "GIT_CONFIG_VALUE_1": "",
+                "GIT_CONFIG_KEY_2": "http.followRedirects",
+                "GIT_CONFIG_VALUE_2": "false",
+            }
+        )
     try:
         completed = subprocess.run(
             [GIT_PATH, *args],
@@ -1173,6 +1196,17 @@ def _require_clean_fresh_candidate(operation: Operation, candidate: str) -> None
 def _push_main(
     operation: Operation, remote_url: str, expected_remote: str, target: str
 ) -> None:
+    _push_from_isolated_source(operation, remote_url, expected_remote, target)
+
+
+def _push_from_isolated_source(
+    operation: Operation,
+    remote_url: str,
+    expected_remote: str,
+    target: str,
+    *,
+    probe: bool = False,
+) -> None:
     try:
         with tempfile.TemporaryDirectory(
             prefix="sonsteng-canonical-ref-cas-push-",
@@ -1244,12 +1278,20 @@ def _push_main(
                     "push",
                     "--no-verify",
                     "--no-follow-tags",
-                    f"--force-with-lease={operation.branch}:{expected_remote}",
+                    *(
+                        ["--dry-run", "--porcelain"]
+                        if probe else
+                        [f"--force-with-lease={operation.branch}:{expected_remote}"]
+                    ),
                     remote_url,
-                    f"{operation.local_ref}:{operation.local_ref}",
+                    f"{target if probe else operation.local_ref}:{operation.local_ref}",
                 ],
-                stage="remote main compare-and-swap",
+                stage=(
+                    "remote push auth probe" if probe
+                    else "remote main compare-and-swap"
+                ),
                 cwd=push_source,
+                network_url=remote_url,
             )
     except CasError as exc:
         if str(exc) == "Git operation failed during remote main compare-and-swap":
@@ -1392,6 +1434,22 @@ def _require_remote_head_main(operation: Operation, snapshot: RemoteSnapshot) ->
         raise CasError("remote HEAD must resolve to refs/heads/main")
 
 
+def _read_remote_token() -> str:
+    # Read bytes to reject CR rather than accepting universal-newline conversion.
+    raw = sys.stdin.buffer.readline(TOKEN_MAX_BYTES + 2)
+    token = raw[:-1] if raw.endswith(b"\n") else raw
+    if (
+        not token
+        or len(token) > TOKEN_MAX_BYTES
+        or any(value < 33 or value > 126 for value in token)
+        or sys.stdin.buffer.read(1)
+    ):
+        raise CasError("invalid remote token input", error_code="invalid-remote-token")
+    return "Authorization: Basic " + base64.b64encode(
+        b"x-access-token:" + token
+    ).decode("ascii")
+
+
 def _execute(operation: Operation) -> dict:
     receipt = _base_receipt(operation, [])
     mutations: list[str] = receipt["mutations"]
@@ -1399,6 +1457,7 @@ def _execute(operation: Operation) -> dict:
     remote_main_attempted = False
     remote_url: str | None = None
     try:
+        header = _read_remote_token() if operation.remote_token_stdin else None
         receipt["expected"] = _validated_coordinates(operation)
         receipt["expected_remote_url_sha256"] = _validated_remote_expectation(operation)
         receipt["window_owner"] = _validated_window_owner(operation)
@@ -1416,6 +1475,8 @@ def _execute(operation: Operation) -> dict:
             remote_url,
             remote_identity["remote_url_sha256"],
         )
+        if header is not None:
+            operation = replace(operation, remote_auth=(remote_url, header))
         operation_validated = True
         _require_checked_out_clean_main(operation, operation.from_sha, remote_url)
         baseline_local_refs = _local_ref_map(operation)
@@ -1442,6 +1503,16 @@ def _execute(operation: Operation) -> dict:
         if not remote_sha or remote_sha != operation.from_sha:
             raise CasError("remote main does not equal --from")
         baseline = RefBaseline(local=baseline_local_refs, remote=baseline_remote)
+
+        try:
+            _push_from_isolated_source(
+                operation, remote_url, remote_sha, remote_sha, probe=True
+            )
+        except CasError:
+            raise CasError(
+                "remote-push-auth-failed", error_code="remote-push-auth-failed"
+            ) from None
+        receipt["remote_push_auth_probe"] = "passed"
 
         if operation.dry_run:
             observed = _require_final_state(
@@ -1589,6 +1660,7 @@ def forward(
     dry_run: bool = False,
     expected_remote_url_sha256: str | None = None,
     window_owner: str | None = None,
+    remote_token_stdin: bool = False,
 ) -> dict:
     """Fast-forward canonical main by one exact commit and CAS-push it."""
     return _execute(
@@ -1602,6 +1674,7 @@ def forward(
             dry_run,
             expected_remote_url_sha256,
             window_owner,
+            remote_token_stdin,
         )
     )
 
@@ -1616,6 +1689,7 @@ def restore(
     dry_run: bool = False,
     expected_remote_url_sha256: str | None = None,
     window_owner: str | None = None,
+    remote_token_stdin: bool = False,
 ) -> dict:
     """CAS canonical main from one exact candidate back to its exact prior."""
     return _execute(
@@ -1629,6 +1703,7 @@ def restore(
             dry_run,
             expected_remote_url_sha256,
             window_owner,
+            remote_token_stdin,
         )
     )
 
@@ -1685,6 +1760,7 @@ def _parser() -> argparse.ArgumentParser:
         command.add_argument("--window-owner")
         command.add_argument("--receipt-path", required=True)
         command.add_argument("--dry-run", action="store_true")
+        command.add_argument("--remote-token-stdin", action="store_true")
     return parser
 
 
@@ -1914,6 +1990,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.from_sha,
                 args.to_sha,
                 dry_run=args.dry_run,
+                remote_token_stdin=args.remote_token_stdin,
                 expected_remote_url_sha256=args.expect_remote_url_sha256,
                 window_owner=args.window_owner,
             )

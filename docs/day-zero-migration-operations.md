@@ -349,7 +349,9 @@ compensation sequence while the window remains held:
    `x-release-sha` headers name `PRIOR_PAIR_SHA` with the exact prior provider
    IDs; canonical `main` and the DEV/editor Worker's `x-release-sha` name
    `PRIOR_SHA`; and the DEV static `spine-build` equals `PRIOR_SHA`'s committed
-   `spine_build_id`. See
+   `spine_build_id`. For compensation C4, run the DEV-static spine comparison
+   from the clean prior clone (`$PRIOR_DIR/tree`, `HEAD` at `PRIOR_SHA`),
+   never from the operations clone. See
    [Two prior SHAs](#two-prior-shas-prior_pair_sha-and-prior_sha).
 
 `restore_canonical_ref_exact` is not a general-purpose Git writer or a history
@@ -495,12 +497,33 @@ Git resolver;
 if it is nonzero, the CAS tool is inoperable on that host and the production
 window must not open.
 
+Before opening the window, an authenticated CAS `--dry-run` against the real
+SHA-256-pinned remote must pass: use the forward dry-run block below with the
+reviewed candidate already available locally and a fresh receipt path. Require
+`remote_push_auth_probe` to be `"passed"`, an empty mutation list, and all
+readbacks at the prior SHA. Anonymous `ls-remote` success is insufficient.
+Missing or invalid push credentials are a pre-window **no-go**. Repeat the
+rehearsal under the fence immediately before the live transition.
+
+All four CAS invocations pipe `gh auth token` directly to
+`python3 "$OPS_REPO/tools/canonical_ref_cas.py"` through the pinned `$CAS` alias
+and isolated interpreter below, with `--remote-token-stdin`. Never echo the
+token, put it in an argument, enable shell tracing, or save it in a receipt.
+Use `set -o pipefail` so a failed credential producer also fails the pipeline.
+Git still ignores global/system config and credential helpers; only the verified
+remote's child process receives its URL-scoped Basic authorization header.
+The no-op `push --dry-run --porcelain` probes receive-pack authentication using
+the exact current remote main SHA before any owned mutation. It does not prove
+that branch policy will accept a later changed ref; the live CAS still can fail.
+
 With the daemon lock and the entire six-actor window still held, first prove
 the exact Git compensation preconditions without mutation:
 
 ```bash
+set -o pipefail
 CAS_RESTORE_DRY_RECEIPT="$RECEIPT_DIR/canonical-ref-restore-dry-run.json"
-/usr/bin/env -i /usr/bin/python3 -I "$CAS" restore \
+gh auth token | /usr/bin/env -i /usr/bin/python3 -I "$CAS" restore \
+  --remote-token-stdin \
   --repo "$DAEMON_REPO" \
   --remote origin \
   --branch main \
@@ -516,7 +539,8 @@ Then perform that same exact candidate-to-prior CAS:
 
 ```bash
 CAS_RESTORE_RECEIPT="$RECEIPT_DIR/canonical-ref-restore.json"
-/usr/bin/env -i /usr/bin/python3 -I "$CAS" restore \
+gh auth token | /usr/bin/env -i /usr/bin/python3 -I "$CAS" restore \
+  --remote-token-stdin \
   --repo "$DAEMON_REPO" \
   --remote origin \
   --branch main \
@@ -2453,7 +2477,9 @@ or nonzero result as a stop before the window.
     canonical `main` (CAS readback), both production `x-release-sha` headers
     (inspector), and the DEV/editor Worker `x-release-sha` equal
     `CANDIDATE_SHA`. The DEV static `spine-build` equals the candidate's
-    committed `spine_build_id`. The editor surface
+    committed `spine_build_id`. Run this DEV-static spine comparison from the
+    controlled candidate worktree with `HEAD` at `CANDIDATE_SHA`, never from
+    `$OPS_REPO`: the operations clone never contains the candidate. The editor surface
     (`edit.legalpracticum.org`) is the same `sonsteng-chat` Worker overlaying
     that DEV static origin, so those two proofs cover it;
 11. at window close, rerun the readonly function from item 2 with the same
@@ -2502,8 +2528,10 @@ verification have passed and while the daemon lock and six-actor window remain
 held, rehearse the Git-only transition:
 
 ```bash
+set -o pipefail
 CAS_FORWARD_DRY_RECEIPT="$RECEIPT_DIR/canonical-ref-forward-dry-run.json"
-/usr/bin/env -i /usr/bin/python3 -I "$CAS" forward \
+gh auth token | /usr/bin/env -i /usr/bin/python3 -I "$CAS" forward \
+  --remote-token-stdin \
   --repo "$DAEMON_REPO" \
   --remote origin \
   --branch main \
@@ -2519,7 +2547,8 @@ Then perform the exact same transition without `--dry-run`:
 
 ```bash
 CAS_FORWARD_RECEIPT="$RECEIPT_DIR/canonical-ref-forward.json"
-/usr/bin/env -i /usr/bin/python3 -I "$CAS" forward \
+gh auth token | /usr/bin/env -i /usr/bin/python3 -I "$CAS" forward \
+  --remote-token-stdin \
   --repo "$DAEMON_REPO" \
   --remote origin \
   --branch main \
@@ -2625,6 +2654,54 @@ Every possible `transition_outcome` has an operator rule:
   moved production after this command's CAS; keep the window fenced and
   escalate, and do not treat even a complete mutation ledger as authority to
   compensate.
+
+  For the attempt-4 case only (local main and HEAD at `CANDIDATE_SHA`, remote
+  main and `origin/main` still at `PRIOR_SHA`), retain the fence and daemon
+  lock. Inspect the ledger and prove this exact split state, the pinned remote
+  URL, and a clean candidate worktree before applying the local inverse below.
+  Do not run ordinary `restore`, whose precondition is remote at the candidate.
+  This is `update-ref refs/heads/main <prior> <candidate>` followed by
+  `read-tree -m -u <prior>` in the daemon repository using the CAS Git environment.
+  Stop on any failed check; do not substitute another SHA or discard edits.
+
+  ```bash
+  (
+    set -eu
+    recovery_git() {
+      /usr/bin/env -i LC_ALL=C GIT_CONFIG_COUNT=0 \
+        GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 \
+        GIT_CONFIG_SYSTEM=/dev/null GIT_NO_REPLACE_OBJECTS=1 \
+        GIT_SSH_COMMAND=/dev/null GIT_TERMINAL_PROMPT=0 \
+        /usr/bin/git -c core.hooksPath=/dev/null "$@"
+    }
+    cd "$DAEMON_REPO"
+    test "$(recovery_git remote get-url --all origin)" = "$CANONICAL_REMOTE_URL"
+    test "$(recovery_git remote get-url --push --all origin)" = "$CANONICAL_REMOTE_URL"
+    test "$(printf %s "$CANONICAL_REMOTE_URL" | /usr/bin/sha256sum | cut -d' ' -f1)" = "$EXPECTED_REMOTE_URL_SHA256"
+    test "$(recovery_git symbolic-ref HEAD)" = refs/heads/main
+    test "$(recovery_git rev-parse refs/heads/main)" = "$CANDIDATE_SHA"
+    test "$(recovery_git rev-parse HEAD)" = "$CANDIDATE_SHA"
+    test "$(recovery_git rev-parse refs/remotes/origin/main)" = "$PRIOR_SHA"
+    test -z "$(recovery_git status --porcelain --untracked-files=all)"
+    # Query from /dev to exclude daemon transport configuration, as CAS does.
+    EXPECTED_REMOTE_LINE=$(printf '%s\trefs/heads/main' "$PRIOR_SHA")
+    test "$(recovery_git -C /dev ls-remote --refs --exit-code "$CANONICAL_REMOTE_URL" refs/heads/main)" = "$EXPECTED_REMOTE_LINE"
+    recovery_git update-ref refs/heads/main "$PRIOR_SHA" "$CANDIDATE_SHA"
+    recovery_git -c core.symlinks=true read-tree -m -u "$PRIOR_SHA"
+    test "$(recovery_git rev-parse refs/heads/main)" = "$PRIOR_SHA"
+    test "$(recovery_git rev-parse HEAD)" = "$PRIOR_SHA"
+    test "$(recovery_git rev-parse refs/remotes/origin/main)" = "$PRIOR_SHA"
+    test -z "$(recovery_git status --porcelain --untracked-files=all)"
+    test "$(recovery_git -C /dev ls-remote --refs --exit-code "$CANONICAL_REMOTE_URL" refs/heads/main)" = "$EXPECTED_REMOTE_LINE"
+    recovery_git rev-parse HEAD refs/heads/main refs/remotes/origin/main
+    recovery_git -C /dev ls-remote --refs --exit-code "$CANONICAL_REMOTE_URL" refs/heads/main
+  )
+  ```
+
+  Preserve these readbacks with the failed receipt before planning another
+  authenticated rehearsal. If the remote is no longer prior, this recovery is
+  inapplicable and must stop before the local inverse.
+
 - `not-landed`: no mutation was confirmed and the target was not fully
   observed. This is not proof that an unreadable remote stayed at `--from`,
   especially when validation failed before readback. Keep the window fenced,
