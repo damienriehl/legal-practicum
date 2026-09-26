@@ -312,9 +312,12 @@ compensation sequence while the window remains held:
 
    ```bash
    RECOVERY_JSON=$(recovery_ids); echo "inspector rc=$? $RECOVERY_JSON"
-   test "$(recovery_field sha)" = "$PRIOR_PAIR_SHA" &&
-     test "$(recovery_field pages_deployment_id)" = "$PRIOR_PAGES_DEPLOYMENT_ID" &&
-     test "$(recovery_field worker_version_id)" = "$PRIOR_WORKER_VERSION_ID" &&
+   OBSERVED_GATE_VALUE=$(recovery_field sha) &&
+   test "$OBSERVED_GATE_VALUE" = "$PRIOR_PAIR_SHA" &&
+     OBSERVED_GATE_VALUE=$(recovery_field pages_deployment_id) &&
+     test "$OBSERVED_GATE_VALUE" = "$PRIOR_PAGES_DEPLOYMENT_ID" &&
+     OBSERVED_GATE_VALUE=$(recovery_field worker_version_id) &&
+     test "$OBSERVED_GATE_VALUE" = "$PRIOR_WORKER_VERSION_ID" &&
      echo "PRIOR PAIR OK" || echo "STOP: prior pair readback"
    ```
 
@@ -417,25 +420,35 @@ if test ! -e "$OPS_REPO"; then
 fi
 # Reject linked worktrees, shared Git directories, and object alternates.
 test -d "$OPS_REPO/.git"
-test "$(trusted_git -C "$OPS_REPO" rev-parse --absolute-git-dir)" = "$OPS_REPO/.git"
-test "$(trusted_git -C "$OPS_REPO" rev-parse --path-format=absolute --git-common-dir)" = "$OPS_REPO/.git"
+OBSERVED_GATE_VALUE=$(trusted_git -C "$OPS_REPO" rev-parse --absolute-git-dir) || exit 1
+test "$OBSERVED_GATE_VALUE" = "$OPS_REPO/.git"
+OBSERVED_GATE_VALUE=$(trusted_git -C "$OPS_REPO" rev-parse --path-format=absolute --git-common-dir) || exit 1
+test "$OBSERVED_GATE_VALUE" = "$OPS_REPO/.git"
 test ! -e "$OPS_REPO/.git/objects/info/alternates"
-test "$(trusted_git -C "$OPS_REPO" remote get-url origin)" = "$CANONICAL_REMOTE_URL"
+OBSERVED_GATE_VALUE=$(trusted_git -C "$OPS_REPO" remote get-url origin) || exit 1
+test "$OBSERVED_GATE_VALUE" = "$CANONICAL_REMOTE_URL"
 # Refuse dirty existing checkouts before changing their detached release pin.
-test -z "$(trusted_git -C "$OPS_REPO" status --porcelain --untracked-files=all)"
+OPS_STATUS=$(trusted_git -C "$OPS_REPO" status --porcelain --untracked-files=all) || exit 1
+test -z "$OPS_STATUS" || exit 1
 trusted_git -C "$OPS_REPO" checkout --detach "$REVIEWED_OPS_COMMIT"
-test "$(trusted_git -C "$OPS_REPO" rev-parse --abbrev-ref HEAD)" = HEAD
+OBSERVED_GATE_VALUE=$(trusted_git -C "$OPS_REPO" rev-parse --abbrev-ref HEAD) || exit 1
+test "$OBSERVED_GATE_VALUE" = HEAD
 
 test "${OPS_REPO#/}" != "$OPS_REPO"
 test "${DAEMON_REPO#/}" != "$DAEMON_REPO"
 test "${RECEIPT_DIR#/}" != "$RECEIPT_DIR"
 test -n "$WINDOW_OWNER"
 test -n "$HOST_IDENTITY"
-test "$(/usr/bin/env -i /usr/bin/readlink -f -- "$OPS_REPO")" = "$OPS_REPO"
-test "$(/usr/bin/env -i /usr/bin/readlink -f -- "$CAS")" = "$CAS"
-test "$(/usr/bin/env -i /usr/bin/readlink -f -- "$DAEMON_REPO")" = "$DAEMON_REPO"
-test "$(trusted_git -C "$OPS_REPO" rev-parse --verify HEAD)" = "$REVIEWED_OPS_COMMIT"
-test -z "$(trusted_git -C "$OPS_REPO" status --porcelain --untracked-files=all)"
+OBSERVED_GATE_VALUE=$(/usr/bin/env -i /usr/bin/readlink -f -- "$OPS_REPO") || exit 1
+test "$OBSERVED_GATE_VALUE" = "$OPS_REPO"
+OBSERVED_GATE_VALUE=$(/usr/bin/env -i /usr/bin/readlink -f -- "$CAS") || exit 1
+test "$OBSERVED_GATE_VALUE" = "$CAS"
+OBSERVED_GATE_VALUE=$(/usr/bin/env -i /usr/bin/readlink -f -- "$DAEMON_REPO") || exit 1
+test "$OBSERVED_GATE_VALUE" = "$DAEMON_REPO"
+OBSERVED_GATE_VALUE=$(trusted_git -C "$OPS_REPO" rev-parse --verify HEAD) || exit 1
+test "$OBSERVED_GATE_VALUE" = "$REVIEWED_OPS_COMMIT"
+OPS_STATUS=$(trusted_git -C "$OPS_REPO" status --porcelain --untracked-files=all) || exit 1
+test -z "$OPS_STATUS" || exit 1
 REVIEWED_CAS_BLOB=$(trusted_git -C "$OPS_REPO" rev-parse \
   "$REVIEWED_OPS_COMMIT:tools/canonical_ref_cas.py")
 ACTUAL_CAS_BLOB=$(trusted_git -C "$OPS_REPO" hash-object -- "$CAS")
@@ -704,7 +717,8 @@ SHA, and the result of each check:
    PRIOR_MAP_DIR=$(mktemp -d)
    git clone --quiet --no-hardlinks --no-checkout "$CONTROLLED_REPO" "$PRIOR_MAP_DIR/tree"
    git -C "$PRIOR_MAP_DIR/tree" checkout --quiet --detach "$PRIOR_PAIR_SHA"
-   test "$(git -C "$PRIOR_MAP_DIR/tree" rev-parse HEAD)" = "$PRIOR_PAIR_SHA"
+   OBSERVED_GATE_VALUE=$(git -C "$PRIOR_MAP_DIR/tree" rev-parse HEAD) || exit 1
+   test "$OBSERVED_GATE_VALUE" = "$PRIOR_PAIR_SHA"
    ( cd "$PRIOR_MAP_DIR/tree" &&
      python3 tools/build_site.py --check &&
      python3 tools/build_worker_personas.py &&
@@ -962,8 +976,10 @@ git status --short --untracked-files=all   # nothing may remain unstaged or untr
 git commit -m "feat(day-zero): materialize Day Zero dates and legalpracticum.org identifiers"
 CANDIDATE_SHA=$(git rev-parse HEAD)
 test "${#CANDIDATE_SHA}" -eq 40
-test "$(git rev-parse HEAD^)" = "$PRIOR_SHA"
-test "$(git rev-list --count "$PRIOR_SHA..$CANDIDATE_SHA")" = 1
+OBSERVED_GATE_VALUE=$(git rev-parse HEAD^) || exit 1
+test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA"
+OBSERVED_GATE_VALUE=$(git rev-list --count "$PRIOR_SHA..$CANDIDATE_SHA") || exit 1
+test "$OBSERVED_GATE_VALUE" = 1
 ```
 
 Never use `git commit -a` or `git add -A` here, and never force-add `build/`
@@ -1424,11 +1440,14 @@ missing/unreadable bundle fails as
 the approved baseline for this production host before opening the window:
 
 ```bash
-builtin test "$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout rev-parse --verify 'HEAD^{commit}')" = \
+OBSERVED_GATE_VALUE=$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout rev-parse --verify 'HEAD^{commit}') || exit 72
+builtin test "$OBSERVED_GATE_VALUE" = \
   '<reviewed-release-commit-SHA>' || exit 72
-builtin test "$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout rev-parse '<reviewed-release-commit-SHA>:tools/prove_queues_empty.py')" = \
+OBSERVED_GATE_VALUE=$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout rev-parse '<reviewed-release-commit-SHA>:tools/prove_queues_empty.py') || exit 73
+builtin test "$OBSERVED_GATE_VALUE" = \
   '<reviewed-verifier-Git-blob-OID>' || exit 73
-builtin test "$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout hash-object -- /home/damienriehl/.local/share/sonsteng-ops/checkout/tools/prove_queues_empty.py)" = \
+OBSERVED_GATE_VALUE=$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout hash-object -- /home/damienriehl/.local/share/sonsteng-ops/checkout/tools/prove_queues_empty.py) || exit 74
+builtin test "$OBSERVED_GATE_VALUE" = \
   '<reviewed-verifier-Git-blob-OID>' || exit 74
 (
   builtin exec -c /usr/bin/env -i LC_ALL=C \
@@ -1517,7 +1536,8 @@ or nonzero result as a stop before the window.
       PRIOR_DIR=$(mktemp -d)
       git clone --quiet --no-hardlinks --no-checkout "$DAEMON_REPO" "$PRIOR_DIR/tree"
       git -C "$PRIOR_DIR/tree" checkout --quiet --detach "$PRIOR_SHA"
-      test "$(git -C "$PRIOR_DIR/tree" rev-parse HEAD)" = "$PRIOR_SHA"
+      OBSERVED_GATE_VALUE=$(git -C "$PRIOR_DIR/tree" rev-parse HEAD) || exit 1
+      test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA"
       cd "$PRIOR_DIR/tree"
       python3 tools/build_site.py --check && python3 tools/build_worker_personas.py &&
         python3 tools/build_instructor_bundle.py && python3 tools/build_history.py &&
@@ -2319,7 +2339,8 @@ or nonzero result as a stop before the window.
    CONTROLLED_REPO=/absolute/path/for/the/new/controlled-worktree
    test "${CONTROLLED_REPO#/}" != "$CONTROLLED_REPO" && test ! -e "$CONTROLLED_REPO" && echo "path OK" || echo "STOP: path relative or exists"
    git -C "$DAEMON_REPO" worktree add --detach "$CONTROLLED_REPO" "$PRIOR_SHA"
-   test "$(git -C "$CONTROLLED_REPO" rev-parse HEAD)" = "$PRIOR_SHA" && echo "controlled worktree at PRIOR_SHA" || echo "STOP: controlled worktree HEAD"
+   OBSERVED_GATE_VALUE=$(git -C "$CONTROLLED_REPO" rev-parse HEAD) &&
+   test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA" && echo "controlled worktree at PRIOR_SHA" || echo "STOP: controlled worktree HEAD"
    cd "$CONTROLLED_REPO"
    ```
 
@@ -2416,8 +2437,10 @@ or nonzero result as a stop before the window.
 
    ```bash
    RECOVERY_JSON=$(recovery_ids); echo "inspector rc=$? $RECOVERY_JSON"
-   test "$(recovery_field sha)" = "$CANDIDATE_SHA" && echo "new pair sha OK" || echo "STOP: new pair sha"
-   test "$(recovery_field worker_version_id)" = "$NEW_WORKER_VERSION_ID" && echo "new worker id OK" || echo "STOP: new worker id"
+   OBSERVED_GATE_VALUE=$(recovery_field sha) &&
+   test "$OBSERVED_GATE_VALUE" = "$CANDIDATE_SHA" && echo "new pair sha OK" || echo "STOP: new pair sha"
+   OBSERVED_GATE_VALUE=$(recovery_field worker_version_id) &&
+   test "$OBSERVED_GATE_VALUE" = "$NEW_WORKER_VERSION_ID" && echo "new worker id OK" || echo "STOP: new worker id"
    NEW_PAGES_DEPLOYMENT_ID=$(recovery_field pages_deployment_id)
    test "${#NEW_PAGES_DEPLOYMENT_ID}" -eq 36 && echo "new pages id len OK" || echo "STOP: new pages id is not a 36-character canonical id"
    ```
@@ -2451,9 +2474,12 @@ or nonzero result as a stop before the window.
      npx wrangler@4 versions deploy "$PRIOR_WORKER_VERSION_ID" --env production --yes )
    echo "worker rollback rc=$?"
    RECOVERY_JSON=$(recovery_ids); echo "inspector rc=$? $RECOVERY_JSON"
-   test "$(recovery_field sha)" = "$PRIOR_PAIR_SHA" &&
-     test "$(recovery_field pages_deployment_id)" = "$PRIOR_PAGES_DEPLOYMENT_ID" &&
-     test "$(recovery_field worker_version_id)" = "$PRIOR_WORKER_VERSION_ID" &&
+   OBSERVED_GATE_VALUE=$(recovery_field sha) &&
+   test "$OBSERVED_GATE_VALUE" = "$PRIOR_PAIR_SHA" &&
+     OBSERVED_GATE_VALUE=$(recovery_field pages_deployment_id) &&
+     test "$OBSERVED_GATE_VALUE" = "$PRIOR_PAGES_DEPLOYMENT_ID" &&
+     OBSERVED_GATE_VALUE=$(recovery_field worker_version_id) &&
+     test "$OBSERVED_GATE_VALUE" = "$PRIOR_WORKER_VERSION_ID" &&
      echo "PRIOR PAIR OK" || echo "STOP: prior pair readback"
 
    ( cd "$CONTROLLED_REPO/app/worker" &&
@@ -2462,9 +2488,12 @@ or nonzero result as a stop before the window.
    credential-helper-that-prints-only-the-Cloudflare-bearer | pages_rollback "$NEW_PAGES_DEPLOYMENT_ID"
    echo "pages forward rc=$?"
    RECOVERY_JSON=$(recovery_ids); echo "inspector rc=$? $RECOVERY_JSON"
-   test "$(recovery_field sha)" = "$CANDIDATE_SHA" &&
-     test "$(recovery_field pages_deployment_id)" = "$NEW_PAGES_DEPLOYMENT_ID" &&
-     test "$(recovery_field worker_version_id)" = "$NEW_WORKER_VERSION_ID" &&
+   OBSERVED_GATE_VALUE=$(recovery_field sha) &&
+   test "$OBSERVED_GATE_VALUE" = "$CANDIDATE_SHA" &&
+     OBSERVED_GATE_VALUE=$(recovery_field pages_deployment_id) &&
+     test "$OBSERVED_GATE_VALUE" = "$NEW_PAGES_DEPLOYMENT_ID" &&
+     OBSERVED_GATE_VALUE=$(recovery_field worker_version_id) &&
+     test "$OBSERVED_GATE_VALUE" = "$NEW_WORKER_VERSION_ID" &&
      echo "NEW PAIR OK" || echo "STOP: new pair readback"
    ```
 
@@ -2666,7 +2695,7 @@ Every possible `transition_outcome` has an operator rule:
 
   ```bash
   (
-    set -eu
+    set -euo pipefail
     recovery_git() {
       /usr/bin/env -i LC_ALL=C GIT_CONFIG_COUNT=0 \
         GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 \
@@ -2675,24 +2704,38 @@ Every possible `transition_outcome` has an operator rule:
         /usr/bin/git -c core.hooksPath=/dev/null "$@"
     }
     cd "$DAEMON_REPO"
-    test "$(recovery_git remote get-url --all origin)" = "$CANONICAL_REMOTE_URL"
-    test "$(recovery_git remote get-url --push --all origin)" = "$CANONICAL_REMOTE_URL"
-    test "$(printf %s "$CANONICAL_REMOTE_URL" | /usr/bin/sha256sum | cut -d' ' -f1)" = "$EXPECTED_REMOTE_URL_SHA256"
-    test "$(recovery_git symbolic-ref HEAD)" = refs/heads/main
-    test "$(recovery_git rev-parse refs/heads/main)" = "$CANDIDATE_SHA"
-    test "$(recovery_git rev-parse HEAD)" = "$CANDIDATE_SHA"
-    test "$(recovery_git rev-parse refs/remotes/origin/main)" = "$PRIOR_SHA"
-    test -z "$(recovery_git status --porcelain --untracked-files=all)"
+    OBSERVED_GATE_VALUE=$(recovery_git remote get-url --all origin) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$CANONICAL_REMOTE_URL"
+    OBSERVED_GATE_VALUE=$(recovery_git remote get-url --push --all origin) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$CANONICAL_REMOTE_URL"
+    OBSERVED_GATE_VALUE=$(printf %s "$CANONICAL_REMOTE_URL" | /usr/bin/sha256sum | cut -d' ' -f1) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$EXPECTED_REMOTE_URL_SHA256"
+    OBSERVED_GATE_VALUE=$(recovery_git symbolic-ref HEAD) || exit 1
+    test "$OBSERVED_GATE_VALUE" = refs/heads/main
+    OBSERVED_GATE_VALUE=$(recovery_git rev-parse refs/heads/main) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$CANDIDATE_SHA"
+    OBSERVED_GATE_VALUE=$(recovery_git rev-parse HEAD) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$CANDIDATE_SHA"
+    OBSERVED_GATE_VALUE=$(recovery_git rev-parse refs/remotes/origin/main) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA"
+    RECOVERY_STATUS=$(recovery_git status --porcelain --untracked-files=all) || exit 1
+    test -z "$RECOVERY_STATUS" || exit 1
     # Query from /dev to exclude daemon transport configuration, as CAS does.
     EXPECTED_REMOTE_LINE=$(printf '%s\trefs/heads/main' "$PRIOR_SHA")
-    test "$(recovery_git -C /dev ls-remote --refs --exit-code "$CANONICAL_REMOTE_URL" refs/heads/main)" = "$EXPECTED_REMOTE_LINE"
+    OBSERVED_GATE_VALUE=$(recovery_git -C /dev ls-remote --refs --exit-code "$CANONICAL_REMOTE_URL" refs/heads/main) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$EXPECTED_REMOTE_LINE"
     recovery_git update-ref refs/heads/main "$PRIOR_SHA" "$CANDIDATE_SHA"
     recovery_git -c core.symlinks=true read-tree -m -u "$PRIOR_SHA"
-    test "$(recovery_git rev-parse refs/heads/main)" = "$PRIOR_SHA"
-    test "$(recovery_git rev-parse HEAD)" = "$PRIOR_SHA"
-    test "$(recovery_git rev-parse refs/remotes/origin/main)" = "$PRIOR_SHA"
-    test -z "$(recovery_git status --porcelain --untracked-files=all)"
-    test "$(recovery_git -C /dev ls-remote --refs --exit-code "$CANONICAL_REMOTE_URL" refs/heads/main)" = "$EXPECTED_REMOTE_LINE"
+    OBSERVED_GATE_VALUE=$(recovery_git rev-parse refs/heads/main) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA"
+    OBSERVED_GATE_VALUE=$(recovery_git rev-parse HEAD) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA"
+    OBSERVED_GATE_VALUE=$(recovery_git rev-parse refs/remotes/origin/main) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA"
+    RECOVERY_STATUS=$(recovery_git status --porcelain --untracked-files=all) || exit 1
+    test -z "$RECOVERY_STATUS" || exit 1
+    OBSERVED_GATE_VALUE=$(recovery_git -C /dev ls-remote --refs --exit-code "$CANONICAL_REMOTE_URL" refs/heads/main) || exit 1
+    test "$OBSERVED_GATE_VALUE" = "$EXPECTED_REMOTE_LINE"
     recovery_git rev-parse HEAD refs/heads/main refs/remotes/origin/main
     recovery_git -C /dev ls-remote --refs --exit-code "$CANONICAL_REMOTE_URL" refs/heads/main
   )

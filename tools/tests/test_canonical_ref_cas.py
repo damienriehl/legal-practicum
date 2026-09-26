@@ -8,7 +8,9 @@ import io
 import json
 import os
 import re
+import shlex
 import subprocess
+import textwrap
 import sys
 import threading
 import time
@@ -5342,3 +5344,86 @@ def test_runbook_requires_authenticated_rehearsal_and_split_state_recovery():
     assert 'from the clean prior clone (`$PRIOR_DIR/tree`, `HEAD` at `PRIOR_SHA`)' in prose
     assert 'recovery_git update-ref refs/heads/main "$PRIOR_SHA" "$CANDIDATE_SHA"' in documentation
     assert 'recovery_git -c core.symlinks=true read-tree -m -u "$PRIOR_SHA"' in documentation
+
+
+def recovery_runbook_block():
+    documentation = (ROOT / "docs/day-zero-migration-operations.md").read_text()
+    section = documentation.split("For the attempt-4 case only", 1)[1]
+    block = section.split("```bash\n", 1)[1].split("```", 1)[0]
+    return textwrap.dedent(block).strip()
+
+
+def recovery_worktree_snapshot(repo):
+    return {
+        str(path.relative_to(repo)): (path.read_bytes(), path.stat().st_mode)
+        for path in repo.rglob("*")
+        if path.is_file() and ".git" not in path.relative_to(repo).parts
+    }
+
+
+@pytest.mark.parametrize("failure", [None, "first-status", "corrupt-index", "final-status"])
+def test_runbook_split_state_recovery(repositories, tmp_path, failure):
+    repo = repositories.daemon
+    git(repo, "reset", "--hard", repositories.candidate)
+    assert sha(repo) == repositories.candidate
+    assert sha(repo, "refs/remotes/origin/main") == repositories.prior
+    assert sha(repositories.remote, "main") == repositories.prior
+    block = recovery_runbook_block()
+    calls = tmp_path / "status-calls"
+    if failure in {"first-status", "final-status"}:
+        # Replace only the Git executable. Preserve the runbook's environment,
+        # arguments, gates and real local transport; fail one status with no stdout.
+        shim = tmp_path / "git-shim"
+        shim.write_text(
+            "#!/bin/bash\n"
+            f"counter={shlex.quote(str(calls))}\n"
+            'if [[ " $* " == *" status "* ]]; then\n'
+            '  n=0; if test -f "$counter"; then read -r n < "$counter"; fi\n'
+            '  n=$((n + 1)); printf "%s\\n" "$n" > "$counter"\n'
+            f'  if test "$n" -eq {1 if failure == "first-status" else 2}; then exit 97; fi\n'
+            'fi\nexec /usr/bin/git "$@"\n'
+        )
+        shim.chmod(0o755)
+        block = block.replace('/usr/bin/git -c core.hooksPath=',
+                              shlex.quote(str(shim)) + ' -c core.hooksPath=')
+    index = repo / ".git/index"
+    if failure == "corrupt-index":
+        index.write_bytes(b"corrupt index")
+    before_index = index.read_bytes()
+    before_worktree = recovery_worktree_snapshot(repo)
+    before_refs = local_refs(repo)
+    url = str(repositories.remote)
+    completed = subprocess.run(
+        ["/bin/bash", "-c", block], cwd=tmp_path,
+        env=_test_git_environment(
+            DAEMON_REPO=str(repo), CANONICAL_REMOTE_URL=url,
+            EXPECTED_REMOTE_URL_SHA256=hashlib.sha256(url.encode()).hexdigest(),
+            PRIOR_SHA=repositories.prior, CANDIDATE_SHA=repositories.candidate,
+        ), capture_output=True, text=True, timeout=20,
+    )
+    if failure is None:
+        assert completed.returncode == 0, completed.stderr
+        assert completed.stdout.splitlines() == [
+            repositories.prior, repositories.prior, repositories.prior,
+            f"{repositories.prior}\trefs/heads/main",
+        ]
+    else:
+        assert completed.returncode != 0, completed.stdout
+        assert completed.stdout == ""
+    if failure in {"first-status", "corrupt-index"}:
+        assert local_refs(repo) == before_refs
+        assert sha(repo) == repositories.candidate
+        assert index.read_bytes() == before_index
+        assert recovery_worktree_snapshot(repo) == before_worktree
+    else:
+        assert sha(repo) == repositories.prior
+        assert sha(repo, "refs/heads/main") == repositories.prior
+        assert git(repo, "status", "--porcelain", "--untracked-files=all").stdout == ""
+        assert git(repo, "write-tree").stdout.strip() == sha(repo, repositories.prior + "^{tree}")
+        assert (repo / "state.txt").read_text() == "prior\n"
+        assert (repo / "removed-by-candidate.txt").read_text() == "restore me\n"
+        assert not (repo / "added-by-candidate.txt").exists()
+    assert sha(repo, "refs/remotes/origin/main") == repositories.prior
+    assert sha(repositories.remote, "main") == repositories.prior
+    if failure in {"first-status", "final-status"}:
+        assert calls.read_text().strip() == ("1" if failure == "first-status" else "2")
