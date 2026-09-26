@@ -1478,6 +1478,64 @@ test("authoritative Python consumer refuses an unprepared applied Worker batch a
   assert.deepEqual(receipt.publication_frontier.releases,[]);
 });
 
+function seedLegacyNullGeneratorBatch(core, batchId, id, at, commitSha) {
+  core.now = () => at;
+  core.suggest({ id, editor:"slot:john", scope:"edit", origin:"human", kind:"prose",
+    source_ref:`data/copy/home.json#${id}`, original_text:"old", original_hash:"hash",
+    new_text:"new", map_version:"v1" }, {}, { directApply:true });
+  assert.equal(core.claimBatch(batchId, { base_sha:"dev-base", ids:[id] }).ok, true);
+  // Legacy apply clients predate generator_id: the row keeps generator_id null.
+  assert.equal(core.finalize(batchId, { phase:"done", applied:[id], commit_sha:commitSha }).ok, true);
+  return { batch_id:batchId, commit_sha:commitSha };
+}
+
+test("authoritative Python consumer still refuses legacy null-generator Worker batches", async () => {
+  const core = makeCore(() => 1000);
+  seedLegacyNullGeneratorBatch(core, "batch-legacy-1", "suggestion-legacy-1", 1100, "1".repeat(40));
+  const body = await workerObserverFrontierBody(core);
+  assert.equal(JSON.parse(body.toString("utf8")).context.batches[0].generator_id, null);
+  const { code,receipt } = runAuthoritativeConsumer(body);
+  assert.equal(code,1);
+  assert.equal(receipt.all_queues_empty,false);
+  assert.equal(receipt.proof_error,"frontier-response-malformed");
+});
+
+test("authoritative Python consumer proves a reviewed ledger backfill of legacy batches empty", async () => {
+  const core = makeCore(() => 1000);
+  const live = "0159c1115e28df58b0511ba5fbbadd4f1435b4d2";
+  const batches = [
+    seedLegacyNullGeneratorBatch(core, "batch-legacy-1", "suggestion-legacy-1", 1100, "1".repeat(40)),
+    seedLegacyNullGeneratorBatch(core, "batch-legacy-2", "suggestion-legacy-2", 1200, "2".repeat(40)),
+  ];
+  const generatorRows = core._all("SELECT batch_id,generator_id FROM apply_batches ORDER BY batch_id");
+  core.now = () => 5000;
+  const result = core.backfillProductionLedger({ id:"ledger-backfill-1",
+    idempotency_key:"backfill-idem-1", request_digest:"digest-1", actor:"slot:release",
+    credential_channel:"bearer", target_environment:"production", live_production_sha:live,
+    ancestry_verified:true, provenance:{ pages_release_sha:live, worker_release_sha:live }, batches });
+  assert.equal(result.ok,true,JSON.stringify(result));
+  assert.deepEqual(core._all("SELECT batch_id,generator_id FROM apply_batches ORDER BY batch_id"),
+    generatorRows,"the legacy rows keep their null generator_id");
+  const body = await workerObserverFrontierBody(core);
+  const produced = JSON.parse(body.toString("utf8")).context;
+  assert.deepEqual(produced.batches,[]);
+  assert.equal(produced.base_sha,live);
+  const { code,receipt } = runAuthoritativeConsumer(body);
+  assert.equal(receipt.proof_error,undefined,`consumer refused producer output: ${receipt.proof_error}`);
+  assert.equal(code,0);
+  assert.equal(receipt.all_queues_empty,true);
+  assert.deepEqual(receipt.publication_frontier,{
+    operation_frontier:{ pending_operation_count:0,blocked_state:"unblocked" },
+    queue_count:0,reason:"unprepared",releases:[],
+  });
+
+  // A later legacy-shaped batch is still refused: the proof did not loosen.
+  seedLegacyNullGeneratorBatch(core, "batch-legacy-3", "suggestion-legacy-3", 6000, "3".repeat(40));
+  const later = runAuthoritativeConsumer(await workerObserverFrontierBody(core));
+  assert.equal(later.code,1);
+  assert.equal(later.receipt.proof_error,"frontier-response-malformed");
+});
+
 test("authoritative Python consumer rejects a tampered Worker frontier envelope", async () => {
   const body = await workerObserverFrontierBody(makeCore(() => 9000));
   const payload = JSON.parse(body.toString("utf8"));
