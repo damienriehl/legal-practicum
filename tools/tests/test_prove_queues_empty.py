@@ -3202,7 +3202,7 @@ __attribute__((constructor)) static void mark_loader_execution(void) {
     nonce_digest = write_window_nonce(nonce_path)
     launcher = (
         launcher.replace(
-            "/home/damienriehl/.local/share/sonsteng-daemon/checkout",
+            "/home/damienriehl/.local/share/sonsteng-ops/checkout",
             str(checkout),
         )
         .replace("<reviewed-release-commit-SHA>", release_commit)
@@ -5264,3 +5264,36 @@ def test_existing_receipt_path_is_refused_without_overwrite(tmp_path):
     assert completed.stdout == b""
     assert completed.stderr == b"queue proof receipt file could not be opened\n"
     assert receipt_path.read_text(encoding="utf-8") == "existing evidence\n"
+
+
+def test_documented_queue_launcher_uses_pinned_operations_checkout():
+    runbook = (TOOLS.parent / "docs/day-zero-migration-operations.md").read_text(
+        encoding="utf-8"
+    )
+    launcher = runbook.split("<!-- queue-proof-launcher:start -->", 1)[1].split(
+        "<!-- queue-proof-launcher:end -->", 1
+    )[0]
+    checkout = re.search(r"builtin readonly QUEUE_PROOF_CHECKOUT=(\S+) ", launcher).group(1)
+    ops_paths = re.findall(r"^\s*OPS_REPO=(\S+)$", runbook, re.MULTILINE)
+    assert checkout != "/home/damienriehl/.local/share/sonsteng-daemon/checkout"
+    assert ops_paths and set(ops_paths) == {checkout}
+    assert checkout == "/home/damienriehl/.local/share/sonsteng-ops/checkout"
+
+
+def test_documented_closing_proof_reuses_opening_launcher():
+    runbook = (TOOLS.parent / "docs/day-zero-migration-operations.md").read_text(
+        encoding="utf-8"
+    )
+    launcher = runbook.split("<!-- queue-proof-launcher:start -->", 1)[1].split(
+        "<!-- queue-proof-launcher:end -->", 1
+    )[0]
+    closing = runbook.split("11. at window close,", 1)[1].split(
+        "The opening receipt is a go/no-go", 1
+    )[0]
+    opening_call = re.search(r"^\s*(\w+) opening '<absolute-opening-receipt-path>.json'$", launcher, re.MULTILINE)
+    closing_call = re.search(r"^\s*(\w+) closing '<absolute-closing-receipt-path>.json'$", closing, re.MULTILINE)
+    assert opening_call and closing_call
+    assert opening_call.group(1) == closing_call.group(1) == "run_queue_proof"
+    assert "builtin readonly -f run_queue_proof" in launcher
+    assert runbook.count("run_queue_proof() {") == 1
+    assert "same" in closing and "verifier_identity" in closing

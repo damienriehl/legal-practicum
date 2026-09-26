@@ -2259,7 +2259,7 @@ def test_runbook_pins_cas_release_identity_invocation_and_receipt_acceptance():
     normalized_prose = re.sub(r"\s+", " ", documentation)
 
     for required_text in (
-        "OPS_REPO=/absolute/path/to/the/reviewed/operations-checkout",
+        "OPS_REPO=/home/damienriehl/.local/share/sonsteng-ops/checkout",
         'CAS="$OPS_REPO/tools/canonical_ref_cas.py"',
         "REVIEWED_OPS_COMMIT=",
         "REVIEWED_CAS_SHA256=",

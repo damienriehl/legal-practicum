@@ -69,10 +69,12 @@ independently blocks any earned count above the same 100,000-operation maximum.
 
 ## Phase 1: rehearse the one-time materialization
 
-Run this from the dedicated daemon checkout or another clean trusted checkout:
+Run this from the pinned operations checkout established in
+[Pin every Day Zero verifier](#pin-every-day-zero-verifier-to-the-reviewed-release):
 
 ```bash
-python3 tools/day_zero_migration.py --candidate-sha <40-character-lowercase-SHA>
+cd "$OPS_REPO"
+python3 "$OPS_REPO/tools/day_zero_migration.py" --candidate-sha <40-character-lowercase-SHA>
 ```
 
 Omitting `--candidate-sha` uses exact current `HEAD`. The command creates a
@@ -364,15 +366,27 @@ before the window from the reviewed release record; in particular,
 `EXPECTED_REMOTE_URL_SHA256` must be the independently recorded digest of the
 canonical remote URL, not a digest read from the daemon checkout being verified.
 
+Before the window, create the operations checkout as a standalone clone of the
+canonical remote, never as a linked worktree of the daemon repository. Pin it
+detached at the reviewed release commit and prove it clean with the commands
+below. Use that same commit for `REVIEWED_OPS_COMMIT` and every
+`<reviewed-release-commit-SHA>` placeholder. The opening and step-11 closing
+proofs both run from this operations checkout using the same readonly launcher
+and verifier identity. Treat the operations checkout as read-only after pinning:
+never move it, fetch into it, or edit it during the window. The daemon checkout
+remains the CAS target and apply-daemon checkout; its `local-main-cas` and
+`worktree-alignment` operations cannot move this independent clone.
+
 ```bash
 set -eu
 for INJECTION_NAME in ${!LD_@}; do unset "$INJECTION_NAME"; done
 unset OPENSSL_CONF OPENSSL_MODULES
 unset PYTHONHOME PYTHONINSPECT PYTHONPATH PYTHONSTARTUP PYTHONUSERBASE
 
-OPS_REPO=/absolute/path/to/the/reviewed/operations-checkout
+OPS_REPO=/home/damienriehl/.local/share/sonsteng-ops/checkout
 CAS="$OPS_REPO/tools/canonical_ref_cas.py"
 REVIEWED_OPS_COMMIT=<reviewed-40-character-release-commit>
+CANONICAL_REMOTE_URL=<independently-reviewed-canonical-remote-URL>
 REVIEWED_CAS_SHA256=<reviewed-64-character-canonical_ref_cas.py-sha256>
 EXPECTED_REMOTE_URL_SHA256=<independently-recorded-64-character-remote-url-sha256>
 DAEMON_REPO=/absolute/path/to/the/dedicated-daemon-checkout
@@ -393,6 +407,22 @@ trusted_git() {
     GIT_TERMINAL_PROMPT=0 \
     /usr/bin/git "$@"
 }
+
+# Provision only before the window; never clone from the daemon repository.
+if test ! -e "$OPS_REPO"; then
+  /usr/bin/env -i /usr/bin/mkdir -p -- "${OPS_REPO%/*}"
+  trusted_git clone --no-local -- "$CANONICAL_REMOTE_URL" "$OPS_REPO"
+fi
+# Reject linked worktrees, shared Git directories, and object alternates.
+test -d "$OPS_REPO/.git"
+test "$(trusted_git -C "$OPS_REPO" rev-parse --absolute-git-dir)" = "$OPS_REPO/.git"
+test "$(trusted_git -C "$OPS_REPO" rev-parse --path-format=absolute --git-common-dir)" = "$OPS_REPO/.git"
+test ! -e "$OPS_REPO/.git/objects/info/alternates"
+test "$(trusted_git -C "$OPS_REPO" remote get-url origin)" = "$CANONICAL_REMOTE_URL"
+# Refuse dirty existing checkouts before changing their detached release pin.
+test -z "$(trusted_git -C "$OPS_REPO" status --porcelain --untracked-files=all)"
+trusted_git -C "$OPS_REPO" checkout --detach "$REVIEWED_OPS_COMMIT"
+test "$(trusted_git -C "$OPS_REPO" rev-parse --abbrev-ref HEAD)" = HEAD
 
 test "${OPS_REPO#/}" != "$OPS_REPO"
 test "${DAEMON_REPO#/}" != "$DAEMON_REPO"
@@ -1262,12 +1292,13 @@ The reviewed batch set, as the observer frontier reported it on 2026-09-26
 | `batch-20260728T151512Z` | `730e746eb0930b82e996235fb1e766e35dd58778` |
 | `batch-20260810T131814Z` | `1c15b1bd634c1e04f8f6a3e494b2b5454b6bcc11` |
 
-1. Set up the evidence directory and write the reviewed batch file. Compare it
+1. Complete the operations-checkout pinning above, then set up the evidence
+   directory and write the reviewed batch file. Compare it
    with the table above before continuing:
 
    ```bash
    set -o pipefail
-   OPS_REPO=/home/damienriehl/.local/share/sonsteng-daemon/checkout
+   OPS_REPO=/home/damienriehl/.local/share/sonsteng-ops/checkout
    LIVE_SHA=0159c1115e28df58b0511ba5fbbadd4f1435b4d2
    EVID="$HOME/.local/state/sonsteng-ledger-backfill/2026-09-25"
    install -d -m 700 "$EVID"
@@ -1356,7 +1387,8 @@ Damien must perform the production window at the keyboard under the Cloudflare
 PROD principal described in `docs/prod-release-operations.md`:
 
 Before pencils-down or either timer is changed, run this network preflight from
-the reviewed values recorded outside the checkout. It performs an authenticated
+the reviewed values recorded outside the checkout, using the pinned operations
+checkout established above. It performs an authenticated
 TLS handshake to the allowlisted ledger origin but makes no HTTP/API request.
 It must exit `0` with `preflight.ready:true`, the reviewed measured
 `verifier_blob`, `/usr/bin/systemctl`, and the expected system-CA-bundle path,
@@ -1368,11 +1400,11 @@ missing/unreadable bundle fails as
 the approved baseline for this production host before opening the window:
 
 ```bash
-builtin test "$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-daemon/checkout rev-parse --verify 'HEAD^{commit}')" = \
+builtin test "$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout rev-parse --verify 'HEAD^{commit}')" = \
   '<reviewed-release-commit-SHA>' || exit 72
-builtin test "$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-daemon/checkout rev-parse '<reviewed-release-commit-SHA>:tools/prove_queues_empty.py')" = \
+builtin test "$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout rev-parse '<reviewed-release-commit-SHA>:tools/prove_queues_empty.py')" = \
   '<reviewed-verifier-Git-blob-OID>' || exit 73
-builtin test "$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-daemon/checkout hash-object -- /home/damienriehl/.local/share/sonsteng-daemon/checkout/tools/prove_queues_empty.py)" = \
+builtin test "$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout hash-object -- /home/damienriehl/.local/share/sonsteng-ops/checkout/tools/prove_queues_empty.py)" = \
   '<reviewed-verifier-Git-blob-OID>' || exit 74
 (
   builtin exec -c /usr/bin/env -i LC_ALL=C \
@@ -1383,7 +1415,7 @@ builtin test "$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/d
     --verifier-blob '<reviewed-verifier-Git-blob-OID>' \
     --ledger-origin https://sonsteng-chat.damienriehl.workers.dev \
     --receipt-path '<absolute-preflight-receipt-path>.json'
-) 9</home/damienriehl/.local/share/sonsteng-daemon/checkout/tools/prove_queues_empty.py
+) 9</home/damienriehl/.local/share/sonsteng-ops/checkout/tools/prove_queues_empty.py
 queue_proof_preflight_rc=$?
 ```
 
@@ -1722,10 +1754,10 @@ or nonzero result as a stop before the window.
    bytes the verifier will measure:
 
    ```bash
-   builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-daemon/checkout \
+   builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout \
      rev-parse --verify 'HEAD^{commit}'
    (
-     builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-daemon/checkout \
+     builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout \
        rev-parse '<reviewed-release-commit-SHA>:tools/prove_queues_empty.py'
    )
    ```
@@ -1939,7 +1971,7 @@ or nonzero result as a stop before the window.
 
    <!-- queue-proof-launcher:start -->
    ```bash
-   builtin readonly QUEUE_PROOF_CHECKOUT=/home/damienriehl/.local/share/sonsteng-daemon/checkout || exit 68
+   builtin readonly QUEUE_PROOF_CHECKOUT=/home/damienriehl/.local/share/sonsteng-ops/checkout || exit 68
    builtin readonly QUEUE_PROOF_VERIFIER="$QUEUE_PROOF_CHECKOUT/tools/prove_queues_empty.py" || exit 68
    builtin readonly QUEUE_PROOF_RELEASE_COMMIT='<reviewed-release-commit-SHA>' || exit 68
    builtin readonly QUEUE_PROOF_VERIFIER_BLOB='<reviewed-verifier-Git-blob-OID>' || exit 68
@@ -2426,7 +2458,9 @@ or nonzero result as a stop before the window.
     that DEV static origin, so those two proofs cover it;
 11. at window close, rerun the readonly function from item 2 with the same
     `--window-owner`. The function re-verifies the checkout commit, committed
-    blob, and working verifier blob before this second proof:
+    blob, and working verifier blob before this second proof. Keep the standalone
+    operations checkout at the reviewed release even though CAS has advanced
+    the daemon checkout to the migration candidate:
 
     ```bash
     run_queue_proof closing '<absolute-closing-receipt-path>.json'

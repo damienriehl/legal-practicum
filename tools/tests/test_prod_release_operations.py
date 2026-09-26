@@ -124,3 +124,26 @@ def test_legacy_bootstrap_is_operator_only_and_has_no_publication_authority():
     assert "ProductionCandidateBuilder" not in bootstrap
     assert "LedgerHTTP" not in bootstrap
     assert "prod_release_bootstrap" not in daemon
+
+
+def test_day_zero_verifier_sources_use_standalone_pinned_operations_clone():
+    runbook = (ROOT / "docs/day-zero-migration-operations.md").read_text(encoding="utf-8")
+    ops = "/home/damienriehl/.local/share/sonsteng-ops/checkout"
+    assert "/home/damienriehl/.local/share/sonsteng-daemon/checkout" not in runbook
+    assert "Run this from the dedicated daemon checkout" not in runbook
+    assert runbook.count(f"OPS_REPO={ops}\n") == 2
+    assert 'trusted_git clone --no-local -- "$CANONICAL_REMOTE_URL" "$OPS_REPO"' in runbook
+    assert 'trusted_git -C "$OPS_REPO" checkout --detach "$REVIEWED_OPS_COMMIT"' in runbook
+    assert 'rev-parse --path-format=absolute --git-common-dir)" = "$OPS_REPO/.git"' in runbook
+    assert 'rev-parse --abbrev-ref HEAD)" = HEAD' in runbook
+    assert 'rev-parse --verify HEAD)" = "$REVIEWED_OPS_COMMIT"' in runbook
+    assert 'test -z "$(trusted_git -C "$OPS_REPO" status --porcelain --untracked-files=all)"' in runbook
+    preflight = runbook.split("Before pencils-down or either timer is changed,", 1)[1].split("queue_proof_preflight_rc=$?", 1)[0]
+    assert f"/usr/bin/git -C {ops} rev-parse --verify 'HEAD^{{commit}}'" in preflight
+    assert f"/usr/bin/git -C {ops} rev-parse '<reviewed-release-commit-SHA>:tools/prove_queues_empty.py'" in preflight
+    assert f"/usr/bin/git -C {ops} hash-object -- {ops}/tools/prove_queues_empty.py" in preflight
+    assert f") 9<{ops}/tools/prove_queues_empty.py" in preflight
+    assert "builtin exec -c /usr/bin/env -i LC_ALL=C" in preflight
+    assert "/usr/bin/python3 -I -B --check-hash-based-pycs always" in preflight
+    reviewer = runbook.split("After review, the reviewer records", 1)[1].split("Before opening, the supervisor", 1)[0]
+    assert reviewer.count(f"/usr/bin/git -C {ops}") == 2
