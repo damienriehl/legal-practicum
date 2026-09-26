@@ -714,20 +714,20 @@ SHA, and the result of each check:
    after the candidate's ignored inputs have been regenerated (OQ-10):
 
    ```bash
-   PRIOR_MAP_DIR=$(mktemp -d)
-   git clone --quiet --no-hardlinks --no-checkout "$CONTROLLED_REPO" "$PRIOR_MAP_DIR/tree"
-   git -C "$PRIOR_MAP_DIR/tree" checkout --quiet --detach "$PRIOR_PAIR_SHA"
-   OBSERVED_GATE_VALUE=$(git -C "$PRIOR_MAP_DIR/tree" rev-parse HEAD) || exit 1
-   test "$OBSERVED_GATE_VALUE" = "$PRIOR_PAIR_SHA"
-   ( cd "$PRIOR_MAP_DIR/tree" &&
-     python3 tools/build_site.py --check &&
-     python3 tools/build_worker_personas.py &&
-     python3 tools/build_instructor_bundle.py &&
-     python3 tools/build_history.py &&
-     node app/worker/scripts/bundle-editor-data.mjs )
-   echo "prior build rc=$?"
-   python3 - "$PRIOR_MAP_DIR/tree/build/editor-map.generated.json" \
-     "$CONTROLLED_REPO/build/editor-map.generated.json" <<'PY'
+   if PRIOR_MAP_DIR=$(mktemp -d) &&
+      git clone --quiet --no-hardlinks --no-checkout "$CONTROLLED_REPO" "$PRIOR_MAP_DIR/tree" &&
+      git -C "$PRIOR_MAP_DIR/tree" checkout --quiet --detach "$PRIOR_PAIR_SHA" &&
+      OBSERVED_GATE_VALUE=$(git -C "$PRIOR_MAP_DIR/tree" rev-parse HEAD) &&
+      test "$OBSERVED_GATE_VALUE" = "$PRIOR_PAIR_SHA"; then
+     if ( cd "$PRIOR_MAP_DIR/tree" &&
+         python3 tools/build_site.py --check &&
+         python3 tools/build_worker_personas.py &&
+         python3 tools/build_instructor_bundle.py &&
+         python3 tools/build_history.py &&
+         node app/worker/scripts/bundle-editor-data.mjs ); then
+       echo "prior build rc=0"
+       python3 - "$PRIOR_MAP_DIR/tree/build/editor-map.generated.json" \
+         "$CONTROLLED_REPO/build/editor-map.generated.json" <<'PY'
    import json, sys
    prior, candidate = (json.load(open(path, encoding="utf-8")) for path in sys.argv[1:3])
    a, b = set(prior["pages"]), set(candidate["pages"])
@@ -739,7 +739,13 @@ SHA, and the result of each check:
    }, sort_keys=True))
    sys.exit(0 if a == b and a else 1)
    PY
-   echo "check-1 rc=$?"
+       echo "check-1 rc=$?"
+     else
+       echo "STOP: prior build rc=$?"
+     fi
+   else
+     echo "STOP: prior map checkout failed or HEAD unreadable or unequal to PRIOR_PAIR_SHA"
+   fi
    ```
 
    Require `prior build rc=0`, `check-1 rc=0`, nonzero key counts, and two
@@ -974,12 +980,16 @@ worktree, after reviewing the full diff:
 git add data site/platform app/worker/personas/personas.generated.json
 git status --short --untracked-files=all   # nothing may remain unstaged or untracked
 git commit -m "feat(day-zero): materialize Day Zero dates and legalpracticum.org identifiers"
-CANDIDATE_SHA=$(git rev-parse HEAD)
-test "${#CANDIDATE_SHA}" -eq 40
-OBSERVED_GATE_VALUE=$(git rev-parse HEAD^) || exit 1
-test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA"
-OBSERVED_GATE_VALUE=$(git rev-list --count "$PRIOR_SHA..$CANDIDATE_SHA") || exit 1
-test "$OBSERVED_GATE_VALUE" = 1
+if CANDIDATE_SHA=$(git rev-parse HEAD) &&
+   test "${#CANDIDATE_SHA}" -eq 40 &&
+   OBSERVED_GATE_VALUE=$(git rev-parse HEAD^) &&
+   test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA" &&
+   OBSERVED_GATE_VALUE=$(git rev-list --count "$PRIOR_SHA..$CANDIDATE_SHA") &&
+   test "$OBSERVED_GATE_VALUE" = 1; then
+  echo "candidate ancestry OK"
+else
+  echo "STOP: candidate SHA or ancestry unreadable or unexpected"
+fi
 ```
 
 Never use `git commit -a` or `git add -A` here, and never force-add `build/`
@@ -1440,27 +1450,35 @@ missing/unreadable bundle fails as
 the approved baseline for this production host before opening the window:
 
 ```bash
-OBSERVED_GATE_VALUE=$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout rev-parse --verify 'HEAD^{commit}') || exit 72
-builtin test "$OBSERVED_GATE_VALUE" = \
-  '<reviewed-release-commit-SHA>' || exit 72
-OBSERVED_GATE_VALUE=$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout rev-parse '<reviewed-release-commit-SHA>:tools/prove_queues_empty.py') || exit 73
-builtin test "$OBSERVED_GATE_VALUE" = \
-  '<reviewed-verifier-Git-blob-OID>' || exit 73
-OBSERVED_GATE_VALUE=$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout hash-object -- /home/damienriehl/.local/share/sonsteng-ops/checkout/tools/prove_queues_empty.py) || exit 74
-builtin test "$OBSERVED_GATE_VALUE" = \
-  '<reviewed-verifier-Git-blob-OID>' || exit 74
 (
-  builtin exec -c /usr/bin/env -i LC_ALL=C \
-    /usr/bin/python3 -I -B --check-hash-based-pycs always \
-    /proc/self/fd/9 \
-    --preflight \
-    --release-commit '<reviewed-release-commit-SHA>' \
-    --verifier-blob '<reviewed-verifier-Git-blob-OID>' \
-    --ledger-origin https://sonsteng-chat.damienriehl.workers.dev \
-    --receipt-path '<absolute-preflight-receipt-path>.json'
-) 9</home/damienriehl/.local/share/sonsteng-ops/checkout/tools/prove_queues_empty.py
+  OBSERVED_GATE_VALUE=$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout rev-parse --verify 'HEAD^{commit}') || exit 72
+  builtin test "$OBSERVED_GATE_VALUE" = \
+    '<reviewed-release-commit-SHA>' || exit 72
+  OBSERVED_GATE_VALUE=$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout rev-parse '<reviewed-release-commit-SHA>:tools/prove_queues_empty.py') || exit 73
+  builtin test "$OBSERVED_GATE_VALUE" = \
+    '<reviewed-verifier-Git-blob-OID>' || exit 73
+  OBSERVED_GATE_VALUE=$(builtin exec -c /usr/bin/env -i LC_ALL=C /usr/bin/git -C /home/damienriehl/.local/share/sonsteng-ops/checkout hash-object -- /home/damienriehl/.local/share/sonsteng-ops/checkout/tools/prove_queues_empty.py) || exit 74
+  builtin test "$OBSERVED_GATE_VALUE" = \
+    '<reviewed-verifier-Git-blob-OID>' || exit 74
+  (
+    builtin exec -c /usr/bin/env -i LC_ALL=C \
+      /usr/bin/python3 -I -B --check-hash-based-pycs always \
+      /proc/self/fd/9 \
+      --preflight \
+      --release-commit '<reviewed-release-commit-SHA>' \
+      --verifier-blob '<reviewed-verifier-Git-blob-OID>' \
+      --ledger-origin https://sonsteng-chat.damienriehl.workers.dev \
+      --receipt-path '<absolute-preflight-receipt-path>.json'
+  ) 9</home/damienriehl/.local/share/sonsteng-ops/checkout/tools/prove_queues_empty.py
+)
 queue_proof_preflight_rc=$?
+if test "$queue_proof_preflight_rc" -ne 0; then
+  echo "STOP: queue proof preflight rc=$queue_proof_preflight_rc"
+fi
 ```
+
+The outer subshell contains identity-check exits 72/73/74; the parent shell
+retains `queue_proof_preflight_rc` and prints STOP on failure.
 
 This preflight intentionally reports `all_queues_empty:false`: it checks that
 the proof machinery is ready, not the live queues. Treat any skipped comparison
@@ -1533,15 +1551,21 @@ or nonzero result as a stop before the window.
       regenerate the ignored Worker inputs there (OQ-10):
 
       ```bash
-      PRIOR_DIR=$(mktemp -d)
-      git clone --quiet --no-hardlinks --no-checkout "$DAEMON_REPO" "$PRIOR_DIR/tree"
-      git -C "$PRIOR_DIR/tree" checkout --quiet --detach "$PRIOR_SHA"
-      OBSERVED_GATE_VALUE=$(git -C "$PRIOR_DIR/tree" rev-parse HEAD) || exit 1
-      test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA"
-      cd "$PRIOR_DIR/tree"
-      python3 tools/build_site.py --check && python3 tools/build_worker_personas.py &&
-        python3 tools/build_instructor_bundle.py && python3 tools/build_history.py &&
-        node app/worker/scripts/bundle-editor-data.mjs; echo "prior regen rc=$?"
+      if PRIOR_DIR=$(mktemp -d) &&
+         git clone --quiet --no-hardlinks --no-checkout "$DAEMON_REPO" "$PRIOR_DIR/tree" &&
+         git -C "$PRIOR_DIR/tree" checkout --quiet --detach "$PRIOR_SHA" &&
+         OBSERVED_GATE_VALUE=$(git -C "$PRIOR_DIR/tree" rev-parse HEAD) &&
+         test "$OBSERVED_GATE_VALUE" = "$PRIOR_SHA"; then
+        cd "$PRIOR_DIR/tree" &&
+          python3 tools/build_site.py --check &&
+          python3 tools/build_worker_personas.py &&
+          python3 tools/build_instructor_bundle.py &&
+          python3 tools/build_history.py &&
+          node app/worker/scripts/bundle-editor-data.mjs
+        echo "prior regen rc=$?"
+      else
+        echo "STOP: prior checkout failed or HEAD unreadable or unequal to PRIOR_SHA"
+      fi
       ```
 
       Then, still in `$PRIOR_DIR/tree`, run the OQ-10 `spine_build_id`
@@ -1982,7 +2006,7 @@ or nonzero result as a stop before the window.
    ignores user-site and Python environment path injection. The Bash builtin
    command boundary prevents PATH entries or slash-named shell functions from
    intercepting Git or Python, and a pre-existing readonly launcher makes setup
-   exit `69`. Every
+   print STOP and retain `opening_queue_proof_rc=69` without closing the window. Every
    invocation independently requires the named checkout to be
    at the reviewed commit, requires that commit to contain the reviewed blob,
    and hashes the working verifier bytes to reject a dirty or substituted copy.
@@ -2015,12 +2039,12 @@ or nonzero result as a stop before the window.
 
    <!-- queue-proof-launcher:start -->
    ```bash
-   builtin readonly QUEUE_PROOF_CHECKOUT=/home/damienriehl/.local/share/sonsteng-ops/checkout || exit 68
-   builtin readonly QUEUE_PROOF_VERIFIER="$QUEUE_PROOF_CHECKOUT/tools/prove_queues_empty.py" || exit 68
-   builtin readonly QUEUE_PROOF_RELEASE_COMMIT='<reviewed-release-commit-SHA>' || exit 68
-   builtin readonly QUEUE_PROOF_VERIFIER_BLOB='<reviewed-verifier-Git-blob-OID>' || exit 68
-   builtin readonly QUEUE_PROOF_NONCE_FILE='<absolute-mode-0600-window-nonce-file>' || exit 68
-   builtin unset -f run_queue_proof 2>/dev/null || exit 69
+   if builtin readonly QUEUE_PROOF_CHECKOUT=/home/damienriehl/.local/share/sonsteng-ops/checkout &&
+   builtin readonly QUEUE_PROOF_VERIFIER="$QUEUE_PROOF_CHECKOUT/tools/prove_queues_empty.py" &&
+   builtin readonly QUEUE_PROOF_RELEASE_COMMIT='<reviewed-release-commit-SHA>' &&
+   builtin readonly QUEUE_PROOF_VERIFIER_BLOB='<reviewed-verifier-Git-blob-OID>' &&
+   builtin readonly QUEUE_PROOF_NONCE_FILE='<absolute-mode-0600-window-nonce-file>'; then
+   if builtin unset -f run_queue_proof 2>/dev/null; then
 
    run_queue_proof() {
      builtin local observed_checkout observed_commit committed_blob working_blob window_phase receipt_path
@@ -2075,10 +2099,21 @@ or nonzero result as a stop before the window.
          --receipt-path "$receipt_path"
      ) 9<"$QUEUE_PROOF_VERIFIER"
    }
-   builtin readonly -f run_queue_proof
-
-   run_queue_proof opening '<absolute-opening-receipt-path>.json'
-   opening_queue_proof_rc=$?
+   if builtin readonly -f run_queue_proof; then
+     run_queue_proof opening '<absolute-opening-receipt-path>.json'
+     opening_queue_proof_rc=$?
+   else
+     opening_queue_proof_rc=69
+     echo "STOP: cannot pin queue proof function"
+   fi
+   else
+     opening_queue_proof_rc=69
+     echo "STOP: cannot replace queue proof launcher"
+   fi
+   else
+     opening_queue_proof_rc=68
+     echo "STOP: cannot establish queue proof constants"
+   fi
    ```
    <!-- queue-proof-launcher:end -->
 

@@ -3433,7 +3433,7 @@ builtin readonly -f run_queue_proof
     )
 
     assert preexisting_function.returncode == 69
-    assert preexisting_function.stdout == ""
+    assert preexisting_function.stdout == "STOP: cannot replace queue proof launcher\n"
     assert not receipt_path.exists()
     assert not poison_marker.exists()
     assert not loader_marker.exists()

@@ -5427,3 +5427,154 @@ def test_runbook_split_state_recovery(repositories, tmp_path, failure):
     assert sha(repositories.remote, "main") == repositories.prior
     if failure in {"first-status", "final-status"}:
         assert calls.read_text().strip() == ("1" if failure == "first-status" else "2")
+
+
+def window_runbook_block(anchor):
+    documentation = (ROOT / "docs/day-zero-migration-operations.md").read_text()
+    section = documentation.split(anchor, 1)[1]
+    return textwrap.dedent(section.split("```bash\n", 1)[1].split("```", 1)[0]).strip()
+
+
+def run_window_block(tmp_path, block, setup="", after=""):
+    # No profiles, user Git configuration, network, or real production commands.
+    result = subprocess.run(
+        ["/bin/bash", "--noprofile", "--norc", "-i"],
+        input="set +e; set -u\n" + setup + "\n" + block + "\n"
+        + 'echo WINDOW_STATE_SURVIVED\n' + after + "\n",
+        text=True, capture_output=True, cwd=tmp_path,
+        env={"PATH": "/usr/bin:/bin", "HOME": str(tmp_path), "PS1": "", "PS2": "",
+             "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null",
+             "GIT_CONFIG_NOSYSTEM": "1"},
+        timeout=10,
+    )
+    assert "WINDOW_STATE_SURVIVED" in result.stdout, result
+    return result
+
+
+@pytest.mark.parametrize("kind,failure", [
+    (kind, failure)
+    for kind in ["prior-map", "candidate", "prior-regen"]
+    for failure in ["read", "mismatch", "count-read", "count-mismatch", None]
+    if kind == "candidate" or failure not in {"count-read", "count-mismatch"}
+])
+def test_runbook_window_gate_survival(tmp_path, kind, failure):
+    anchors = {
+        "prior-map": "after the candidate's ignored inputs have been regenerated (OQ-10):",
+        "candidate": "Stage the migration commit explicitly.",
+        "prior-regen": "3. Create a clean `PRIOR_SHA` checkout",
+    }
+    block = window_runbook_block(anchors[kind])
+    setup = r'''
+PRIOR_SHA=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+PRIOR_PAIR_SHA=$PRIOR_SHA
+CONTROLLED_REPO=$PWD
+DAEMON_REPO=$PWD
+START_DIR=$PWD
+mktemp() { mkdir -p "$START_DIR/clone/tree"; echo "$START_DIR/clone"; }
+git() {
+  case "$*" in
+    *'rev-list --count'*)
+      case "$FAILURE" in count-read) return 97;; count-mismatch) echo 2;; *) echo 1;; esac ;;
+    'rev-parse HEAD') echo bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ;;
+    *'rev-parse HEAD'*)
+      case "$FAILURE" in read) return 97;; mismatch) echo wrong;; *) echo "$PRIOR_SHA";; esac ;;
+    *) return 0 ;;
+  esac
+}
+python3() { echo "DEPENDENT python3 $*"; }
+node() { echo "DEPENDENT node $*"; }
+'''
+    after = {
+        "prior-map": 'test "$PRIOR_MAP_DIR" = "$START_DIR/clone" && echo PARENT_ASSIGNMENT_OK',
+        "candidate": 'test "$CANDIDATE_SHA" = bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb && echo PARENT_ASSIGNMENT_OK',
+        "prior-regen": 'test "$PRIOR_DIR" = "$START_DIR/clone" && echo PARENT_ASSIGNMENT_OK\npwd',
+    }[kind]
+    result = run_window_block(tmp_path, block, f"FAILURE={failure or 'none'}\n" + setup, after)
+    assert "PARENT_ASSIGNMENT_OK" in result.stdout
+    if failure:
+        assert "STOP:" in result.stdout
+        assert "DEPENDENT" not in result.stdout
+        assert "candidate ancestry OK" not in result.stdout
+        if kind == "prior-regen":
+            assert result.stdout.splitlines()[-1] == str(tmp_path)
+    else:
+        assert "STOP:" not in result.stdout
+        if kind == "candidate":
+            assert "candidate ancestry OK" in result.stdout
+        else:
+            assert result.stdout.count("DEPENDENT python3") == (5 if kind == "prior-map" else 4)
+            assert "DEPENDENT node" in result.stdout
+            if kind == "prior-regen":
+                assert result.stdout.splitlines()[-1] == str(tmp_path / "clone/tree")
+
+
+def stub_window_executables(tmp_path, block, failure):
+    checkout = tmp_path / "ops"
+    (checkout / "tools").mkdir(parents=True)
+    (checkout / "tools/prove_queues_empty.py").write_text("# harmless fd-9 fixture\n")
+    git_stub = tmp_path / "git-stub"
+    git_stub.write_text(
+        '#!/bin/bash\n'
+        f'failure={shlex.quote(failure or "none")}\n'
+        'case "$*" in\n'
+        f'  *--show-toplevel*) echo {shlex.quote(str(checkout))}; exit 0;;\n'
+        "  *'rev-parse --verify'*) gate=72; value='<reviewed-release-commit-SHA>';;\n"
+        "  *'rev-parse '*) gate=73; value='<reviewed-verifier-Git-blob-OID>';;\n"
+        "  *'hash-object '*) gate=74; value='<reviewed-verifier-Git-blob-OID>';;\n"
+        '  *) exit 98;;\nesac\n'
+        'case "$failure" in "$gate-read") exit 97;; "$gate-mismatch") value=wrong;; esac\n'
+        'echo "$value"\n'
+    )
+    git_stub.chmod(0o755)
+    launcher_stub = tmp_path / "launcher-stub"
+    launcher_stub.write_text('#!/bin/bash\necho DEPENDENT_LAUNCH\n')
+    launcher_stub.chmod(0o755)
+    return (block.replace("/usr/bin/git", str(git_stub))
+            .replace("/usr/bin/python3", str(launcher_stub))
+            .replace("/home/damienriehl/.local/share/sonsteng-ops/checkout", str(checkout)))
+
+
+@pytest.mark.parametrize("failure", [None, "72-read", "73-read", "74-read",
+                                     "72-mismatch", "73-mismatch", "74-mismatch"])
+def test_runbook_preflight_preserves_window_and_codes(tmp_path, failure):
+    block = window_runbook_block("Before pencils-down or either timer is changed,")
+    block = stub_window_executables(tmp_path, block, failure)
+    result = run_window_block(tmp_path, block, after='echo PREFLIGHT_RC=$queue_proof_preflight_rc')
+    if failure:
+        assert "STOP:" in result.stdout
+        assert f"PREFLIGHT_RC={failure[:2]}" in result.stdout
+        assert "DEPENDENT_LAUNCH" not in result.stdout
+    else:
+        assert "STOP:" not in result.stdout
+        assert "PREFLIGHT_RC=0" in result.stdout
+        assert "DEPENDENT_LAUNCH" in result.stdout
+
+
+@pytest.mark.parametrize("failure", [None, "CHECKOUT", "VERIFIER", "RELEASE_COMMIT",
+                                     "VERIFIER_BLOB", "NONCE_FILE", "function"])
+def test_runbook_launcher_setup_preserves_window(tmp_path, failure):
+    block = window_runbook_block("<!-- queue-proof-launcher:start -->")
+    block = stub_window_executables(tmp_path, block, None)
+    block = block.replace("<absolute-opening-receipt-path>.json", str(tmp_path / "receipt.json"))
+    setup = ''
+    if failure == "function":
+        setup = 'run_queue_proof() { echo STALE_LAUNCH; }; readonly -f run_queue_proof'
+    elif failure:
+        setup = f'readonly QUEUE_PROOF_{failure}=existing'
+    result = run_window_block(
+        tmp_path, block, setup,
+        'echo OPENING_RC=$opening_queue_proof_rc\n'
+        'declare -F run_queue_proof\n'
+        'echo CHECKOUT=${QUEUE_PROOF_CHECKOUT-unset}',
+    )
+    assert "STALE_LAUNCH" not in result.stdout
+    if failure:
+        assert "STOP:" in result.stdout
+        assert f"OPENING_RC={69 if failure == 'function' else 68}" in result.stdout
+        assert "DEPENDENT_LAUNCH" not in result.stdout
+    else:
+        assert "STOP:" not in result.stdout
+        assert "OPENING_RC=0" in result.stdout
+        assert "DEPENDENT_LAUNCH" in result.stdout
+        assert "run_queue_proof" in result.stdout
+        assert f"CHECKOUT={tmp_path}/ops" in result.stdout
