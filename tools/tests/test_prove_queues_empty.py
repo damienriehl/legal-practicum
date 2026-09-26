@@ -8,6 +8,7 @@ import json
 import os
 import pathlib
 import re
+import shlex
 import signal
 import ssl
 import stat
@@ -3066,13 +3067,45 @@ def test_trusted_systemctl_is_available_on_test_host():
     )
 
 
-def test_documented_invocation_ignores_shell_path_and_cwd_or_refuses(tmp_path):
+@pytest.mark.parametrize("apply_active", [True, False], ids=["running", "stopped"])
+def test_documented_invocation_ignores_shell_path_and_cwd_or_refuses(
+    tmp_path, apply_active
+):
     runbook_executable_claims()
     checkout = tmp_path / "trusted-checkout"
     checkout.mkdir()
     verifier = checkout / "tools/prove_queues_empty.py"
     verifier.parent.mkdir()
-    verifier.write_bytes((TOOLS / "prove_queues_empty.py").read_bytes())
+    # Inject only the systemctl executable through main's existing seam in the
+    # disposable verifier, before committing its identity. The documented shell
+    # launcher and every production isolation/fence check still execute intact.
+    systemctl_calls = tmp_path / "systemctl-calls"
+    systemctl = tmp_path / "systemctl"
+    systemctl.write_text(
+        "#!/bin/sh\n"
+        f"printf '%s %s %s\\n' \"$1\" \"$2\" \"$3\" >> {shlex.quote(str(systemctl_calls))}\n"
+        'case "$2:$3" in\n'
+        '  is-enabled:sonsteng-apply.timer) echo enabled; exit 0 ;;\n'
+        '  is-active:sonsteng-apply.timer) '
+        + ("echo active; exit 0" if apply_active else "echo inactive; exit 3")
+        + " ;;\n"
+        '  is-enabled:sonsteng-prod-release.timer) echo disabled; exit 1 ;;\n'
+        '  is-active:sonsteng-prod-release.timer) echo inactive; exit 3 ;;\n'
+        '  *) exit 99 ;;\n'
+        'esac\n',
+        encoding="utf-8",
+    )
+    systemctl.chmod(0o700)
+    source = (TOOLS / "prove_queues_empty.py").read_text(encoding="utf-8")
+    entrypoint = "raise SystemExit(main())"
+    assert source.count(entrypoint) == 1
+    verifier.write_text(
+        source.replace(
+            entrypoint,
+            f"raise SystemExit(main(systemctl_path={str(systemctl)!r}))",
+        ),
+        encoding="utf-8",
+    )
     git = ["/usr/bin/git", "-C", str(checkout)]
     subprocess.run(
         [*git, "init", "-q"], check=True, env=_test_git_environment()
@@ -3131,7 +3164,7 @@ __attribute__((constructor)) static void mark_loader_execution(void) {
         check=True,
         env=_test_subprocess_environment(),
     )
-    for command_name in ("python3", "git"):
+    for command_name in ("python3", "git", "systemctl"):
         shim = shim_dir / command_name
         shim.write_text(
             "#!/bin/sh\n"
@@ -3229,7 +3262,28 @@ builtin export LD_ARBITRARY=private OPENSSL_CONF=/private/openssl.cnf
     assert invoked.returncode == 1
     assert invoked.stdout == receipt_path.read_text(encoding="utf-8")
     assert receipt["all_queues_empty"] is False
-    assert receipt["proof_error"] == "fence-apply-timer-not-stopped"
+    # A stopped apply timer passes the fence, then the deliberately missing
+    # credential file refuses the proof before any network request can occur.
+    assert receipt["proof_error"] == (
+        "fence-apply-timer-not-stopped" if apply_active else "environment-unavailable"
+    )
+    assert receipt["fence"]["apply_timer"] == {
+        "active": apply_active, "available": True, "enabled": True,
+    }
+    assert receipt["fence"]["proved"] is (not apply_active)
+    expected_calls = [
+        "--user is-enabled sonsteng-apply.timer",
+        "--user is-active sonsteng-apply.timer",
+    ]
+    if not apply_active:
+        assert receipt["timer"] == {
+            "active": False, "available": True, "enabled": False,
+        }
+        expected_calls += [
+            "--user is-enabled sonsteng-prod-release.timer",
+            "--user is-active sonsteng-prod-release.timer",
+        ]
+    assert systemctl_calls.read_text(encoding="utf-8").splitlines() == expected_calls
     assert receipt["verifier_identity"] == {
         "release_commit": release_commit,
         "verifier_blob": verifier_blob,
