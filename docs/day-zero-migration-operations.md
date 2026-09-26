@@ -1166,6 +1166,170 @@ The dependency-injected state machine and the generated operator sheet model a
 single prior SHA. When the two values differ, neither may be used for this
 window; the numbered sequence below is the authority.
 
+## Pre-window ledger backfill (2026-09-25 decision)
+
+The first Packet D window (2026-09-25) stopped at the opening queue proof with
+`frontier-response-malformed`. The ledger on the `sonsteng-chat` Worker still
+listed eleven DEV apply batches as pending publication, ten of them legacy rows
+whose `generator_id` is null. Every one of those batch commits is already an
+ancestor of live production (`0159c1115e28df58b0511ba5fbbadd4f1435b4d2`): the
+pre-user lane (`docs/pre-user-prod-deploy.md`) shipped them without recording
+a release. Damien decided on 2026-09-25: a reviewed, append-only backfill
+records exactly these batches as published, each gated on proof that its
+commit is an ancestor of live production. Existing evidence rows stay
+untouched and the queue proof stays strict: it still rejects any
+null-generator batch it is shown, and a backfill only removes these batches
+from the frontier.
+
+`tools/prod_ledger_backfill.py` performs the gate and the single write:
+
+- it reads both production provenance surfaces with redirects disabled and no
+  credential (Pages `https://legalpracticum.org/` must answer `200` and the
+  production Worker's `/edit/release-provenance` must answer `204`), and it
+  requires both `X-Release-SHA` values to be 40 lowercase hex characters and
+  equal to `--live-production-sha`;
+- in `--repo` it proves that the live SHA and every batch commit exist, and
+  that `git merge-base --is-ancestor <batch-commit> <live-sha>` succeeds for
+  each batch;
+- it reads the release-service frontier and requires the frontier to list
+  exactly the reviewed batches, in order;
+- it calls `POST /edit/v1/prod/releases/backfill` once, then re-reads the
+  frontier and requires zero batches, no active release, and
+  `base_sha` equal to the live SHA.
+
+The Worker accepts that route only from the `release_service` bearer (never
+the observer, a cookie session, admin, or Publisher). It re-checks the
+provenance binding, the exact in-order batch prefix, and every commit SHA. It
+refuses the call once any release record exists, which makes the backfill a
+one-time bootstrap. It then appends one `complete` record with
+`release_kind: "ledger_backfill"`, base and candidate both set to the live
+SHA, and SHA-256 evidence and membership digests. The record has no release
+members, no authorization, and no fence, so it can never be claimed,
+transitioned, restored, or authorized. An exact retry with the same identity
+replays; any change conflicts.
+
+After the record lands, the ledger has a production frontier. `/claim` then
+returns `prod_base` equal to the live SHA, so the DEV apply daemon records
+review revisions against production, and History reverts must carry
+review-revision evidence. This is the intended post-bootstrap state. There is
+no rollback: never delete or edit the record. If it is wrong, keep the window
+closed and escalate.
+
+**Preconditions.** Deploy the Worker that carries the backfill route to the
+ledger Worker (`sonsteng-chat`, top-level environment) through the normal
+reviewed DEV lane with `RELEASE_SHA` set, and prove its provenance, before the
+window and outside it. The release-service bearer is the existing
+`SONSTENG_PROD_RELEASE_BEARER` in the 0600 file
+`~/.config/sonsteng-prod-release/env`. That value must match the ledger
+Worker's `EDIT_TOKEN_RELEASE` secret, whose slot grants only
+`release_service`. The tool reads the bearer from standard input only; it never
+appears in arguments, output, or receipts. The dry run's frontier read proves
+the bearer works: a `frontier-status-401` or `frontier-status-403` refusal means
+the secret did not land, and is a stop.
+
+The reviewed batch set, as the observer frontier reported it on 2026-09-26
+01:50Z:
+
+| batch_id | commit_sha |
+|---|---|
+| `e2e-stepc-deploy` | `d1f36a586134e625093b7ede5795ae0d7929f2df` |
+| `batch-20260719T192559Z` | `d7f402148755096f02a5029886fd58cd3b0d71c4` |
+| `batch-20260724T212832Z` | `24d3c9fd6010078046b1da85309a3eb38aee4850` |
+| `batch-20260728T134127Z` | `8489d66ea171f4f8df48f55eb7f13db32f9a681e` |
+| `batch-20260728T134618Z` | `9feb67b9fd8f16035347611a631a541f377b62d3` |
+| `batch-20260728T135007Z` | `350850a0cde0b40fd7d2ace169e26607b1f268f2` |
+| `batch-20260728T135350Z` | `469ca9b47c65adeb3362f64189f18d7be176fa99` |
+| `batch-20260728T140604Z` | `0019430e576d07f8c6fd1120af2d907c3544d354` |
+| `batch-20260728T145027Z` | `ac9f08d0dde02098db6892a17171138c2a28326a` |
+| `batch-20260728T151512Z` | `730e746eb0930b82e996235fb1e766e35dd58778` |
+| `batch-20260810T131814Z` | `1c15b1bd634c1e04f8f6a3e494b2b5454b6bcc11` |
+
+1. Set up the evidence directory and write the reviewed batch file. Compare it
+   with the table above before continuing:
+
+   ```bash
+   set -o pipefail
+   OPS_REPO=/home/damienriehl/.local/share/sonsteng-daemon/checkout
+   LIVE_SHA=0159c1115e28df58b0511ba5fbbadd4f1435b4d2
+   EVID="$HOME/.local/state/sonsteng-ledger-backfill/2026-09-25"
+   install -d -m 700 "$EVID"
+   python3 - "$HOME/.config/sonsteng-release-observer/env" "$EVID/batches.json" <<'PYEOF'
+   import json, os, sys, urllib.request
+   class NoRedirect(urllib.request.HTTPRedirectHandler):
+       def redirect_request(self, *args):
+           return None
+   token = open(sys.argv[1], encoding="utf-8").read().strip().split("=", 1)[1]
+   request = urllib.request.Request(
+       "https://sonsteng-chat.damienriehl.workers.dev/edit/v1/prod/releases/frontier",
+       headers={"Authorization": "Bearer " + token, "Accept": "application/json"})
+   with urllib.request.build_opener(NoRedirect).open(request, timeout=20) as response:
+       context = json.load(response)["context"]
+   batches = [{"batch_id": b["batch_id"], "commit_sha": b["commit_sha"]} for b in context["batches"]]
+   fd = os.open(sys.argv[2], os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+   with os.fdopen(fd, "w") as handle:
+       json.dump(batches, handle, indent=1)
+   for b in batches:
+       print(b["batch_id"], b["commit_sha"], len(b["commit_sha"]))
+   print("count", len(batches))
+   PYEOF
+   ```
+
+   It must print the eleven rows above, each with length `40`, and `count 11`.
+   Any other result is a stop.
+
+2. Dry run. It proves provenance, ancestry, and the frontier match, and it
+   authenticates the release bearer without writing:
+
+   ```bash
+   sed -n 's/^SONSTENG_PROD_RELEASE_BEARER=//p' "$HOME/.config/sonsteng-prod-release/env" | head -n 1 |
+     python3 "$OPS_REPO/tools/prod_ledger_backfill.py" --repo "$OPS_REPO" \
+       --live-production-sha "$LIVE_SHA" --batches-file "$EVID/batches.json" \
+       --release-id ledger-backfill-20260925 --idempotency-key ledger-backfill-20260925-v1 \
+       --receipt-path "$EVID/dry-run.json" --dry-run
+   echo "backfill dry-run rc=$?"
+   ```
+
+   It must print `"outcome": "dry-run-verified"` and `rc=0`. The receipt
+   records both provenance observations, one `is_ancestor_of_live: true` per
+   batch, and the request SHA-256.
+
+3. Record. Run the same command without `--dry-run` and with
+   `--receipt-path "$EVID/record.json"`. It must print `"outcome": "recorded"`
+   and `rc=0`. The receipt shows `frontier_after.batch_count: 0` and
+   `frontier_after.base_sha` equal to `LIVE_SHA`. If the response was lost,
+   rerun with the same release ID and idempotency key, `--allow-replay`, and a
+   fresh receipt path. It must print `"outcome": "replayed"`. Never change
+   either identifier to force a write.
+
+4. Re-check with the observer. Run the step-1a.6 observer `GET` again, and
+   also require `batches` to be empty and `base_sha` to equal `LIVE_SHA`:
+
+   ```bash
+   python3 - "$HOME/.config/sonsteng-release-observer/env" "$LIVE_SHA" <<'PYEOF'
+   import json, sys, urllib.request
+   class NoRedirect(urllib.request.HTTPRedirectHandler):
+       def redirect_request(self, *args):
+           return None
+   token = open(sys.argv[1], encoding="utf-8").read().strip().split("=", 1)[1]
+   request = urllib.request.Request(
+       "https://sonsteng-chat.damienriehl.workers.dev/edit/v1/prod/releases/frontier",
+       headers={"Authorization": "Bearer " + token, "Accept": "application/json"})
+   with urllib.request.build_opener(NoRedirect).open(request, timeout=20) as response:
+       context = json.load(response)["context"]
+   base = context.get("base_sha") or ""
+   ok = (context["batches"] == [] and context["active_release"] is None
+         and len(base) == 40 and base == sys.argv[2]
+         and context["operation_frontier"] == {"pending_operation_count": 0,
+                                               "blocked_state": "unblocked"})
+   print("batches", len(context["batches"]), "base_sha", base,
+         "operation_frontier", context["operation_frontier"], "OK" if ok else "STOP")
+   PYEOF
+   ```
+
+   It must print `OK`. The window's opening proof in step 2 remains the
+   authoritative queue evidence; this check only confirms that the backfill
+   removed the blocker.
+
 ## Remaining supervised U15 act
 
 Damien must perform the production window at the keyboard under the Cloudflare

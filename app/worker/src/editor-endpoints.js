@@ -1109,6 +1109,38 @@ export async function productionPrepareEndpoint(request, env, auth) {
     editError(result.reason || "validation_error", "Release preparation rejected.", 409);
 }
 
+// POST /edit/v1/prod/releases/backfill (release-service bearer only). The
+// reviewed one-time ledger backfill for batches production already carries;
+// the operator tool proves ancestry and live provenance before calling it.
+const LEDGER_BACKFILL_KEYS = new Set(["id","idempotency_key","live_production_sha",
+  "ancestry_verified","provenance","batches"]);
+
+export async function productionLedgerBackfillEndpoint(request, env, auth) {
+  if (!csrfOk(request, env)) return editError("csrf_failed", "Bad request.", 403);
+  if (env.PROD_RELEASE_LEDGER !== "true") return editError("not_found", "Not found.", 404);
+  if (!releaseService(auth)) return editError("forbidden", "Release service required.", 403);
+  const body = await readJson(request);
+  if (!body || typeof body !== "object" || Array.isArray(body) ||
+      Object.keys(body).some((key) => !LEDGER_BACKFILL_KEYS.has(key)) ||
+      [body.id,body.idempotency_key,body.live_production_sha].some((value) =>
+        typeof value !== "string" || !value || value.length > 256) ||
+      !Array.isArray(body.batches) || body.batches.length > 1000 ||
+      !body.provenance || typeof body.provenance !== "object" || Array.isArray(body.provenance))
+    return editError("validation_error", "Incomplete ledger backfill.", 400);
+  const binding = { id:body.id, idempotency_key:body.idempotency_key,
+    live_production_sha:body.live_production_sha, ancestry_verified:body.ancestry_verified === true,
+    provenance:{ pages_release_sha:body.provenance.pages_release_sha,
+      worker_release_sha:body.provenance.worker_release_sha },
+    batches:body.batches.map((batch) => ({ batch_id:batch?.batch_id, commit_sha:batch?.commit_sha })) };
+  const result = await editorStub(env).backfillProductionLedger({ ...binding,
+    provenance:body.provenance, batches:body.batches,
+    request_digest:await sha256Hex(JSON.stringify(binding)), actor:auth.editor || "service:release",
+    credential_channel:"bearer", target_environment:"production" });
+  if (result.ok) return json(result, result.replay ? 200 : 201);
+  return editError(result.reason || "validation_error", "Ledger backfill rejected.",
+    result.reason === "validation_error" ? 400 : 409);
+}
+
 export async function productionPreparationContextEndpoint(request, env, auth) {
   if (env.PROD_RELEASE_LEDGER !== "true") return editError("not_found", "Not found.", 404);
   if (!releaseService(auth) && !releaseObserver(auth))

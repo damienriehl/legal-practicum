@@ -467,6 +467,9 @@ export class EditorStoreCore {
     this._ensureColumn("production_releases", "schema_version", "INTEGER");
     this._ensureColumn("production_releases", "review_receipt_hash", "TEXT");
     this._ensureColumn("production_releases", "projection_identity", "TEXT");
+    // NULL for every Publisher-authorized release; 'ledger_backfill' marks the
+    // one-time record appended by backfillProductionLedger().
+    this._ensureColumn("production_releases", "release_kind", "TEXT");
     this._ensureColumn("production_release_operation_members", "ordinal", "INTEGER NOT NULL DEFAULT 0");
     this._ensureColumn("production_release_operation_members", "affected_source_refs_json", "TEXT NOT NULL DEFAULT '[]'");
     this._ensureColumn("suggestions", "production_release_id", "TEXT");
@@ -1168,6 +1171,100 @@ export class EditorStoreCore {
       input.id,"prepared",input.actor,JSON.stringify({ membership_hash:membershipHash,
         evidence_hash:input.evidence_hash, manifest_hash:input.manifest_hash,
         target_environment:"production" }),now);
+    });
+    return { ok:true, release:this.getProductionRelease(input.id) };
+  }
+
+  // Reviewed, append-only ledger backfill (Damien's decision, 2026-09-25).
+  // Production already carries these apply batches: the pre-user lane
+  // (docs/pre-user-prod-deploy.md) shipped them without recording a release.
+  // The release-service caller proves, outside the Worker, that every batch
+  // commit is an ancestor of the live production SHA and that both production
+  // provenance surfaces report that SHA. This appends exactly one terminal
+  // record marked release_kind='ledger_backfill' whose base and candidate are
+  // that live SHA (no deploy is claimed). It never edits apply_batches,
+  // suggestions, review, or publication rows; it creates no release members,
+  // operations, authorization, or fence, so it can never be claimed,
+  // transitioned, restored, or read as Publisher authorization. It is refused
+  // once any release exists, so it can only bootstrap an empty ledger.
+  backfillProductionLedger(input = {}) {
+    const allowed = new Set(["id","idempotency_key","request_digest","actor","credential_channel",
+      "target_environment","live_production_sha","ancestry_verified","provenance","batches"]);
+    const hex40 = (value) => typeof value === "string" && /^[0-9a-f]{40}$/.test(value);
+    const bounded = (value) => typeof value === "string" && value.length > 0 && value.length <= 256;
+    const batches = input.batches;
+    if (Object.keys(input).some((key) => !allowed.has(key)) ||
+        !["id","idempotency_key","request_digest","actor"].every((key) => bounded(input[key])) ||
+        !hex40(input.live_production_sha) || !Array.isArray(batches) || !batches.length ||
+        batches.length > 1000 || batches.some((batch) => !batch || typeof batch !== "object" ||
+          Array.isArray(batch) || Object.keys(batch).length !== 2 ||
+          !bounded(batch.batch_id) || !hex40(batch.commit_sha)) ||
+        new Set(batches.map((batch) => batch.batch_id)).size !== batches.length ||
+        !input.provenance || typeof input.provenance !== "object")
+      return { ok:false, reason:"validation_error" };
+    if (input.credential_channel !== "bearer") return { ok:false, reason:"service_bearer_required" };
+    if (input.target_environment !== "production") return { ok:false, reason:"wrong_target" };
+    if (input.ancestry_verified !== true) return { ok:false, reason:"nonancestor_candidate" };
+    const provenance = { pages_release_sha:input.provenance.pages_release_sha,
+      worker_release_sha:input.provenance.worker_release_sha };
+    if (Object.keys(input.provenance).length !== 2 ||
+        provenance.pages_release_sha !== input.live_production_sha ||
+        provenance.worker_release_sha !== input.live_production_sha)
+      return { ok:false, reason:"provenance_mismatch" };
+
+    const prior = this._one(
+      "SELECT id,request_digest FROM production_releases WHERE idempotency_key=?", input.idempotency_key);
+    if (prior) {
+      if (prior.id === input.id && prior.request_digest === input.request_digest)
+        return { ok:true, replay:true, release:this.getProductionRelease(prior.id) };
+      return { ok:false, reason:"idempotency_conflict" };
+    }
+    if (this._one("SELECT id FROM production_releases LIMIT 1"))
+      return { ok:false, reason:"release_history_exists" };
+    if (this._one("SELECT batch_id FROM apply_batches WHERE phase='evidence_missing' LIMIT 1"))
+      return { ok:false, reason:"missing_batch_evidence" };
+
+    // The same publishable-batch order the frontier projection returns. With no
+    // release history the frontier starts at the first batch, so the supplied
+    // set must be an exact, in-order prefix of it; nothing is skipped.
+    const done = this._all(
+      "SELECT batch_id,commit_sha FROM apply_batches WHERE phase='done' ORDER BY created_at,batch_id")
+      .filter((batch) => this._one(
+        "SELECT id FROM suggestions WHERE apply_batch_id=? AND status=? LIMIT 1",
+        batch.batch_id, STATUS.APPLIED) || this._one(
+        "SELECT id FROM canonical_mutations WHERE batch_id=? LIMIT 1", batch.batch_id));
+    for (const [index, supplied] of batches.entries()) {
+      const recorded = done[index];
+      if (!recorded || recorded.batch_id !== supplied.batch_id)
+        return { ok:false, reason:done.some((batch) => batch.batch_id === supplied.batch_id) ?
+          "noncontiguous_membership" : "unknown_batch" };
+      if (recorded.commit_sha !== supplied.commit_sha) return { ok:false, reason:"commit_mismatch" };
+    }
+
+    const members = batches.map((batch) => ({ batch_id:batch.batch_id, commit_sha:batch.commit_sha }));
+    const evidence = { digest_type:"production-ledger-backfill-evidence-v1",
+      live_production_sha:input.live_production_sha, provenance, ancestry_verified:true,
+      batches:members };
+    const evidenceHash = this._digest(evidence);
+    const membershipHash = this._digest({ digest_type:"production-ledger-backfill-membership-v1",
+      batches:members, binding:{ live_production_sha:input.live_production_sha,
+        evidence_hash:evidenceHash } });
+    const target = members[members.length - 1].batch_id;
+    const now = this.now();
+    this.transactionSync(() => {
+      // manifest_hash carries the evidence digest: a backfill has no candidate
+      // manifest because it builds and deploys nothing.
+      this.sql.exec("INSERT INTO production_releases (id,idempotency_key,request_digest,state,actor,credential_channel,target_environment,target_batch_id,base_sha,candidate_sha,generator_id,evidence_hash,manifest_hash,membership_hash,created_at,updated_at,schema_version,release_kind) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        input.id,input.idempotency_key,input.request_digest,"complete",input.actor,"bearer",
+        "production",target,input.live_production_sha,input.live_production_sha,
+        "ledger-backfill-v1",evidenceHash,evidenceHash,membershipHash,now,now,1,"ledger_backfill");
+      members.forEach((batch, ordinal) => this.sql.exec(
+        "INSERT INTO production_release_batches (release_id,ordinal,batch_id,commit_sha) VALUES (?,?,?,?)",
+        input.id,ordinal,batch.batch_id,batch.commit_sha));
+      this.sql.exec("INSERT INTO production_release_events (release_id,type,actor,detail_json,created_at) VALUES (?,?,?,?,?)",
+        input.id,"ledger_backfilled",input.actor,JSON.stringify({ ...evidence,
+          evidence_hash:evidenceHash, membership_hash:membershipHash,
+          release_kind:"ledger_backfill" }),now);
     });
     return { ok:true, release:this.getProductionRelease(input.id) };
   }

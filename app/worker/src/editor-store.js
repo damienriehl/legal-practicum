@@ -72,6 +72,7 @@ export class EditorStore extends DurableObject {
   expireAssessmentAudits() { return this.core.expireAssessmentAudits(); }
   prepareProductionRelease(input) { return this.core.prepareProductionRelease(input); }
   authorizeProductionRelease(input) { return this.core.authorizeProductionRelease(input); }
+  backfillProductionLedger(input) { return this.core.backfillProductionLedger(input); }
   getProductionRelease(id) { return this.core.getProductionRelease(id); }
   claimAuthorizedProductionRelease(input) { return this.core.claimAuthorizedProductionRelease(input); }
   claimProductionRestore(input) { return this.core.claimProductionRestore(input); }
