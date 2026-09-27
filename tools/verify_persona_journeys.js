@@ -295,6 +295,41 @@ async function waitForElementVisibility(page, handle, expected = true, timeout =
   }
 }
 
+async function waitForControlStability(page, handle, step) {
+  const timeout = step.timeout_ms || ASSERTION_VISIBILITY_TIMEOUT;
+  if (!await waitForElementVisibility(page, handle, true, timeout)) {
+    stepFailure(step, `control not visible (${step.selector || step.name})`);
+  }
+  const stable = await handle.evaluate((element, timeoutMs) => new Promise((resolve) => {
+    let previous = null;
+    let frame;
+    const finish = (result) => {
+      clearTimeout(timer);
+      cancelAnimationFrame(frame);
+      resolve(result);
+    };
+    // A timer also bounds the wait when rAF is suspended (e.g. a background tab).
+    const timer = setTimeout(() => finish(false), timeoutMs);
+    const sample = () => {
+      const box = element.getBoundingClientRect();
+      const visible = element.isConnected && box.width > 0 && box.height > 0 && (
+        typeof element.checkVisibility === 'function'
+          ? element.checkVisibility({checkOpacity: true, checkVisibilityCSS: true})
+          : (() => { const style = getComputedStyle(element); return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0'; })()
+      );
+      const current = visible ? [box.x, box.y, box.width, box.height] : null;
+      if (current && previous && current.every((value, index) => Math.abs(value - previous[index]) <= 0.5)) {
+        finish(true);
+        return;
+      }
+      previous = current;
+      frame = requestAnimationFrame(sample);
+    };
+    frame = requestAnimationFrame(sample);
+  }), timeout);
+  if (!stable) stepFailure(step, `control not stable (${step.selector || step.name}) within ${timeout}ms`);
+}
+
 async function waitForVisibleText(page, selector, text, timeout) {
   const expected = collapseWhitespace(text);
   const search = {selector: selector || null, expected};
@@ -598,8 +633,12 @@ async function performStep(page, step, state) {
   }
   if (step.op === 'click' || step.op === 'focus') {
     const handle = await requireElement(page, step, {timeout: ASSERTION_VISIBILITY_TIMEOUT});
-    if (step.op === 'click') await handle.click(); else await handle.focus();
-    await handle.dispose();
+    try {
+      await waitForControlStability(page, handle, step);
+      if (step.op === 'click') await handle.click(); else await handle.focus();
+    } finally {
+      await handle.dispose();
+    }
     return;
   }
   if (step.op === 'press') { await page.keyboard.press(step.key); return; }
