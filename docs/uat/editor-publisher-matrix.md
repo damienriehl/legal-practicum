@@ -186,3 +186,49 @@ DEV-only; production publication remained configuration-off.
 Google's U19 live-provider row is complete. OpenAI needs account credit, not a code change. Anthropic
 needs a current credential or an explicit, narrowly scoped authorization to test a discovered legacy
 credential without exposing it. The authenticated assessment exercise remains separate human UAT.
+
+## Evidence record — 2026-09-27 Packet D / U15 / U16b
+
+Packet D executed once under the supervised migration procedure in
+`docs/day-zero-migration-operations.md`. This records the completed migration and restoration drill;
+the earlier dated browser and human Publisher rows retain their original scope.
+
+| Field | Evidence |
+|---|---|
+| Window | `packet-d-2026-09-27.w6`, 2026-09-27 15:46:55–19:19:54 UTC; **COMPLETED** |
+| Reviewed release | `c317eb345360127661485e6d96faa06bdddc6071` (standalone operations clone, unmoved by CAS); verifier blob `bfc4dd5d1913381cbc4419a70b8723eebc9581f1` |
+| Pre-window authenticated CAS dry run | **PASS**: `remote_push_auth_probe: "passed"`, mutations `[]`, readbacks `c317eb3` |
+| Step 1a (DEV to PRIOR_SHA) | **PASS**: DEV Worker `c8dc8485-56de-42ae-80e6-466c65ed8962` names `c317eb3` (from `55b11188-e526-444a-abac-715add75ef7d`); observer GET 200, unblocked |
+| Opening queue proof | **PASS**: launcher rc 0, validator rc 0, verifier `c317eb3`/`bfc4dd5d`, phase `opening`, reason `unprepared`, frontier `{0, unblocked}` |
+| Prior pair | SHA `0159c1115e28df58b0511ba5fbbadd4f1435b4d2`, Pages `c97f0e28-1524-48b7-abd7-c1429923a7ba`, Worker `9830359d-1081-45ee-a921-06b11a233bbc` |
+| Phase 1 / Phase 2 | **PASS** (6 phases) / **PASS** (8 phases, verify-only); `production_mutations: 0` both |
+| Candidate | `daea1e165f1ab56d3eeac22de3bb08ceab572726`, one commit on `c317eb3`: 345 entries (325 modified, 20 sidecars), 187 files rewritten, 1236 dates, 368 identifier replacements |
+| OQ-8 checks 1–2 | **PASS**: 73 == 73 editor page keys against both prior SHAs; personas 59 / fact_map 59 / rubrics 20 identical |
+| CAS forward | dry run under fence **PASS**; live (Damien, 19:08:52 UTC) **PASS**: `succeeded`, mutations `local-main-cas, worktree-alignment, remote-main-cas, remote-tracking-main-cas`, all readbacks `daea1e1`, push probe passed |
+| Step 6 OQ-10 regen | **PASS**: spine `82e13f14…2aa5` in all three generated Worker inputs; tree clean |
+| Step 6 production Worker | **PASS**: version `52f259e1-dc1f-4141-ae1d-7212c1d51b40`, `VIEW OK` before deploy; OQ-8 check 3: Worker 204 names `daea1e1` while Pages still 200 `0159c11` |
+| Step 6 Pages | **PASS**: header `X-Release-SHA: daea1e1` on attempt 2 of the bounded 60 s retry |
+| Step 7 new pair | **PASS**: inspector sha `daea1e1`, Pages `1e41693a-624a-4b7d-9363-c77baf04947d`, Worker `52f259e1-dc1f-4141-ae1d-7212c1d51b40` |
+| Step 8 DEV/editor | **PASS on retry** (see deviations): DEV static spine `82e13f14…2aa5`; DEV Worker `ac329f1f-3512-4402-86fe-25ea8476a7ec`, `VIEW OK`, 204 `daea1e1` |
+| Step 9 restoration drill | **PASS**: prior pair readback exact (Pages rollback rc 0); back to new pair readback exact |
+| Step 10 all-surface proof | **PASS**: canonical `main` (remote, local, HEAD) `daea1e1`; production pair and both headers `daea1e1`; DEV Worker 204 `daea1e1`; DEV static spine matches (compared from the controlled worktree) |
+| Closing queue proof | **PASS**: rc 0, validator 0, same verifier identity and window binding, phase `closing`, server dates after opening (19:19:43 vs 15:49:08 GMT), `{0, unblocked}` |
+| Timers after close | apply active/enabled, editorial active/enabled, digest active/enabled, prod-release inactive/disabled (prior policy); first apply tick no-op |
+| U16b | **PASS**: `validate_spine --strict --enforce-day-zero-offsets --enforce-legal-practicum-identifiers` rc 0; checked dates 1236, offset dates 1236, identifier files 522, base values 368, old-base occurrences **0**; 0 ERROR, 7 WARN |
+| Ledger / release backfill | `ledger-backfill-20260925`: Damien-approved append-only backfill of 11 legacy DEV apply batches, each an ancestor of `0159c11`; recorded once before attempt 2, never re-run; history reverts remain on hold |
+| Prepared release ID | No Publisher candidate prepared in this window; both queue proofs reported reason `unprepared`, 0 batches. `ledger-backfill-20260925` is the ledger backfill ID, not a prepared candidate. |
+| Authorized release ID | No Publisher authorization ID reported for this manual migration; Damien supervised Packet D and performed live CAS forward at 19:08:52 UTC. |
+| Step 8 deviation | Inherited `umask 077` staged 0600/0700 modes carried by rsync; DEV returned 403/404 for about 3 minutes (19:13:45–19:16:30 UTC). Static proof failed closed after 70 s before DEV Worker change. Retry under `umask 022` passed; production unaffected. |
+| Other deviations | Pages propagation required retry 2 within 60 s; carried forward bounded provenance retries, Pages rollback fallback (not needed), step 1a.3 before 1a.2, editorial timer stopped with apply, and successful push-auth probe required in CAS receipt; Wrangler 4.142.0 |
+
+### Packet D attempts 1–6
+
+| Attempt | Window | Stop point | Cause | Result |
+|---|---|---|---|---|
+| 1 | `packet-d-2026-09-25.w1` | step 2 opening queue proof | `frontier-response-malformed`: 11 legacy DEV apply batches (10 with null `generator_id`) still listed pending | Prior state proved; led to the ledger backfill decision |
+| — | pre-window, 2026-09-25/26 | ledger backfill | Damien-approved append-only backfill `ledger-backfill-20260925`, 11 batches | Recorded once; frontier 0 batches, base `0159c11`; never re-run |
+| 2 | `packet-d-2026-09-26.w2` | step 4 Phase 1 rehearsal | `rehearsal phase failed: preflight` at `42c2c53` | Prior state proved; fixed in tooling |
+| 3 | `packet-d-2026-09-26.w3` | pre-window (not opened) | readonly launcher pinned the daemon checkout, so the closing proof could not pass after a CAS forward | Not opened; PR #69 (standalone ops clone) |
+| 4 | `packet-d-2026-09-26.w4` | live CAS forward | push unauthenticated; `incomplete`, remote unchanged | Local bookkeeping inverted to prior; prior state proved; PR #70 (push-auth probe) |
+| 5 | `packet-d-2026-09-26.w5` | before live CAS forward | operator agent execution policy refused the live forward command | No mutation beyond DEV step 1a; prior state proved |
+| 6 | `packet-d-2026-09-27.w6` | — | Damien ran the live forward; operator ran the rest | **COMPLETED**: candidate `daea1e1` on `main`, production, DEV, and editor |

@@ -2,6 +2,7 @@
 # Deploy the walkthrough site to the Hetzner DEV box → https://sonsteng-dev.damienriehl.com
 # Pattern mirrors woodshed/deploy: git-archive -> rsync -> docker compose up.
 set -euo pipefail
+umask 022
 HOST=hetzner-dev
 REMOTE_DIR=/opt/sonsteng
 PROJECT=sonsteng          # explicit Compose project name — MUST be unique on the box.
@@ -18,7 +19,7 @@ git -C "$ROOT" archive "$BRANCH" | tar -x -C "$STAGE"
 
 echo "→ shipping to $HOST:$REMOTE_DIR"
 ssh "$HOST" "[ -d $REMOTE_DIR ] || { sudo mkdir -p $REMOTE_DIR && sudo chown \$(whoami): $REMOTE_DIR; }"
-rsync -az --delete "$STAGE/" "$HOST:$REMOTE_DIR/"
+rsync -az --delete --chmod=D755,F644 "$STAGE/" "$HOST:$REMOTE_DIR/"
 
 echo "→ (re)starting container (project=$PROJECT)"
 ssh "$HOST" "cd $REMOTE_DIR && docker compose -p $PROJECT -f deploy/docker-compose.yml up -d"
