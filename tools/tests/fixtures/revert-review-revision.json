@@ -1,0 +1,37 @@
+{
+  "id": "revision_1c383385c7a92610c24aceb84a17ac90bb9d43599494e60a7b46d55565979058",
+  "source_ref": "data/copy/home.json#lead",
+  "source_revision": "dev-2",
+  "prod_base": "prod-1",
+  "commit_sha": "dev-2",
+  "original_hash": "9bb725005055412c75a8e8d1fb5a0780595174ac8bbe5a24f768647bd4e4debe",
+  "proposed_hash": "7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330",
+  "original_text": "Before",
+  "proposed_text": "After",
+  "source_original_text": "Before",
+  "source_proposed_text": "After",
+  "suggestion_ids": [],
+  "operations": [
+    {
+      "id": "op_f025c2899fcbea6f9144873dc6b132069060ad73703eaa8b56fb4eab0fd005d6",
+      "decision_id": "op_f025c2899fcbea6f9144873dc6b132069060ad73703eaa8b56fb4eab0fd005d6",
+      "group_id": null,
+      "kind": "replace",
+      "source_ref": "data/copy/home.json#lead",
+      "source_revision": "dev-2",
+      "prod_base": "prod-1",
+      "base_range": [
+        0,
+        6
+      ],
+      "proposed_range": [
+        0,
+        5
+      ],
+      "old_text": "Before",
+      "new_text": "After",
+      "context_before": [],
+      "context_after": []
+    }
+  ]
+}
