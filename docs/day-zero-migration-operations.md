@@ -1308,10 +1308,18 @@ review-revision evidence. This is the intended post-bootstrap state. There is
 no rollback: never delete or edit the record. If it is wrong, keep the window
 closed and escalate.
 
-**History/revert hold after backfill.** No History reverts until
-`tools/direct_apply_daemon.py` attaches `review_revision` evidence to reverts.
-Without that evidence, `completeCanonicalMutation` refuses with
-`missing_revision_evidence`, and the daemon would wedge.
+**History/revert hold after backfill.** The hold lifts once the revert-evidence
+fix ships, the ledger Worker is deployed (returning `prod_base` from
+`/revert-record`), and the home-box daemon checkout is updated. Until that
+checkout is updated, do not file or approve History reverts: the old daemon
+omits `review_revision` and wedges on `missing_revision_evidence`.
+The updated daemon uses the Worker-owned production base and quarantines
+explicit completion refusals in `revert_completion_failures` in its state file,
+logs and alerts the request ID, and continues the accepted-suggestion flush.
+Transport failures still resume the journaled revert. Quarantined merged batches
+need operator repair; after repairing completion evidence, clear that request's
+local quarantine entry to resume the still-approved request. Do not submit a
+second revert of the same range.
 
 **Preconditions.** Deploy the Worker that carries the backfill route to the
 ledger Worker (`sonsteng-chat`, top-level environment) through the normal

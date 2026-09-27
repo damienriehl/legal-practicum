@@ -1008,6 +1008,11 @@ export class EditorStoreCore {
     const request = this._one("SELECT editor,status FROM revert_requests WHERE id=?", input.id);
     if (!request || request.status !== REVERT_STATUS.APPROVED || request.editor !== input.actor)
       return { ok:false, reason:"revert_not_approved" };
+    // Same Worker-owned completed frontier returned by /claim. Record and
+    // replay both return it so pre-upgrade merged reverts can resume safely.
+    const production = this._one(
+      "SELECT candidate_sha FROM production_releases WHERE state='complete' ORDER BY updated_at DESC,id DESC LIMIT 1");
+    const prod_base = production?.candidate_sha || null;
     const existing = this._one("SELECT * FROM canonical_mutations WHERE id=?", input.id);
     if (existing) {
       const batch = this._one("SELECT base_sha,commit_sha,generator_id,phase FROM apply_batches WHERE batch_id=?",
@@ -1017,7 +1022,7 @@ export class EditorStoreCore {
         existing.new_text === input.new_text && existing.original_hash === input.original_hash &&
         existing.new_hash === input.new_hash && batch?.commit_sha === input.commit_sha &&
         batch?.generator_id === input.generator_id && batch?.base_sha === input.base_sha ?
-        { ok:true,replay:true,phase:batch.phase } :
+        { ok:true,replay:true,phase:batch.phase,prod_base } :
         { ok:false,reason:"idempotency_conflict" };
     }
     if (this._one("SELECT batch_id FROM apply_batches WHERE batch_id=?", input.batch_id))
@@ -1030,7 +1035,7 @@ export class EditorStoreCore {
         input.id,input.batch_id,input.actor,input.kind,input.source_ref,input.original_text,input.new_text,
         input.original_hash,input.new_hash,now);
     });
-    return { ok:true,batch_id:input.batch_id,phase:"merged" };
+    return { ok:true,batch_id:input.batch_id,phase:"merged",prod_base };
   }
 
   completeCanonicalMutation(input = {}) {

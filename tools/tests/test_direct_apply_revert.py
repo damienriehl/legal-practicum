@@ -452,3 +452,102 @@ class TestExecuteRevertGit(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestRevertCompletionEvidence(unittest.TestCase):
+    def test_shared_worker_contract_fixture_matches_producer(self):
+        import json
+        from pathlib import Path
+        fixture = json.loads((Path(__file__).parent / "fixtures" /
+                              "revert-review-revision.json").read_text())
+        detail = {"id": "revert-no-review", "source_ref": "data/copy/home.json#lead",
+                  "original_text": "Before", "new_text": "After", "commit_sha": "dev-2"}
+        self.assertEqual(dad.revert_review_revision(detail, "prod-1"), fixture)
+
+    def test_worker_contract_on_new_and_resumed_revert(self):
+        for resumed in (False, True):
+            req = _merged_revert_evidence()
+            if not resumed:
+                req.pop("mutation_phase")
+            rec = RevertRecorder([req])
+            seen = []
+
+            def record(detail, action):
+                if action == "record":
+                    return {"sent": True, "prod_base": "worker-production"}
+                revision = detail.get("review_revision")
+                self.assertIsNotNone(revision)
+                for key in ("id", "source_ref", "source_revision", "prod_base",
+                            "commit_sha", "original_hash", "proposed_hash",
+                            "original_text", "proposed_text"):
+                    self.assertIsInstance(revision[key], str)
+                    self.assertTrue(revision[key])
+                self.assertEqual(revision["prod_base"], "worker-production")
+                self.assertEqual(revision["commit_sha"], detail["commit_sha"])
+                self.assertEqual(revision["suggestion_ids"], [])
+                self.assertTrue(revision["operations"])
+                for op in revision["operations"]:
+                    for key in ("source_ref", "source_revision", "prod_base"):
+                        self.assertEqual(op[key], revision[key])
+                seen.append(revision)
+                return {"sent": True}
+
+            self.assertEqual(_run_reverts(rec, revert_record=record).reason, "no_accepted")
+            self.assertEqual(len(seen), 1)
+
+    def test_refusal_is_durable_and_flush_runs_with_request_still_approved(self):
+        with tempfile.TemporaryDirectory() as td:
+            state_path = os.path.join(td, "state.json")
+            for tick in range(2):
+                rec = RevertRecorder([_merged_revert_evidence()])
+                flushed = []
+                result = _run_reverts(rec, state_path=state_path,
+                    fetch=lambda: [{"id": "accepted-1", "status": "accepted"}],
+                    apply_engine=lambda bid: (flushed.append(bid) or 0, ""),
+                    revert_record=lambda detail, action: ({"sent": True} if action == "record"
+                        else {"sent": False, "ok": False, "reason": "missing_revision_evidence"}))
+                self.assertTrue(flushed)
+                self.assertEqual(rec.resolved, [])
+                if not tick:
+                    self.assertEqual(rec.notified, [["rq1"]])
+                failure = dad.load_state(state_path)["revert_completion_failures"]["rq1"]
+                self.assertEqual(failure["reason"], "missing_revision_evidence")
+                self.assertEqual(failure["commit_sha"], "sha123")
+                if tick:
+                    self.assertNotIn(("revert_exec", "rq1"), rec.calls)
+                    self.assertNotIn("deploy_worker", rec.calls)
+
+    def test_transport_failure_retries_merged_evidence_next_tick(self):
+        with tempfile.TemporaryDirectory() as td:
+            sp = os.path.join(td, "state.json")
+            for sent in (False, True):
+                rec = RevertRecorder([_merged_revert_evidence()])
+                result = _run_reverts(rec, state_path=sp,
+                    revert_record=lambda detail, action: ({"sent": True, "prod_base": "prod"}
+                        if action == "record" else {"sent": sent, "reason": "URLError"}))
+                self.assertEqual(result.reason, "no_accepted" if sent else "revert_deploy_failed")
+                self.assertNotIn(("revert_exec", "rq1"), rec.calls)
+                self.assertIn("deploy_worker", rec.calls)
+                self.assertNotIn("rq1", dad.load_state(sp).get("revert_completion_failures", {}))
+
+
+class TestRevertRecordErrors(unittest.TestCase):
+    def test_http_refusal_preserves_worker_reason_but_server_errors_retry(self):
+        import urllib.error
+        for status in (409, 429, 503):
+            error = urllib.error.HTTPError("https://x", status, "error", {},
+                io.BytesIO(b'{"ok":false,"reason":"validation_error"}'))
+            with patch.object(dad.urllib.request, "urlopen", side_effect=error):
+                result = dad.record_revert_mutation("https://x", "token", {}, "complete")
+            self.assertFalse(result["sent"])
+            if status == 409:
+                self.assertIs(result["ok"], False)
+                self.assertEqual(result["reason"], "validation_error")
+            else:
+                self.assertIsNone(result["ok"])
+
+    def test_timeout_remains_retryable(self):
+        with patch.object(dad.urllib.request, "urlopen", side_effect=TimeoutError):
+            result = dad.record_revert_mutation("https://x", "token", {}, "complete")
+        self.assertFalse(result["sent"])
+        self.assertNotIn("ok", result)

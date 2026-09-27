@@ -553,6 +553,18 @@ test("canonical reverts cannot complete without review evidence after PROD exist
     "merged");
   assert.equal(core._one("SELECT status FROM revert_requests WHERE id=?",mutation.id).status,
     "approved");
+  // Shared Python-produced fixture; Python tests pin the producer to this wire payload.
+  const recorded = core.recordCanonicalMutation(mutation);
+  assert.equal(recorded.prod_base, "prod-1");
+  assert.equal(recorded.replay, true);
+  const review_revision = JSON.parse(readFileSync(new URL(
+    "../../../tools/tests/fixtures/revert-review-revision.json", import.meta.url), "utf8"));
+  assert.equal(review_revision.prod_base, recorded.prod_base);
+  assert.deepEqual(review_revision.suggestion_ids, []);
+  assert.equal(core.completeCanonicalMutation({ ...mutation,review_revision }).ok,true);
+  assert.equal(core.completeCanonicalMutation({ ...mutation,review_revision }).replay,true);
+  assert.equal(core._one("SELECT status FROM revert_requests WHERE id=?",mutation.id).status,"done");
+
 });
 
 test("Publisher review endpoints require a current human Access Publisher and CSRF", async () => {

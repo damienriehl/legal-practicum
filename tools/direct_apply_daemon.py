@@ -72,7 +72,7 @@ from collections.abc import Callable
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import digest_push  # noqa: E402  (reuse resolve_topic/publish_ntfy — never modified)
-from apply_suggestions import generator_identity  # noqa: E402
+from apply_suggestions import Patch, build_review_revisions, generator_identity  # noqa: E402
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOOLS_DIR = os.path.join(REPO_ROOT, "tools")
@@ -595,7 +595,19 @@ def record_revert_mutation(api_base, token, evidence, action="record", timeout=3
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             payload = json.loads(resp.read().decode("utf-8"))
             return {"sent": payload.get("ok") is True, **payload}
-    except (urllib.error.HTTPError, urllib.error.URLError, ValueError) as exc:
+    except urllib.error.HTTPError as exc:
+        # The revert endpoint returns structured Worker refusals as HTTP 409.
+        # Preserve only the machine reason, never response content in alerts.
+        try:
+            payload = json.loads(exc.read().decode("utf-8"))
+        except (ValueError, UnicodeError):
+            payload = {}
+        reason = payload.get("reason") if isinstance(payload, dict) else None
+        refusal = (400 <= exc.code < 500 and exc.code not in (408, 429)
+                   and isinstance(reason, str) and re.fullmatch(r"[a-z_]{1,80}", reason))
+        return {"sent": False, "reason": reason if refusal else "http_%d" % exc.code,
+                "ok": False if refusal else None}
+    except (urllib.error.URLError, TimeoutError, ValueError) as exc:
         return {"sent": False, "reason": type(exc).__name__}
 
 
@@ -619,6 +631,21 @@ def restore_regenerable_site(repo_root=REPO_ROOT):
     """
     rc, _ = _git(["checkout", "--", "site"], repo_root)
     return rc == 0
+
+
+def revert_review_revision(detail, prod_base):
+    """Use normal apply's deterministic operations for the inverse source snapshot.
+
+    Reverts have no suggestion rows; their identity comes from the revert request.
+    The production base must come from the Worker's record response, never HEAD.
+    """
+    patch = Patch(suggestion_id=detail["id"], group_id=None,
+                  source_ref=detail["source_ref"], relpath=detail["source_ref"],
+                  kind="prose_md", json_path="", original_text=detail["original_text"],
+                  new_text=detail["new_text"])
+    revision = build_review_revisions([patch], detail["commit_sha"], prod_base)[0]
+    revision["suggestion_ids"] = []
+    return revision
 
 
 def execute_revert(req, *, repo_root=REPO_ROOT, do_rebuild=None, do_history=None,
@@ -987,6 +1014,12 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
             reqs = []
         for req in reqs or []:
             rid = req.get("id")
+            failure = state.get("revert_completion_failures", {}).get(rid)
+            if failure:
+                print("[daemon] revert %s completion quarantined (%s); operator repair required."
+                      % (rid, failure["reason"]), file=out)
+                steps.append(("revert_quarantined", {"id": rid, **failure}))
+                continue
             refused = deploy_refusal(req.get("batch_id") or "")
             if refused is not None:
                 return refused
@@ -1008,6 +1041,8 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
                     heartbeat(False, 0)
                     notify([rid])
                     return DaemonResult(0, "", "revert_record_failed", {}, False, steps)
+                if recorded.get("prod_base"):
+                    detail["review_revision"] = revert_review_revision(detail, recorded["prod_base"])
                 # REBUILD FIRST: the revert commit restores the TRACKED trees
                 # (data/, site/) but build/ artifacts — the editor map above
                 # all — are generated and still describe the pre-revert corpus.
@@ -1021,10 +1056,24 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
                 wok, _ = do_deploy_worker()
                 dok = rok and dok and wok
                 completed = revert_record(detail, "complete") if dok and revert_record else {"sent":False}
+                completion_refused = dok and completed.get("ok") is False
                 dok = dok and completed.get("sent") is True
                 heartbeat(dok, 0)
                 if not dok:
                     notify([rid])
+                    if completion_refused:
+                        # A semantic refusal will not heal by redeploying. Persist
+                        # before continuing so subsequent ticks skip the request.
+                        # Keep it approved/merged for explicit operator recovery;
+                        # marking it failed would make that status irreversible.
+                        reason = completed.get("reason", "worker_refusal")
+                        state.setdefault("revert_completion_failures", {})[rid] = {
+                            "reason": reason, "batch_id": detail["batch_id"],
+                            "commit_sha": detail["commit_sha"], "ts": ts}
+                        save_state(state_path, state)
+                        print("[daemon] revert %s completion REFUSED (%s); recorded for operator repair; continuing flush."
+                              % (rid, reason), file=out)
+                        continue
                     # Keep the request approved and the batch at `merged`: the
                     # next tick resumes deployment from its exact journaled
                     # evidence and must never inverse the same git range twice.
