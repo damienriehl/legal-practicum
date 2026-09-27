@@ -10,6 +10,9 @@
   const status = document.getElementById("assessment-override-status");
   if (!main || !status) return;
 
+  let pendingForm = null;
+  let refreshSequence = 0;
+
   const MESSAGES = {
     400: "The server rejected this override. Choose a score from 1 to 7 and give a reason, then record it again.",
     403: "The server refused the request. Reload the page, then record the override again.",
@@ -31,6 +34,7 @@
       note: form.querySelector("textarea[name=note]"),
       radios: [...form.querySelectorAll("input[type=radio][name=score]")],
       submit: form.querySelector("button[type=submit]"),
+      cancel: form.querySelector(".as-cancel"),
     };
   }
 
@@ -65,6 +69,7 @@
   }
 
   function close(form) {
+    if (form === pendingForm) return;
     const { toggle } = parts(form);
     form.reset();
     clearError(form);
@@ -73,12 +78,33 @@
     toggle.focus();
   }
 
+  function setSaving(form, saving) {
+    pendingForm = saving ? form : null;
+    // The audit log is shared by every heading: hold this lock through the GET.
+    main.querySelectorAll("button[type=submit]").forEach((button) => {
+      button.disabled = saving;
+      button.setAttribute("aria-disabled", String(saving));
+      button.textContent = saving ? "Saving…" : "Record override";
+    });
+    const { toggle, cancel, submit } = parts(form);
+    for (const button of [toggle, cancel]) {
+      button.disabled = saving;
+      button.setAttribute("aria-disabled", String(saving));
+    }
+    if (saving) submit.setAttribute("aria-busy", "true");
+    else submit.removeAttribute("aria-busy");
+  }
+
   // Re-read the server-rendered page and swap in the updated card and log, so
   // the in-place result cannot drift from what a reload would show.
   async function refreshFromServer(headingId) {
+    const sequence = ++refreshSequence;
     const response = await fetch(location.href, { credentials: "same-origin", cache: "no-store" });
     if (!response.ok) throw new Error(String(response.status));
-    const doc = new DOMParser().parseFromString(await response.text(), "text/html");
+    const html = await response.text();
+    // Check after the body resolves as well: an older response can arrive last.
+    if (sequence !== refreshSequence) return null;
+    const doc = new DOMParser().parseFromString(html, "text/html");
     const freshCard = doc.getElementById(`heading-${headingId}`);
     const freshLog = doc.getElementById("assessment-override-log");
     const card = document.getElementById(`heading-${headingId}`);
@@ -96,7 +122,7 @@
     const toggle = event.target.closest(".as-override-toggle");
     if (toggle) {
       const form = document.getElementById(toggle.getAttribute("aria-controls"));
-      if (!form) return;
+      if (!form || form === pendingForm) return;
       if (form.hidden) open(form);
       else close(form);
       return;
@@ -115,7 +141,8 @@
     const form = event.target.closest(".as-inline-override");
     if (!form) return;
     event.preventDefault();
-    const { note, radios, submit } = parts(form);
+    if (pendingForm) return;
+    const { note, radios } = parts(form);
     const headingId = form.dataset.headingId;
     const label = form.dataset.headingLabel;
     clearError(form);
@@ -129,9 +156,8 @@
       return;
     }
     const score = Number(chosen.value);
-    submit.disabled = true;
-    submit.setAttribute("aria-busy", "true");
-    status.textContent = `Recording the override for ${label}…`;
+    setSaving(form, true);
+    status.textContent = `Saving… Recording the override for ${label}.`;
     let recorded = false;
     try {
       const response = await fetch("/edit/v1/assessment-override", {
@@ -153,6 +179,7 @@
       }
       recorded = true;
       const card = await refreshFromServer(headingId);
+      if (!card) return;
       status.textContent = `Override recorded. ${label} is now scored ${score}, signed with your identity.`;
       card.classList.add("as-just-updated");
       card.querySelector(".as-override-toggle").focus();
@@ -164,10 +191,10 @@
         return;
       }
       status.textContent = `The override for ${label} was not recorded.`;
-      submit.disabled = false;
-      submit.removeAttribute("aria-busy");
       showError(form, MESSAGES[error.status] ||
         "The override was not recorded because the server could not be reached or failed. Your score and reason are kept; try again.");
+    } finally {
+      setSaving(form, false);
     }
   });
 

@@ -167,6 +167,7 @@ export function renderAssessmentReviewPage(record, viewerLabel = "") {
     "<section aria-labelledby=\"as-results-title\"><h2 id=\"as-results-title\">Seven-heading result</h2>" +
     "<p class=\"as-results-help\" hidden>To change a heading's score, use Override score beside it. Every override is signed with your identity and kept in the log below.</p>" +
     "<p id=\"assessment-override-status\" class=\"as-status\" role=\"status\" aria-live=\"polite\"></p>" +
+    "<noscript><p>Overriding a score requires JavaScript. Scores, evidence, and the override log remain available to read.</p></noscript>" +
     renderHeadings(vm) + "</section>" +
     "<section class=\"as-provenance\" aria-labelledby=\"as-provenance-title\"><h2 id=\"as-provenance-title\">Provenance</h2>" +
     "<h3>Provider configuration</h3><pre>" + pretty(vm.provenance.providers || []) + "</pre>" +
