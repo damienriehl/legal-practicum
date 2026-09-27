@@ -219,3 +219,112 @@ test('unreachable binding provenance records nulls and reports the reason', asyn
   });
   assert.match(warnings.join('\n'), /release provenance unavailable.*offline fixture/i);
 });
+
+// Exercise the real step dispatcher without adding a test-only production export.
+// DOM geometry and animation frames are deterministic; browser callbacks run intact.
+function actionFixture({movingForever = false, hidden = false, detached = false, noFrames = false, staticTarget = false, offscreen = true} = {}) {
+  const fs = require('node:fs');
+  const vm = require('node:vm');
+  const {createRequire} = require('node:module');
+  const runner = path.resolve(__dirname, '../verify_persona_journeys.js');
+  let frame = 0;
+  let actedAt = null;
+  let disposed = false;
+  let scrolled = false;
+  const window = {scrollX: 40, scrollY: 100, innerWidth: 800, innerHeight: 600};
+  const targetY = offscreen ? 1000 : 200;
+  const element = {
+    isConnected: !detached,
+    checkVisibility: () => !hidden,
+    scrollIntoView: () => { scrolled = true; window.scrollY = Math.max(0, targetY - (window.innerHeight - 30) / 2); },
+    getBoundingClientRect: () => ({x: staticTarget ? 20 : movingForever ? frame * 4 : Math.min(frame, 5) * 4, y: targetY - window.scrollY, width: 80, height: 30}),
+  };
+  const context = vm.createContext({
+    require: createRequire(runner), module: {exports: {}}, __dirname: path.dirname(runner),
+    setTimeout, clearTimeout,
+    requestAnimationFrame: (callback) => noFrames ? 0 : setTimeout(() => { frame++; callback(); }, 5),
+    cancelAnimationFrame: clearTimeout,
+  });
+  vm.runInContext(fs.readFileSync(runner, 'utf8') + '\nmodule.exports.performStep = performStep;', context);
+  const handle = {
+    evaluate: async (callback, ...args) => callback(element, ...args),
+    isIntersectingViewport: async ({threshold}) => {
+      assert.equal(threshold, 1);
+      const box = element.getBoundingClientRect();
+      return box.x >= 0 && box.y >= 0 && box.x + box.width <= window.innerWidth && box.y + box.height <= window.innerHeight;
+    },
+    click: async () => { actedAt = frame; },
+    focus: async () => { actedAt = frame; },
+    dispose: async () => { disposed = true; },
+  };
+  const page = {
+    $: async () => handle,
+    waitForFunction: async (callback, _options, target, ...args) => {
+      if (!callback(element, ...args)) throw new Error('visibility timeout');
+    },
+  };
+  return {
+    run: (op, timeout = 100) => context.module.exports.performStep(page, {op, selector: '#moving', timeout_ms: timeout}, {}),
+    state: () => ({actedAt, disposed, scrolled, scrollX: window.scrollX, scrollY: window.scrollY, box: element.getBoundingClientRect()}),
+  };
+}
+
+for (const op of ['click', 'focus']) {
+  test(`${op} preserves window scroll position for an already-visible static target`, async () => {
+    const fixture = actionFixture({staticTarget: true, offscreen: false});
+    const before = fixture.state();
+    await fixture.run(op, 1000);
+    const after = fixture.state();
+    assert.equal(after.scrollX, before.scrollX);
+    assert.equal(after.scrollY, before.scrollY);
+    assert.equal(after.scrolled, false);
+    assert.ok(after.actedAt >= 2, 'action ran before stability was measured');
+    assert.equal(after.disposed, true);
+  });
+
+  test(`${op} scrolls an off-screen static target into view before acting`, async () => {
+    const fixture = actionFixture({staticTarget: true});
+    const before = fixture.state();
+    assert.ok(before.box.y >= 600);
+    await fixture.run(op, 1000);
+    const after = fixture.state();
+    assert.notEqual(after.scrollY, before.scrollY);
+    assert.equal(after.scrolled, true);
+    assert.ok(after.box.y >= 0 && after.box.y + after.box.height <= 600);
+    assert.ok(after.actedAt >= 2, 'action ran before stability was measured');
+    assert.equal(after.disposed, true);
+  });
+
+  test(`${op} waits for consecutive stable frames after scrolling a moving target`, async () => {
+    const fixture = actionFixture();
+    await fixture.run(op, 1000);
+    assert.ok(fixture.state().actedAt >= 6, 'action ran before the target settled');
+    assert.equal(fixture.state().scrolled, true);
+    assert.equal(fixture.state().disposed, true);
+  });
+
+  test(`${op} rejects a never-stable target within the timeout and releases its handle`, async () => {
+    const fixture = actionFixture({movingForever: true});
+    const started = Date.now();
+    await assert.rejects(fixture.run(op), new RegExp(`${op}: control not stable.*#moving.*100ms`));
+    assert.ok(Date.now() - started < 500, 'stability timeout was not bounded');
+    assert.equal(fixture.state().actedAt, null);
+    assert.equal(fixture.state().disposed, true);
+  });
+}
+
+test('stability deadline still fires when animation frames stop', async () => {
+  const fixture = actionFixture({noFrames: true});
+  await assert.rejects(fixture.run('click'), /control not stable/);
+  assert.equal(fixture.state().actedAt, null);
+  assert.equal(fixture.state().disposed, true);
+});
+
+for (const state of ['hidden', 'detached']) {
+  test(`a ${state} target is never clicked and retains the visibility failure`, async () => {
+    const fixture = actionFixture({[state]: true});
+    await assert.rejects(fixture.run('click'), /click: control not visible \(#moving\)/);
+    assert.equal(fixture.state().actedAt, null);
+    assert.equal(fixture.state().disposed, true);
+  });
+}
