@@ -236,6 +236,21 @@ test("Worker asset server exposes the built review CSS and JavaScript", async ()
   ));
 });
 
+test("review CSS defines every custom property it uses (served editor.css does not)", async () => {
+  // Packet A2 UAT regression: the real editor.css replaced the stub that defined
+  // --pp-*, so var(--pp-accent) went invalid and the submit button rendered
+  // white text on a transparent background inside a white card (invisible).
+  const css = await serveAsset("assessment-review.css").text();
+  const used = new Set([...css.matchAll(/var\((--[\w-]+)\s*\)/g)].map((m) => m[1]));
+  const defined = new Set([...css.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));
+  assert.ok(used.size > 0);
+  for (const name of used) {
+    assert.ok(defined.has(name), `${name} is used by assessment-review.css but not defined there`);
+  }
+  assert.match(css, /\.as-override button\{[^}]*background:var\(--pp-accent\)[^}]*color:#fff/);
+  assert.match(css, /box-sizing:border-box/);
+});
+
 test("only the deliberate Access reviewer maps to the store review scope", () => {
   assert.deepEqual(assessmentReviewerScopes(REVIEWER), {
     "assessment-review": { granted: true, ver: 1 },
