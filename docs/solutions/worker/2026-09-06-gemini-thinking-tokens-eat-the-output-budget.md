@@ -38,6 +38,8 @@ candidates, thoughts, and total now appear in the truncation log, so the next
 live run can prove or refute the diagnosis. A live hostile red-team leg then
 confirmed `debrief-oracle-content` PASS.
 
+2026-09-27: Memo assessment was the missed call site; both BYOK and budgeted grader calls now disable Google thinking with `grader.provider === "google" ? 0 : undefined`.
+
 # How to recognize it next time
 
 Suspect hidden reasoning consumption when Gemini returns `MAX_TOKENS` with

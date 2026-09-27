@@ -536,6 +536,7 @@ async function handleMemoAssessment(request, env, origin) {
           messages: [{ role: "user", content: prompt }],
           maxTokens,
           jsonMode,
+          thinkingBudget: grader.provider === "google" ? 0 : undefined,
         });
       }
       const reservationId = `memo-call-${crypto.randomUUID()}`;
@@ -559,6 +560,7 @@ async function handleMemoAssessment(request, env, origin) {
           messages: [{ role: "user", content: prompt }],
           maxTokens,
           jsonMode,
+          thinkingBudget: grader.provider === "google" ? 0 : undefined,
         });
       } catch {
         completion = { ok: false, kind: "upstream" };
