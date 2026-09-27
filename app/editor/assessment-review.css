@@ -1,3 +1,9 @@
+/* Self-contained tokens: the served editor.css is the real editor client, which
+   does not define the --pp-* stub tokens. Without these, every var() below was
+   invalid and the submit button rendered white-on-white with no border. */
+:root{--pp-ink:#1a2b3a;--pp-paper:#faf7f0;--pp-accent:#7a1f2b;--pp-rule:#d8cfbf;--pp-focus:#1a2b3a}
+.as-review,.as-review *,.as-review *::before,.as-review *::after{box-sizing:border-box}
+body{margin:0;font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;color:var(--pp-ink);background:var(--pp-paper);line-height:1.55}
 .as-review{max-width:72rem;margin:0 auto;padding:1.5rem 1.25rem 4rem}
 .as-head{border-bottom:2px solid var(--pp-accent);margin:1rem 0 1.5rem}
 .as-eyebrow{text-transform:uppercase;letter-spacing:.1em;font-size:.78rem;font-weight:700}
