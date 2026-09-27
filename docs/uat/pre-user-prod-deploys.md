@@ -73,3 +73,17 @@ Release checks: merged tree identical to tested branch; clean isolated checkout 
 Review: production-fixes-20260919 complete, ready to merge; one test-comment correction applied before commit; earlier coverage review coverage-20260919 complete
 Note: Python urllib's default client received a public-site 403; curl GETs returned 200 and verified all four pages and matching provenance. Wrangler's documented DEV-only variable warnings were unchanged.
 ```
+
+```
+Date (UTC): 2026-09-27 15:46:55–19:19:54 (Packet D Day Zero, packet-d-2026-09-27.w6)
+Candidate SHA: daea1e165f1ab56d3eeac22de3bb08ceab572726 (one commit on c317eb345360127661485e6d96faa06bdddc6071)
+Previous Worker version / Pages deployment: 9830359d-1081-45ee-a921-06b11a233bbc / c97f0e28-1524-48b7-abd7-c1429923a7ba (source 0159c1115e28df58b0511ba5fbbadd4f1435b4d2)
+New Worker version / Pages deployment: 52f259e1-dc1f-4141-ae1d-7212c1d51b40 / 1e41693a-624a-4b7d-9363-c77baf04947d
+Worker provenance: 204 + x-release-sha: daea1e1; new version at 100%
+Pages provenance: 200 + x-release-sha: daea1e1; matched on attempt 2 of bounded 60 s retry
+DEV/production parity: candidate SHA on production, DEV, and editor; DEV static spine 82e13f14…2aa5 matches candidate; DEV Worker ac329f1f-3512-4402-86fe-25ea8476a7ec returned 204 + daea1e1 (previous step-1a version c8dc8485-56de-42ae-80e6-466c65ed8962)
+Operator: operator under Damien's supervised Packet D authority; Damien ran live CAS forward at 19:08:52 UTC; operator ran all other steps
+Validation: Phase 1 six phases PASS; Phase 2 eight verify-only phases PASS, each with production_mutations: 0; U16b strict enforcement rc 0, 1236/1236 offset dates, 522 identifier files, 368 base values, 0 old-base occurrences, 0 ERROR, 7 WARN
+Release checks: opening and closing queue proofs PASS, frontier {0, unblocked}; OQ-8 page keys 73/73 against both prior SHAs, personas 59 / fact_map 59 / rubrics 20 identical; OQ-10 generated Worker inputs agree, tree clean; CAS readbacks and all-surface proof daea1e1; exact prior pair restored and intended new pair reactivated, each with inspector readback
+Note: ledger-backfill-20260925 recorded once before attempt 2 for 11 legacy DEV apply batches, all ancestors of 0159c11; not re-run; history reverts remain on hold. Step 8 static deployment retried after restrictive inherited modes caused DEV 403/404 from 19:13:45 to 19:16:30 UTC; retry with umask 022 passed before DEV Worker change; production unaffected. Apply, editorial, and digest timers active/enabled; prod-release inactive/disabled; first apply tick no-op. See docs/uat/editor-publisher-matrix.md for attempt history.
+```

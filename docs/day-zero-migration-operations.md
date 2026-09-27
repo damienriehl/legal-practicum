@@ -15,6 +15,31 @@ differently, [Settled operator decisions for the Packet D window](#settled-opera
 and the numbered sequence under
 [Remaining supervised U15 act](#remaining-supervised-u15-act) govern.
 
+## Executed once — 2026-09-27
+
+Packet D completed in window `packet-d-2026-09-27.w6`, 2026-09-27
+15:46:55–19:19:54 UTC, at candidate
+`daea1e165f1ab56d3eeac22de3bb08ceab572726`. The migration was executed once and
+**must not be re-run**. The operating sequence below is retained as the historical
+procedure. Production, DEV, and editor provenance agreed; the exact-pair restoration
+and U16b checks passed. See `docs/uat/editor-publisher-matrix.md` for the full evidence.
+
+Lessons from attempts 1–6:
+
+- Attempt 1: fail closed on malformed legacy frontier data. The approved append-only
+  `ledger-backfill-20260925` reconciled 11 batches once before attempt 2; do not repeat it.
+- Attempt 2: repair rehearsal preflight before reopening; prove the prior state on abort.
+- Attempt 3: pin the queue verifier in a standalone operations clone so CAS cannot move it.
+- Attempt 4: prove remote push authentication before live CAS; compensate local bookkeeping
+  if the remote remains unchanged, and verify all prior-state readbacks.
+- Attempt 5: settle execution authority before the window; Damien performed the live forward
+  in attempt 6 after the operator agent's execution policy blocked attempt 5.
+- Attempt 6: make DEV static permissions independent of the window's `umask 077`.
+  The 0600/0700 deployment caused about three minutes of DEV 403/404; the `umask 022`
+  retry passed before the Worker changed. `deploy/deploy-dev.sh` now sets `umask 022`
+  and rsync `--chmod=D755,F644` for step 8 and compensation C3. Retain bounded provenance
+  retries, exact-pair restoration, and closing queue proof before restoring timer policy.
+
 ## Operation-frontier integrity migration
 
 The operation frontier deliberately makes a clean break from the former
@@ -329,8 +354,9 @@ compensation sequence while the window remains held:
    used everywhere): (a) the DEV static site with
    `bash deploy/deploy-dev.sh "$PRIOR_SHA"` from `$CONTROLLED_REPO` and its
    `spine-build` proof against `PRIOR_SHA`'s committed build stamp, then
-   (b) the top-level DEV Worker. For (b), reactivate the exact step-1a DEV
-   version recorded in step 1a.7, which already carries
+   (b) the top-level DEV Worker. The static script sets `umask 022` and rsync
+   `--chmod=D755,F644`; no caller umask workaround is needed for C3. For (b),
+   reactivate the exact step-1a DEV version recorded in step 1a.7, which already carries
    `RELEASE_SHA=PRIOR_SHA` and the observer secret, from `app/worker` of any
    checkout:
 
@@ -2494,7 +2520,8 @@ or nonzero result as a stop before the window.
    briefly overlays candidate static pages; OQ-13 explains why that mixed
    state, and compensation's opposite one, are both covered by the OQ-8
    identity checks. Run (b) promptly after (a) prints `DEV static OK`, and
-   never skip (b);
+   never skip (b). The static script sets `umask 022` and rsync
+   `--chmod=D755,F644`; no caller umask workaround is needed;
 9. reactivate and prove the prior pair (Pages first, then the Worker), then the
    intended new pair (Worker first, then Pages), with the
    [Pages and Worker rollback commands](#pages-and-worker-rollback-commands)

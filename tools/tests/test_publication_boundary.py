@@ -45,3 +45,15 @@ def test_editor_liveness_copy_names_the_editing_site_not_public_prod():
     assert "Your edits appear on the editing site automatically (~2 min)." in guide
     assert "Available on DEV — waiting for Publisher" in guide
     assert "approval alone does not publish it" in guide
+
+
+def test_dev_deploy_permissions_do_not_depend_on_operator_umask():
+    dev_deploy = (ROOT / "deploy/deploy-dev.sh").read_text()
+    lines = [line.strip() for line in dev_deploy.splitlines()]
+
+    assert "umask 022" in lines
+    assert lines.index("umask 022") < next(
+        index for index, line in enumerate(lines) if line.startswith("git -C")
+    )
+    rsync = next(line for line in lines if line.startswith("rsync "))
+    assert "--chmod=D755,F644" in rsync.split()

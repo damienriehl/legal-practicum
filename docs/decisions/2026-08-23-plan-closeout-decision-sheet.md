@@ -242,14 +242,19 @@ Queues confirmed empty: YES | NO
 
 ### Paste back D2 after the supervised run
 
+**Packet D executed:** `packet-d-2026-09-27.w6`, 2026-09-27 15:46:55–19:19:54 UTC,
+candidate `daea1e165f1ab56d3eeac22de3bb08ceab572726`. Damien ran the live CAS forward;
+the operator completed the other steps. U15 restoration and U16b strict enforcement passed.
+Full evidence and attempt history: `docs/uat/editor-publisher-matrix.md`.
+
 ```text
-Prior Pages deployment ID:
-Prior Worker version ID:
-New Pages deployment ID:
-New Worker version ID:
-Restoration proof: PASS | FAIL
-Returned to intended pair: YES | NO
-Old JSON-LD base occurrences after migration: 0 | [count]
+Prior Pages deployment ID: c97f0e28-1524-48b7-abd7-c1429923a7ba
+Prior Worker version ID: 9830359d-1081-45ee-a921-06b11a233bbc
+New Pages deployment ID: 1e41693a-624a-4b7d-9363-c77baf04947d
+New Worker version ID: 52f259e1-dc1f-4141-ae1d-7212c1d51b40
+Restoration proof: PASS
+Returned to intended pair: YES
+Old JSON-LD base occurrences after migration: 0
 ```
 
 ## Packet E — Source, rights, and calibration inputs
