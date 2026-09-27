@@ -46,7 +46,7 @@ business of law, together.
 **No platform fees; bring your own model API key** (Anthropic, Google Gemini, or OpenAI).
 
 ```bash
-git clone <this repo> && cd sonsteng-magnum-opus
+git clone https://github.com/damienriehl/legal-practicum.git sonsteng-magnum-opus && cd sonsteng-magnum-opus
 cd site && python3 -m http.server 8791        # → http://localhost:8791/platform/
 ```
 

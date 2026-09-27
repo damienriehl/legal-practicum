@@ -47,7 +47,7 @@ ENV_TODO_URL = "SONSTENG_TODO_URL"
 
 DEFAULT_TOPIC_FILE = os.path.expanduser("~/.config/claude-rc/ntfy-topic")
 DEFAULT_SERVER = "https://ntfy.sh"
-DEFAULT_URL = "https://github.com/damienriehl/sonsteng-magnum-opus/blob/main/docs/TODO.md"
+DEFAULT_URL = "https://github.com/damienriehl/legal-practicum/blob/main/docs/TODO.md"
 
 STATUS = {" ": "open", "x": "done", "X": "done", "-": "dropped"}
 

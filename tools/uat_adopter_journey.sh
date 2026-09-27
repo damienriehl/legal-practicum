@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPOSITORY_URL="https://github.com/damienriehl/sonsteng-magnum-opus.git"
+REPOSITORY_URL="https://github.com/damienriehl/legal-practicum.git"
 REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REVIEW_SHA="$(git -C "$REPOSITORY_ROOT" rev-parse HEAD)"
 MINIMAL_PATH="/usr/local/bin:/usr/bin:/bin"

@@ -397,6 +397,14 @@ before the window from the reviewed release record; in particular,
 `EXPECTED_REMOTE_URL_SHA256` must be the independently recorded digest of the
 canonical remote URL, not a digest read from the daemon checkout being verified.
 
+After the GitHub rename to `damienriehl/legal-practicum`, every future CAS use
+must independently review the new canonical origin URL and recompute
+`EXPECTED_REMOTE_URL_SHA256` over that exact configured URL (including its
+transport spelling and any `.git` suffix, with no trailing newline). For example,
+`printf %s "$CANONICAL_REMOTE_URL" | sha256sum` computes the digest. Verify the
+configured origin matches that reviewed URL before use; do not reuse the old
+digest or alter the historical executed record and its receipts.
+
 Before the window, create the operations checkout as a standalone clone of the
 canonical remote, never as a linked worktree of the daemon repository. Pin it
 detached at the reviewed release commit and prove it clean with the commands

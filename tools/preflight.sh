@@ -272,7 +272,7 @@ run_local_persona_journeys() (
 # retaining explicit flags for copied-corpus rehearsal.
 run "spine integrity (validate_spine)"      python3 tools/validate_spine.py
 run "site build + link/leak sweeps"         python3 tools/build_site.py --check
-run "public source repository (anonymous)"  curl -fsSIL https://github.com/damienriehl/sonsteng-magnum-opus
+run "public source repository (anonymous)"  curl -fsSIL https://github.com/damienriehl/legal-practicum
 run "Midstate naming/remedy contract"       python3 tools/midstate_contract.py
 run "pitch content contract"                python3 tools/verify_pitch.py
 run "bundle parity"                         python3 tools/check_build_parity.py

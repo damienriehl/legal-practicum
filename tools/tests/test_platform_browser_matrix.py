@@ -105,7 +105,8 @@ def test_semantic_heading_repairs_preserve_the_existing_visible_words():
 
     # Pin the reviewed full-corpus digests. The weekly-hours navigation and new
     # static page intentionally advance every digest, including the page set.
+    # The GitHub repository rename advances only the text and links digests.
     baseline = json.loads((TOOLS / "tests/fixtures/platform-semantic-baseline.json").read_text())
-    assert baseline["fields"]["links"] == "630c7ca30bf13e030b36870a258a5201d3f8e1a771ee48ccc8ccbd2f0abdbe5e"
+    assert baseline["fields"]["links"] == "01e5c80db133c920b7aadd15e120b413854d681c2363d09f6ac979f7f8b732bf"
     assert baseline["fields"]["editor_blocks"] == "f8319739017055c03f71340f108d05677f7b24732ad99925537bd10cb5de1dca"
     assert baseline["fields"]["reading_order"] == "794691851ffd1e382ea23306d35ea66e32279675ab2f3b3f9d53765ff6acbf17"

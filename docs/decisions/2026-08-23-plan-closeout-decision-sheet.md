@@ -334,6 +334,14 @@ automation, integrations, and durable references.
    the quiet window.
 5. Review the inventory and migration evidence before the external GitHub rename is executed.
 
+### Repository renamed
+
+Damien confirmed `damienriehl/legal-practicum` on 2026-09-07. The GitHub rename
+changes repository URLs, clone links, and active automation references. The local
+directory name stays `sonsteng-magnum-opus`; local paths, systemd unit names, and
+the Cockpit repo alias stay unchanged. This patch prepares the repository files;
+the external rename and remote repair are not verified by this offline update.
+
 ### Paste back Packet F
 
 ```text

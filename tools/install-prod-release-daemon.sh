@@ -85,7 +85,7 @@ fi
 cat > "$UNIT_DIR/$SERVICE" <<EOF
 [Unit]
 Description=Sonsteng Publisher-authorized production release executor
-Documentation=https://github.com/damienriehl/sonsteng-magnum-opus/blob/main/docs/prod-release-operations.md
+Documentation=https://github.com/damienriehl/legal-practicum/blob/main/docs/prod-release-operations.md
 
 [Service]
 Type=oneshot
