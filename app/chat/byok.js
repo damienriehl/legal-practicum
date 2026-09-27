@@ -29,7 +29,7 @@
     // when model is omitted. (Anthropic id per current model catalog.)
     { id: 'anthropic', label: 'Anthropic (Claude)', modelHint: 'claude-haiku-4-5', keyUrl: 'https://console.anthropic.com', keyHost: 'console.anthropic.com' },
     { id: 'google', label: 'Google Gemini', modelHint: 'gemini-2.5-flash', keyUrl: 'https://aistudio.google.com/apikey', keyHost: 'aistudio.google.com/apikey' },
-    { id: 'openai', label: 'OpenAI', modelHint: 'gpt-4o-mini', keyUrl: 'https://platform.openai.com/api-keys', keyHost: 'platform.openai.com/api-keys' }
+    { id: 'openai', label: 'OpenAI', modelHint: 'gpt-6-luna', keyUrl: 'https://platform.openai.com/api-keys', keyHost: 'platform.openai.com/api-keys' }
   ];
 
   var listeners = [];

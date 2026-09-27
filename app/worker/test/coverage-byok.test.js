@@ -49,7 +49,7 @@ test('resolved panel drives real registry adapters with isolated credentials and
   assert.equal(result.ok, true);
   const expected = {
     anthropic: ['x-api-key', 'fixture-anthropic-credential', 'claude-haiku-4-5'],
-    openai: ['authorization', 'Bearer fixture-openai-credential', 'gpt-4o-mini'],
+    openai: ['authorization', 'Bearer fixture-openai-credential', 'gpt-6-luna'],
     google: ['x-goog-api-key', 'fixture-google-credential', 'gemini-2.5-flash'],
   };
   for (const grader of result.graders) {
