@@ -1,0 +1,560 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m12",
+  "anchor": "2025-12-01",
+  "entries": [
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/exercise.json",
+      "block_id": "b:0b05449b",
+      "locator": 0,
+      "literal": "January 20, 2024",
+      "day_zero_offset": -681
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/exercise.json",
+      "block_id": "b:0b05449b",
+      "locator": 1,
+      "literal": "August 13, 2024",
+      "day_zero_offset": -475
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/exercise.json",
+      "block_id": "b:bc1fb7db",
+      "locator": 0,
+      "literal": "June 30, 2024",
+      "day_zero_offset": -519
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/exercise.json",
+      "block_id": "b:bc1fb7db",
+      "locator": 1,
+      "literal": "September 18, 2024",
+      "day_zero_offset": -439
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/exercise.json",
+      "block_id": "b:bc1fb7db",
+      "locator": 2,
+      "literal": "October 2, 2024",
+      "day_zero_offset": -425
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/exercise.json",
+      "block_id": "b:5afcfb52",
+      "locator": 0,
+      "literal": "December 10, 2024",
+      "day_zero_offset": -356
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/exercise.json",
+      "block_id": "b:5afcfb52",
+      "locator": 1,
+      "literal": "November 26, 2024",
+      "day_zero_offset": -370
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/exercise.json",
+      "block_id": "b:5afcfb52",
+      "locator": 2,
+      "literal": "February 5, 2025",
+      "day_zero_offset": -299
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/exercise.json",
+      "block_id": "b:08408f5b",
+      "locator": 0,
+      "literal": "March 10, 2025",
+      "day_zero_offset": -266
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/exercise.json",
+      "block_id": "b:08408f5b",
+      "locator": 1,
+      "literal": "August 20, 2025",
+      "day_zero_offset": -103
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/exercise.json",
+      "block_id": "b:08408f5b",
+      "locator": 2,
+      "literal": "November 14, 2025",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/exercise.json",
+      "block_id": "b:08408f5b",
+      "locator": 3,
+      "literal": "December 1, 2025",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/exercise.json",
+      "block_id": "b:08408f5b",
+      "locator": 4,
+      "literal": "January 15, 2026",
+      "day_zero_offset": 45
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/exercise.json",
+      "block_id": "b:08408f5b",
+      "locator": 5,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 211
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/business/engagement-letter.md",
+      "block_id": "b:3e6ba929",
+      "locator": 0,
+      "literal": "December 1, 2025",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/affidavit-delacroix.md",
+      "block_id": "b:0a3a54e7",
+      "locator": 0,
+      "literal": "June 30, 2024",
+      "day_zero_offset": -519
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/affidavit-delacroix.md",
+      "block_id": "b:c50fa28c",
+      "locator": 0,
+      "literal": "June 30, 2024",
+      "day_zero_offset": -519
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/answer-to-petition.md",
+      "block_id": "b:38cba922",
+      "locator": 0,
+      "literal": "January 15, 2026",
+      "day_zero_offset": 45
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/answer-to-petition.md",
+      "block_id": "b:4de56434",
+      "locator": 0,
+      "literal": "August 13, 2024",
+      "day_zero_offset": -475
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/answer-to-petition.md",
+      "block_id": "b:4de56434",
+      "locator": 1,
+      "literal": "October 2, 2024",
+      "day_zero_offset": -425
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/answer-to-petition.md",
+      "block_id": "b:6de17f7a",
+      "locator": 0,
+      "literal": "June 30, 2024",
+      "day_zero_offset": -519
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/answer-to-petition.md",
+      "block_id": "b:baaa3093",
+      "locator": 0,
+      "literal": "November 26, 2024",
+      "day_zero_offset": -370
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/client-correspondence.md",
+      "block_id": "b:e8c17afb",
+      "locator": 0,
+      "literal": "September 18, 2024",
+      "day_zero_offset": -439
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/client-correspondence.md",
+      "block_id": "b:c653346f",
+      "locator": 0,
+      "literal": "September 18, 2024",
+      "day_zero_offset": -439
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/client-correspondence.md",
+      "block_id": "b:6c309851",
+      "locator": 0,
+      "literal": "October 9, 2024",
+      "day_zero_offset": -418
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/client-correspondence.md",
+      "block_id": "b:335dcc44",
+      "locator": 0,
+      "literal": "November 26, 2024",
+      "day_zero_offset": -370
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/client-correspondence.md",
+      "block_id": "b:6359ba0b",
+      "locator": 0,
+      "literal": "November 27, 2024",
+      "day_zero_offset": -369
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/complaint-statement-dieterle.md",
+      "block_id": "b:1432fa3b",
+      "locator": 0,
+      "literal": "March 10, 2025",
+      "day_zero_offset": -266
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/complaint-statement-dieterle.md",
+      "block_id": "b:6bbdf798",
+      "locator": 0,
+      "literal": "January 20, 2024",
+      "day_zero_offset": -681
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/docketing-handoff-log.md",
+      "block_id": "b:f0b7a8ea",
+      "locator": 0,
+      "literal": "May 16, 2024",
+      "day_zero_offset": -564
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/docketing-handoff-log.md",
+      "block_id": "b:2363d27c",
+      "locator": 0,
+      "literal": "June 14, 2024",
+      "day_zero_offset": -535
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/docketing-handoff-log.md",
+      "block_id": "b:e50fa376",
+      "locator": 0,
+      "literal": "June 30, 2024",
+      "day_zero_offset": -519
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/docketing-handoff-log.md",
+      "block_id": "b:e50fa376",
+      "locator": 1,
+      "literal": "July 8, 2024",
+      "day_zero_offset": -511
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/motion-to-vacate-and-affidavit.md",
+      "block_id": "b:57b36570",
+      "locator": 0,
+      "literal": "December 10, 2024",
+      "day_zero_offset": -356
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/motion-to-vacate-and-affidavit.md",
+      "block_id": "b:e9d3fcfc",
+      "locator": 0,
+      "literal": "October 2, 2024",
+      "day_zero_offset": -425
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/motion-to-vacate-and-affidavit.md",
+      "block_id": "b:f3d0f071",
+      "locator": 0,
+      "literal": "December 10, 2024",
+      "day_zero_offset": -356
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/motion-to-vacate-and-affidavit.md",
+      "block_id": "b:8cae25ed",
+      "locator": 0,
+      "literal": "November 26, 2024",
+      "day_zero_offset": -370
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/motion-to-vacate-and-affidavit.md",
+      "block_id": "b:7b683878",
+      "locator": 0,
+      "literal": "November 26, 2024",
+      "day_zero_offset": -370
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/olpr-charge-letter.md",
+      "block_id": "b:c95d54fd",
+      "locator": 0,
+      "literal": "August 20, 2025",
+      "day_zero_offset": -103
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/olpr-charge-letter.md",
+      "block_id": "b:7f0b51a2",
+      "locator": 0,
+      "literal": "March 10, 2025",
+      "day_zero_offset": -266
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/olpr-charge-letter.md",
+      "block_id": "b:c74560f8",
+      "locator": 0,
+      "literal": "August 13, 2024",
+      "day_zero_offset": -475
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/olpr-charge-letter.md",
+      "block_id": "b:c74560f8",
+      "locator": 1,
+      "literal": "October 2, 2024",
+      "day_zero_offset": -425
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/olpr-charge-letter.md",
+      "block_id": "b:85252307",
+      "locator": 0,
+      "literal": "June 30, 2024",
+      "day_zero_offset": -519
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/olpr-charge-letter.md",
+      "block_id": "b:636b4c29",
+      "locator": 0,
+      "literal": "December 10, 2024",
+      "day_zero_offset": -356
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/olpr-charge-letter.md",
+      "block_id": "b:636b4c29",
+      "locator": 1,
+      "literal": "November 26, 2024",
+      "day_zero_offset": -370
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/olpr-charge-letter.md",
+      "block_id": "b:636b4c29",
+      "locator": 2,
+      "literal": "September 18, 2024",
+      "day_zero_offset": -439
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/olpr-charge-letter.md",
+      "block_id": "b:636b4c29",
+      "locator": 3,
+      "literal": "October 2, 2024",
+      "day_zero_offset": -425
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/olpr-charge-letter.md",
+      "block_id": "b:f588b329",
+      "locator": 0,
+      "literal": "October 9, 2024",
+      "day_zero_offset": -418
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/petition-for-disciplinary-action.md",
+      "block_id": "b:595d417e",
+      "locator": 0,
+      "literal": "November 14, 2025",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/petition-for-disciplinary-action.md",
+      "block_id": "b:b2ea5d2a",
+      "locator": 0,
+      "literal": "January 20, 2024",
+      "day_zero_offset": -681
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/petition-for-disciplinary-action.md",
+      "block_id": "b:c4e12b0a",
+      "locator": 0,
+      "literal": "August 13, 2024",
+      "day_zero_offset": -475
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/petition-for-disciplinary-action.md",
+      "block_id": "b:d2ded455",
+      "locator": 0,
+      "literal": "October 2, 2024",
+      "day_zero_offset": -425
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/petition-for-disciplinary-action.md",
+      "block_id": "b:3c320f6c",
+      "locator": 0,
+      "literal": "December 10, 2024",
+      "day_zero_offset": -356
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/petition-for-disciplinary-action.md",
+      "block_id": "b:3c320f6c",
+      "locator": 1,
+      "literal": "November 26, 2024",
+      "day_zero_offset": -370
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/petition-for-disciplinary-action.md",
+      "block_id": "b:a11c1db4",
+      "locator": 0,
+      "literal": "September 18, 2024",
+      "day_zero_offset": -439
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/case-file/petition-for-disciplinary-action.md",
+      "block_id": "b:a11c1db4",
+      "locator": 1,
+      "literal": "October 2, 2024",
+      "day_zero_offset": -425
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/answer-key.md",
+      "block_id": "b:e8e50f9a",
+      "locator": 0,
+      "literal": "May 15, 2024",
+      "day_zero_offset": -565
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/answer-key.md",
+      "block_id": "b:e8e50f9a",
+      "locator": 1,
+      "literal": "August 13, 2024",
+      "day_zero_offset": -475
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/answer-key.md",
+      "block_id": "b:9527e24c",
+      "locator": 0,
+      "literal": "November 26, 2024",
+      "day_zero_offset": -370
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/answer-key.md",
+      "block_id": "b:9527e24c",
+      "locator": 1,
+      "literal": "September 18, 2024",
+      "day_zero_offset": -439
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/exercise/answer-key.md",
+      "block_id": "b:9527e24c",
+      "locator": 2,
+      "literal": "October 2, 2024",
+      "day_zero_offset": -425
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:0e4956bc",
+      "locator": 0,
+      "literal": "January 20, 2024",
+      "day_zero_offset": -681
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:0e4956bc",
+      "locator": 1,
+      "literal": "February 8, 2024",
+      "day_zero_offset": -662
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:f21b549c",
+      "locator": 0,
+      "literal": "May 15, 2024",
+      "day_zero_offset": -565
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:f21b549c",
+      "locator": 1,
+      "literal": "August 13, 2024",
+      "day_zero_offset": -475
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:1003b41e",
+      "locator": 0,
+      "literal": "June 30, 2024",
+      "day_zero_offset": -519
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:8e46c492",
+      "locator": 0,
+      "literal": "August 13, 2024",
+      "day_zero_offset": -475
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:18be7c06",
+      "locator": 0,
+      "literal": "September 18, 2024",
+      "day_zero_offset": -439
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:57ecc3a0",
+      "locator": 0,
+      "literal": "October 2, 2024",
+      "day_zero_offset": -425
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:caf924b0",
+      "locator": 0,
+      "literal": "November 26, 2024",
+      "day_zero_offset": -370
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:b91f0f32",
+      "locator": 0,
+      "literal": "December 10, 2024",
+      "day_zero_offset": -356
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:b91f0f32",
+      "locator": 1,
+      "literal": "November 26, 2024",
+      "day_zero_offset": -370
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:b91f0f32",
+      "locator": 2,
+      "literal": "September 18, 2024",
+      "day_zero_offset": -439
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:b91f0f32",
+      "locator": 3,
+      "literal": "October 2, 2024",
+      "day_zero_offset": -425
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:804034d3",
+      "locator": 0,
+      "literal": "February 5, 2025",
+      "day_zero_offset": -299
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:fe339f6d",
+      "locator": 0,
+      "literal": "March 10, 2025",
+      "day_zero_offset": -266
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:fe339f6d",
+      "locator": 1,
+      "literal": "August 20, 2025",
+      "day_zero_offset": -103
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:fe339f6d",
+      "locator": 2,
+      "literal": "November 14, 2025",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m12-discipline-mn/facts.md",
+      "block_id": "b:10d36de3",
+      "locator": 0,
+      "literal": "December 1, 2025",
+      "day_zero_offset": 0
+    }
+  ]
+}

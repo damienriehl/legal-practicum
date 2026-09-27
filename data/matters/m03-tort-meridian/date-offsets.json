@@ -1,0 +1,182 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m03",
+  "anchor": "2025-02-13",
+  "entries": [
+    {
+      "source": "data/matters/m03-tort-meridian/exercise/exercise.json",
+      "block_id": "b:78873642",
+      "locator": 0,
+      "literal": "February 7, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/business/engagement-letter.md",
+      "block_id": "b:a3887416",
+      "locator": 0,
+      "literal": "February 14, 2025",
+      "day_zero_offset": 1
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/business/engagement-letter.md",
+      "block_id": "b:125803f0",
+      "locator": 0,
+      "literal": "February 7, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/business/engagement-letter.md",
+      "block_id": "b:dde920d8",
+      "locator": 0,
+      "literal": "February 7, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/exhibit-cell-records.md",
+      "block_id": "b:43b72b2a",
+      "locator": 0,
+      "literal": "February 7, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/exhibit-medical-summary.md",
+      "block_id": "b:44840487",
+      "locator": 0,
+      "literal": "February 7, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/exhibit-repair-appraisal.md",
+      "block_id": "b:59f2cf45",
+      "locator": 0,
+      "literal": "February 18, 2025",
+      "day_zero_offset": 5
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/exhibit-wage-loss.md",
+      "block_id": "b:c883407e",
+      "locator": 0,
+      "literal": "February 7, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/ime-report-kolstad.md",
+      "block_id": "b:f73544a1",
+      "locator": 0,
+      "literal": "September 18, 2025",
+      "day_zero_offset": 217
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/ime-report-kolstad.md",
+      "block_id": "b:b3784fbf",
+      "locator": 0,
+      "literal": "February 7, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/police-crash-report-harmon.md",
+      "block_id": "b:579dfb9c",
+      "locator": 0,
+      "literal": "February 7, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/witness-statement-ekwueme.md",
+      "block_id": "b:2617ee23",
+      "locator": 0,
+      "literal": "February 12, 2025",
+      "day_zero_offset": -1
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/witness-statement-ekwueme.md",
+      "block_id": "b:b820ca8e",
+      "locator": 0,
+      "literal": "February 7, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/witness-statement-petimeyer.md",
+      "block_id": "b:b30ae38d",
+      "locator": 0,
+      "literal": "February 7, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/witness-statement-quesada.md",
+      "block_id": "b:adee9bca",
+      "locator": 0,
+      "literal": "February 7, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/exercise/instructor-notes.md",
+      "block_id": "b:063d5365",
+      "locator": 0,
+      "literal": "February 7, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/facts.md",
+      "block_id": "b:79824c82",
+      "locator": 0,
+      "literal": "February 7, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/facts.md",
+      "block_id": "b:12019ba2",
+      "locator": 0,
+      "literal": "February 9, 2025",
+      "day_zero_offset": -4
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/exhibit-medical-summary.md",
+      "locator": 0,
+      "literal": "2025-04-30",
+      "day_zero_offset": 76,
+      "durable_locator": "raw:54b6ebb1d0aad859:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/exhibit-medical-summary.md",
+      "locator": 0,
+      "literal": "2025-07-22",
+      "day_zero_offset": 159,
+      "durable_locator": "raw:f9627cc3c215d5a8:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/exhibit-medical-summary.md",
+      "locator": 0,
+      "literal": "2025-02-09",
+      "day_zero_offset": -4,
+      "durable_locator": "raw:3eaf67bf39c34112:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/exhibit-medical-summary.md",
+      "locator": 0,
+      "literal": "2025-02-12",
+      "day_zero_offset": -1,
+      "durable_locator": "raw:112dce43ef376adf:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/exhibit-medical-summary.md",
+      "locator": 0,
+      "literal": "2025-02-12",
+      "day_zero_offset": -1,
+      "durable_locator": "raw:001d8b424d59f533:occurrence:2:date:0"
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/exhibit-medical-summary.md",
+      "locator": 0,
+      "literal": "2025-02-24",
+      "day_zero_offset": 11,
+      "durable_locator": "raw:53995ec7888b774b:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m03-tort-meridian/case-file/exhibit-medical-summary.md",
+      "locator": 1,
+      "literal": "2025-07-18",
+      "day_zero_offset": 155,
+      "durable_locator": "raw:53995ec7888b774b:occurrence:1:date:1"
+    }
+  ]
+}

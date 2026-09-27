@@ -1,0 +1,245 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m18",
+  "anchor": "2026-04-20",
+  "entries": [
+    {
+      "source": "data/matters/m18-juvenile-ca/exercise/exercise.json",
+      "block_id": "b:a37098b9",
+      "locator": 0,
+      "literal": "April 10, 2026",
+      "day_zero_offset": -10
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/exercise/exercise.json",
+      "block_id": "b:a37098b9",
+      "locator": 1,
+      "literal": "May 4, 2026",
+      "day_zero_offset": 14
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/exercise/exercise.json",
+      "block_id": "b:a37098b9",
+      "locator": 2,
+      "literal": "May 12, 2026",
+      "day_zero_offset": 22
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/exercise/exercise.json",
+      "block_id": "b:a37098b9",
+      "locator": 3,
+      "literal": "May 26, 2026",
+      "day_zero_offset": 36
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/exercise/exercise.json",
+      "block_id": "b:a37098b9",
+      "locator": 4,
+      "literal": "June 19, 2026",
+      "day_zero_offset": 60
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/business/engagement-letter.md",
+      "block_id": "b:76522a34",
+      "locator": 0,
+      "literal": "April 21, 2026",
+      "day_zero_offset": 1
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/business/engagement-letter.md",
+      "block_id": "b:bee02753",
+      "locator": 0,
+      "literal": "April 10, 2026",
+      "day_zero_offset": -10
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/case-file/diversion-offer-letter.md",
+      "block_id": "b:a18a139f",
+      "locator": 0,
+      "literal": "May 26, 2026",
+      "day_zero_offset": 36
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/case-file/diversion-offer-letter.md",
+      "block_id": "b:0525013d",
+      "locator": 0,
+      "literal": "June 19, 2026",
+      "day_zero_offset": 60
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/case-file/police-report.md",
+      "block_id": "b:e6ddcb25",
+      "locator": 0,
+      "literal": "April 14, 2026",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/case-file/police-report.md",
+      "block_id": "b:e6ddcb25",
+      "locator": 1,
+      "literal": "April 10, 2026",
+      "day_zero_offset": -10
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/case-file/prior-discipline-referral.md",
+      "block_id": "b:ad2521f4",
+      "locator": 0,
+      "literal": "February 11, 2026",
+      "day_zero_offset": -68
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/case-file/prior-discipline-referral.md",
+      "block_id": "b:eb66bf66",
+      "locator": 0,
+      "literal": "February 18, 2026",
+      "day_zero_offset": -61
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/case-file/text-thread-excerpt.md",
+      "block_id": "b:48e4165f",
+      "locator": 0,
+      "literal": "April 9, 2026",
+      "day_zero_offset": -11
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/case-file/wardship-petition.md",
+      "block_id": "b:d22be023",
+      "locator": 0,
+      "literal": "April 10, 2026",
+      "day_zero_offset": -10
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/case-file/wardship-petition.md",
+      "block_id": "b:d39f3c2e",
+      "locator": 0,
+      "literal": "May 4, 2026",
+      "day_zero_offset": 14
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/case-file/wardship-petition.md",
+      "block_id": "b:35127712",
+      "locator": 0,
+      "literal": "May 12, 2026",
+      "day_zero_offset": 22
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/case-file/witness-statement-corvino.md",
+      "block_id": "b:c61d2a43",
+      "locator": 0,
+      "literal": "April 21, 2026",
+      "day_zero_offset": 1
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/case-file/witness-statement-sundaram.md",
+      "block_id": "b:1381a366",
+      "locator": 0,
+      "literal": "April 22, 2026",
+      "day_zero_offset": 2
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/case-file/witness-statement-villareal.md",
+      "block_id": "b:47f0da1a",
+      "locator": 0,
+      "literal": "April 29, 2026",
+      "day_zero_offset": 9
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/exercise/answer-key.md",
+      "block_id": "b:0ae04bca",
+      "locator": 0,
+      "literal": "May 4, 2026",
+      "day_zero_offset": 14
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/exercise/instructor-notes.md",
+      "block_id": "b:ba313208",
+      "locator": 0,
+      "literal": "April 10, 2026",
+      "day_zero_offset": -10
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/exercise/instructor-notes.md",
+      "block_id": "b:ba313208",
+      "locator": 1,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 71
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/facts.md",
+      "block_id": "b:17932b26",
+      "locator": 0,
+      "literal": "April 10, 2026",
+      "day_zero_offset": -10
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/facts.md",
+      "block_id": "b:34869c14",
+      "locator": 0,
+      "literal": "April 11, 2026",
+      "day_zero_offset": -9
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/facts.md",
+      "block_id": "b:d123ca0e",
+      "locator": 0,
+      "literal": "April 14, 2026",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/facts.md",
+      "block_id": "b:d4346c9b",
+      "locator": 0,
+      "literal": "May 4, 2026",
+      "day_zero_offset": 14
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/facts.md",
+      "block_id": "b:d4346c9b",
+      "locator": 1,
+      "literal": "May 12, 2026",
+      "day_zero_offset": 22
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/facts.md",
+      "block_id": "b:94ab9f62",
+      "locator": 0,
+      "literal": "May 26, 2026",
+      "day_zero_offset": 36
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/facts.md",
+      "block_id": "b:94ab9f62",
+      "locator": 1,
+      "literal": "June 19, 2026",
+      "day_zero_offset": 60
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/facts.md",
+      "block_id": "b:c8aebfc9",
+      "locator": 0,
+      "literal": "April 17, 2026",
+      "day_zero_offset": -3
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/case-file/police-report.md",
+      "locator": 0,
+      "literal": "April 14, 2026",
+      "day_zero_offset": -6,
+      "durable_locator": "raw:44a0dbe127729af2:occurrence:2:date:0"
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/case-file/police-report.md",
+      "locator": 1,
+      "literal": "April 10, 2026",
+      "day_zero_offset": -10,
+      "durable_locator": "raw:44a0dbe127729af2:occurrence:2:date:1"
+    },
+    {
+      "source": "data/matters/m18-juvenile-ca/business/business.json",
+      "locator": 0,
+      "literal": "April 10, 2026",
+      "day_zero_offset": -10,
+      "durable_locator": "json:intake.matter_summary:date:0"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sonsteng.damienriehl.com/spine/schemas/firm.schema.json",
+  "$id": "https://legalpracticum.org/spine/schemas/firm.schema.json",
   "title": "Firm",
   "description": "The firm-level canon (authored BEFORE the matter fleet). Identity, timekeepers, rate card, clients, book of business, AR aging, realization/collection targets, and budget. Matter money data reconciles against this (WARN-level aggregate check).",
   "version": "1.1.0",

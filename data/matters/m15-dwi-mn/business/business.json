@@ -1,8 +1,8 @@
 {
   "id": "m15.biz",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/business/m15.biz",
-  "@context": "https://sonsteng.damienriehl.com/spine/",
+  "@id": "https://legalpracticum.org/spine/business/m15.biz",
+  "@context": "https://legalpracticum.org/spine/",
   "matter_id": "m15",
   "intake": {
     "client_name": "Travis O. Wenzloff",
@@ -14,19 +14,22 @@
     "matter_summary": "Third-degree DWI charge and parallel implied-consent license revocation following a Highway 10 stop in Sherburne County; commercial-license holder whose CDL and livelihood are at risk, with a prior offense driving the degree of the charge. Client seeks to challenge the stop and the breath test and to protect his driving privileges.",
     "intake_date": "2025-01-22",
     "referral_source": "referral from employer's business attorney"
-  },
+  ,
+    "intake_date_day_zero_offset": 0},
   "conflicts_check": {
     "parties_checked": ["Travis O. Wenzloff", "State of Minnesota", "Deputy Reid Kallestad", "Cedarloop Mechanical Services, Inc.", "Longspur Tap House", "Corinne Vandersteen"],
     "result": "clear",
     "notes": "No current or former client is adverse to Travis Wenzloff. The arresting deputy, the employer, the tap house, and the reporting motorist present no conflict. New flat-fee client referred by his employer's business counsel; the employer is not a party and is not represented in this matter.",
     "checked_date": "2025-01-22"
-  },
+  ,
+    "checked_date_day_zero_offset": 0},
   "engagement": {
     "fee_type": "flat",
     "flat_fee": 3000,
     "engagement_date": "2025-01-23",
     "letter_md": "business/engagement-letter.md"
-  },
+  ,
+    "engagement_date_day_zero_offset": 1},
   "time_entries": [
     {
       "id": "m15.te.0001",
@@ -35,7 +38,8 @@
       "hours": 1.6,
       "rate": 250,
       "narrative": "Initial intake interview with Travis Wenzloff; assessed third-degree DWI charge, 0.09 breath reading, prior-offense exposure, and commercial-license consequences."
-    },
+    ,
+      "date_day_zero_offset": 0},
     {
       "id": "m15.te.0002",
       "date": "2025-01-24",
@@ -43,7 +47,8 @@
       "hours": 0.9,
       "rate": 225,
       "narrative": "Reviewed incident report, breath-test record, and implied-consent advisory; opened matter file and calendared the implied-consent judicial-review deadline and criminal dates."
-    },
+    ,
+      "date_day_zero_offset": 2},
     {
       "id": "m15.te.0003",
       "date": "2025-01-30",
@@ -51,7 +56,8 @@
       "hours": 1.3,
       "rate": 225,
       "narrative": "Drafted and filed timely petition for judicial review of the implied-consent license revocation; served notice on the parties."
-    },
+    ,
+      "date_day_zero_offset": 8},
     {
       "id": "m15.te.0004",
       "date": "2025-02-10",
@@ -59,7 +65,8 @@
       "hours": 0.6,
       "rate": 250,
       "narrative": "Appeared at first criminal appearance; entered not-guilty plea; requested a contested omnibus hearing."
-    },
+    ,
+      "date_day_zero_offset": 19},
     {
       "id": "m15.te.0005",
       "date": "2025-02-24",
@@ -67,7 +74,8 @@
       "hours": 1.2,
       "rate": 225,
       "narrative": "Drafted and served demand for discovery, including squad dashcam, body-worn camera, 911 audio and CAD log, and DataMaster maintenance and observation records."
-    },
+    ,
+      "date_day_zero_offset": 33},
     {
       "id": "m15.te.0006",
       "date": "2025-03-18",
@@ -75,7 +83,8 @@
       "hours": 2.1,
       "rate": 225,
       "narrative": "Reviewed dashcam and bodycam footage; analyzed the follow, the single fog-line contact, and field-sobriety administration on the icy shoulder in extreme cold."
-    },
+    ,
+      "date_day_zero_offset": 55},
     {
       "id": "m15.te.0007",
       "date": "2025-04-15",
@@ -83,7 +92,8 @@
       "hours": 1.5,
       "rate": 250,
       "narrative": "Legal research and analysis of breath-test mouth-alcohol and margin-of-error issues and the observation-period record; developed suppression theory and identified potential defense expert."
-    },
+    ,
+      "date_day_zero_offset": 83},
     {
       "id": "m15.te.0008",
       "date": "2025-05-20",
@@ -91,7 +101,8 @@
       "hours": 1.0,
       "rate": 225,
       "narrative": "Follow-up client meeting; obtained pharmacy records and medical authorization on the reflux condition and the alcohol-based cough preparation; documented mouthwash use."
-    },
+    ,
+      "date_day_zero_offset": 118},
     {
       "id": "m15.te.0009",
       "date": "2025-09-16",
@@ -99,7 +110,8 @@
       "hours": 1.1,
       "rate": 250,
       "narrative": "Prepared negotiation position centered on protecting the commercial license; opened plea discussions with the assistant county attorney."
-    },
+    ,
+      "date_day_zero_offset": 237},
     {
       "id": "m15.te.0010",
       "date": "2026-01-27",
@@ -107,7 +119,8 @@
       "hours": 1.7,
       "rate": 225,
       "narrative": "Outlined omnibus suppression arguments on the stop and the breath test and the implied-consent review issues; prepared client for the contested hearing."
-    },
+    ,
+      "date_day_zero_offset": 370},
     {
       "id": "m15.te.0011",
       "date": "2026-05-12",
@@ -115,7 +128,8 @@
       "hours": 0.8,
       "rate": 250,
       "narrative": "Reviewed status ahead of pending omnibus and implied-consent hearings; updated client on options and the two parallel proceedings."
-    }
+    ,
+      "date_day_zero_offset": 475}
   ],
   "invoices": [],
   "trust_entries": [
@@ -125,6 +139,7 @@
       "type": "deposit",
       "amount": 3000,
       "running_balance": 3000
-    }
+    ,
+      "date_day_zero_offset": 1}
   ]
 }

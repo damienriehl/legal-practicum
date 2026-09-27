@@ -1,0 +1,224 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m16",
+  "anchor": "2026-02-17",
+  "entries": [
+    {
+      "source": "data/matters/m16-noncompete-ny/exercise/exercise.json",
+      "block_id": "b:a239a77e",
+      "locator": 0,
+      "literal": "January 12, 2026",
+      "day_zero_offset": -36
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/exercise/exercise.json",
+      "block_id": "b:a239a77e",
+      "locator": 1,
+      "literal": "January 30, 2026",
+      "day_zero_offset": -18
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/exercise/exercise.json",
+      "block_id": "b:a239a77e",
+      "locator": 2,
+      "literal": "February 9, 2026",
+      "day_zero_offset": -8
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/exercise/exercise.json",
+      "block_id": "b:a239a77e",
+      "locator": 3,
+      "literal": "February 2, 2026",
+      "day_zero_offset": -15
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/exercise/exercise.json",
+      "block_id": "b:a239a77e",
+      "locator": 4,
+      "literal": "February 13, 2026",
+      "day_zero_offset": -4
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/exercise/exercise.json",
+      "block_id": "b:a239a77e",
+      "locator": 5,
+      "literal": "February 17, 2026",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/business/engagement-letter.md",
+      "block_id": "b:376191f3",
+      "locator": 0,
+      "literal": "February 17, 2026",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/business/engagement-letter.md",
+      "block_id": "b:b9c7c9ed",
+      "locator": 0,
+      "literal": "February 17, 2026",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/cease-and-desist-letter.md",
+      "block_id": "b:1f70289f",
+      "locator": 0,
+      "literal": "February 2, 2026",
+      "day_zero_offset": -15
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/cease-and-desist-letter.md",
+      "block_id": "b:ebf51550",
+      "locator": 0,
+      "literal": "June 3, 2019",
+      "day_zero_offset": -2451
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/employment-agreement.md",
+      "block_id": "b:8461734e",
+      "locator": 0,
+      "literal": "June 3, 2019",
+      "day_zero_offset": -2451
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/employment-agreement.md",
+      "block_id": "b:d2e58348",
+      "locator": 0,
+      "literal": "June 3, 2019",
+      "day_zero_offset": -2451
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/employment-agreement.md",
+      "block_id": "b:d2e58348",
+      "locator": 1,
+      "literal": "June 3, 2019",
+      "day_zero_offset": -2451
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/it-forensic-review.md",
+      "block_id": "b:6b5934b9",
+      "locator": 0,
+      "literal": "January 30, 2026",
+      "day_zero_offset": -18
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/it-forensic-review.md",
+      "block_id": "b:6b5934b9",
+      "locator": 1,
+      "literal": "January 31, 2026",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/it-forensic-review.md",
+      "block_id": "b:6b5934b9",
+      "locator": 2,
+      "literal": "February 4, 2026",
+      "day_zero_offset": -13
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/it-forensic-review.md",
+      "block_id": "b:32e40d6e",
+      "locator": 0,
+      "literal": "January 27, 2026",
+      "day_zero_offset": -21
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/resignation-notice.md",
+      "block_id": "b:ebef8e44",
+      "locator": 0,
+      "literal": "January 12, 2026",
+      "day_zero_offset": -36
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/resignation-notice.md",
+      "block_id": "b:fa48a221",
+      "locator": 0,
+      "literal": "January 30, 2026",
+      "day_zero_offset": -18
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/resignation-notice.md",
+      "block_id": "b:f8fd5f39",
+      "locator": 0,
+      "literal": "January 30, 2026",
+      "day_zero_offset": -18
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/sightline-offer-letter.md",
+      "block_id": "b:bc47966b",
+      "locator": 0,
+      "literal": "December 18, 2025",
+      "day_zero_offset": -61
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/sightline-offer-letter.md",
+      "block_id": "b:37be6c32",
+      "locator": 0,
+      "literal": "February 9, 2026",
+      "day_zero_offset": -8
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/sightline-offer-letter.md",
+      "block_id": "b:3d4581e9",
+      "locator": 0,
+      "literal": "December 20, 2025",
+      "day_zero_offset": -59
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/witness-frawley.md",
+      "block_id": "b:35992a38",
+      "locator": 0,
+      "literal": "April 14, 2026",
+      "day_zero_offset": 56
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/witness-salcedo.md",
+      "block_id": "b:952cc376",
+      "locator": 0,
+      "literal": "April 21, 2026",
+      "day_zero_offset": 63
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/case-file/witness-vandermeer.md",
+      "block_id": "b:c2c20350",
+      "locator": 0,
+      "literal": "April 28, 2026",
+      "day_zero_offset": 70
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/facts.md",
+      "block_id": "b:116952f5",
+      "locator": 0,
+      "literal": "January 12, 2026",
+      "day_zero_offset": -36
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/facts.md",
+      "block_id": "b:116952f5",
+      "locator": 1,
+      "literal": "January 30, 2026",
+      "day_zero_offset": -18
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/facts.md",
+      "block_id": "b:116952f5",
+      "locator": 2,
+      "literal": "February 9, 2026",
+      "day_zero_offset": -8
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/facts.md",
+      "block_id": "b:0efd11e5",
+      "locator": 0,
+      "literal": "February 2, 2026",
+      "day_zero_offset": -15
+    },
+    {
+      "source": "data/matters/m16-noncompete-ny/facts.md",
+      "block_id": "b:0efd11e5",
+      "locator": 1,
+      "literal": "February 13, 2026",
+      "day_zero_offset": -4
+    }
+  ]
+}

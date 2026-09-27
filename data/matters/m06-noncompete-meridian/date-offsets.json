@@ -1,0 +1,231 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m06",
+  "anchor": "2026-02-16",
+  "entries": [
+    {
+      "source": "data/matters/m06-noncompete-meridian/exercise/exercise.json",
+      "block_id": "b:099d6c02",
+      "locator": 0,
+      "literal": "January 5, 2026",
+      "day_zero_offset": -42
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/exercise/exercise.json",
+      "block_id": "b:099d6c02",
+      "locator": 1,
+      "literal": "January 20, 2026",
+      "day_zero_offset": -27
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/exercise/exercise.json",
+      "block_id": "b:099d6c02",
+      "locator": 2,
+      "literal": "February 10, 2026",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/exercise/exercise.json",
+      "block_id": "b:099d6c02",
+      "locator": 3,
+      "literal": "February 16, 2026",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/business/engagement-letter.md",
+      "block_id": "b:155dbd1b",
+      "locator": 0,
+      "literal": "February 16, 2026",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/business/engagement-letter.md",
+      "block_id": "b:c4db35d1",
+      "locator": 0,
+      "literal": "February 16, 2026",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/cease-and-desist-letter.md",
+      "block_id": "b:143d7427",
+      "locator": 0,
+      "literal": "January 20, 2026",
+      "day_zero_offset": -27
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/cease-and-desist-letter.md",
+      "block_id": "b:8f3a9f98",
+      "locator": 0,
+      "literal": "January 30, 2026",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/employment-agreement.md",
+      "block_id": "b:f1559d24",
+      "locator": 0,
+      "literal": "March 3, 2014",
+      "day_zero_offset": -4368
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/employment-agreement.md",
+      "block_id": "b:6fdc4036",
+      "locator": 0,
+      "literal": "March 3, 2014",
+      "day_zero_offset": -4368
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/employment-agreement.md",
+      "block_id": "b:6fdc4036",
+      "locator": 1,
+      "literal": "March 3, 2014",
+      "day_zero_offset": -4368
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/it-export-log.md",
+      "block_id": "b:d27bb61e",
+      "locator": 0,
+      "literal": "January 6, 2026",
+      "day_zero_offset": -41
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/it-export-log.md",
+      "block_id": "b:d27bb61e",
+      "locator": 1,
+      "literal": "January 9, 2026",
+      "day_zero_offset": -38
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/it-export-log.md",
+      "block_id": "b:5a54355e",
+      "locator": 0,
+      "literal": "December 29, 2025",
+      "day_zero_offset": -49
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/it-export-log.md",
+      "block_id": "b:d97be029",
+      "locator": 0,
+      "literal": "December 30, 2025",
+      "day_zero_offset": -48
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/resignation-notice.md",
+      "block_id": "b:3612ce93",
+      "locator": 0,
+      "literal": "December 22, 2025",
+      "day_zero_offset": -56
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/resignation-notice.md",
+      "block_id": "b:841319c3",
+      "locator": 0,
+      "literal": "January 5, 2026",
+      "day_zero_offset": -42
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/verdant-offer-letter.md",
+      "block_id": "b:67676d58",
+      "locator": 0,
+      "literal": "December 18, 2025",
+      "day_zero_offset": -60
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/verdant-offer-letter.md",
+      "block_id": "b:1eacca4e",
+      "locator": 0,
+      "literal": "January 6, 2026",
+      "day_zero_offset": -41
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/verdant-offer-letter.md",
+      "block_id": "b:f679a4e8",
+      "locator": 0,
+      "literal": "December 19, 2025",
+      "day_zero_offset": -59
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/witness-bellweather.md",
+      "block_id": "b:57aa366c",
+      "locator": 0,
+      "literal": "April 22, 2026",
+      "day_zero_offset": 65
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/witness-calderaro.md",
+      "block_id": "b:ea710732",
+      "locator": 0,
+      "literal": "May 18, 2026",
+      "day_zero_offset": 91
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/witness-dupont.md",
+      "block_id": "b:2ed0f4f4",
+      "locator": 0,
+      "literal": "April 30, 2026",
+      "day_zero_offset": 73
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/witness-dupont.md",
+      "block_id": "b:faf4aa09",
+      "locator": 0,
+      "literal": "December 29, 2025",
+      "day_zero_offset": -49
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/case-file/witness-hollis.md",
+      "block_id": "b:d19feee4",
+      "locator": 0,
+      "literal": "April 8, 2026",
+      "day_zero_offset": 51
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/exercise/answer-key.md",
+      "block_id": "b:c310f631",
+      "locator": 0,
+      "literal": "December 30, 2025",
+      "day_zero_offset": -48
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/exercise/answer-key.md",
+      "block_id": "b:60e88a9a",
+      "locator": 0,
+      "literal": "May 22, 2026",
+      "day_zero_offset": 95
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/facts.md",
+      "block_id": "b:62a652d4",
+      "locator": 0,
+      "literal": "January 5, 2026",
+      "day_zero_offset": -42
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/facts.md",
+      "block_id": "b:d4f97ace",
+      "locator": 0,
+      "literal": "December 29, 2025",
+      "day_zero_offset": -49
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/facts.md",
+      "block_id": "b:b374e51c",
+      "locator": 0,
+      "literal": "January 20, 2026",
+      "day_zero_offset": -27
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/facts.md",
+      "block_id": "b:b374e51c",
+      "locator": 1,
+      "literal": "February 10, 2026",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m06-noncompete-meridian/facts.md",
+      "block_id": "b:b374e51c",
+      "locator": 2,
+      "literal": "February 16, 2026",
+      "day_zero_offset": 0
+    }
+  ]
+}

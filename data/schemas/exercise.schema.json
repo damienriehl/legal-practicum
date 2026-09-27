@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sonsteng.damienriehl.com/spine/schemas/exercise.schema.json",
+  "$id": "https://legalpracticum.org/spine/schemas/exercise.schema.json",
   "title": "Exercise",
   "description": "The 8-part exercise packet (Sonsteng anatomy). All eight section keys are FIXED and REQUIRED; the site generator and validator key off them. Each section carries Markdown body and/or file references.",
   "version": "1.0.0",

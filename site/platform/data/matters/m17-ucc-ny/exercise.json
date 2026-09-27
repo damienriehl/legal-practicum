@@ -1,7 +1,7 @@
 {
   "id": "m17.ex",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/exercise/m17.ex",
+  "@id": "https://legalpracticum.org/spine/exercise/m17.ex",
   "matter_id": "m17",
   "role_id": "m17.role.buyer-counsel",
   "sections": {

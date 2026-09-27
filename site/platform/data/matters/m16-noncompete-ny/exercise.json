@@ -1,7 +1,7 @@
 {
   "id": "m16.ex",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/exercise/m16.ex",
+  "@id": "https://legalpracticum.org/spine/exercise/m16.ex",
   "matter_id": "m16",
   "role_id": "m16.role.defense",
   "sections": {

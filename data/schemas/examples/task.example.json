@@ -1,7 +1,7 @@
 {
   "id": "TSK-042",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-042",
+  "@id": "https://legalpracticum.org/spine/task/TSK-042",
   "skill_id": "SK-LP-13",
   "name": "Conduct a settlement negotiation",
   "description": "Plan and conduct a settlement negotiation, identifying interests, BATNA, and creative options.",

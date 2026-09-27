@@ -1,7 +1,7 @@
 {
   "id": "m10",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/matter/m10",
+  "@id": "https://legalpracticum.org/spine/matter/m10",
   "slug": "m10-probate-meridian",
   "shape": "wills_probate",
   "tier": "meridian",
@@ -48,4 +48,6 @@
   ],
   "open_date": "2024-09-16",
   "as_of_date": "2026-06-30"
-}
+,
+  "open_date_day_zero_offset": 0,
+  "as_of_date_day_zero_offset": 652}

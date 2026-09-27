@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sonsteng.damienriehl.com/spine/schemas/day-zero-holdouts.schema.json",
+  "$id": "https://legalpracticum.org/spine/schemas/day-zero-holdouts.schema.json",
   "title": "Reviewed fixed-fact date holdouts",
   "version": "1.0.0",
   "type": "object",

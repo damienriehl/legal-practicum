@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sonsteng.damienriehl.com/spine/schemas/page-copy.schema.json",
+  "$id": "https://legalpracticum.org/spine/schemas/page-copy.schema.json",
   "title": "Authored page copy",
   "type": "object",
   "required": ["schema_version", "type", "page"],

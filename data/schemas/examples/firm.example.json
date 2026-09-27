@@ -1,7 +1,7 @@
 {
   "id": "FIRM",
   "schema_version": "1.1.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/firm/FIRM",
+  "@id": "https://legalpracticum.org/spine/firm/FIRM",
   "identity": {
     "name": "Ansari & Boone LLP",
     "address": "100 Practicum Way, Suite 200",

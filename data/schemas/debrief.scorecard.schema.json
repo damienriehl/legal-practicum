@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sonsteng.damienriehl.com/spine/schemas/debrief.scorecard.schema.json",
+  "$id": "https://legalpracticum.org/spine/schemas/debrief.scorecard.schema.json",
   "title": "Debrief Scorecard",
   "description": "Typed output of the /debrief endpoint. Two axes: (A) disclosure-tier fact/task coverage and (B) standardized-client relational scoring, plus a signed ethics score. Debrief-oracle rule: MISSED items are named by topic label ONLY, never by fact text.",
   "version": "1.0.0",

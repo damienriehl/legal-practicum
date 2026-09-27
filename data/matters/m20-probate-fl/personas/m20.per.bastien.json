@@ -1,7 +1,7 @@
 {
   "id": "m20.per.bastien",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/persona/m20.per.bastien",
+  "@id": "https://legalpracticum.org/spine/persona/m20.per.bastien",
   "matter_id": "m20",
   "identity": {
     "name": "Marisol Bastien",

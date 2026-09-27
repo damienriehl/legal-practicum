@@ -1,8 +1,8 @@
 {
   "id": "m09.ex",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/exercise/m09.ex",
-  "@context": "https://sonsteng.damienriehl.com/spine/",
+  "@id": "https://legalpracticum.org/spine/exercise/m09.ex",
+  "@context": "https://legalpracticum.org/spine/",
   "matter_id": "m09",
   "role_id": "m09.role.petitioner-counsel",
   "sections": {

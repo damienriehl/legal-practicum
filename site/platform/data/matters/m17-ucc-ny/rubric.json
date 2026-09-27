@@ -1,7 +1,7 @@
 {
   "id": "m17.rub",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/rubric/m17.rub",
+  "@id": "https://legalpracticum.org/spine/rubric/m17.rub",
   "matter_id": "m17",
   "declared_total": 200,
   "criteria": [

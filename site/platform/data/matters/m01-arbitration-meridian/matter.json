@@ -1,8 +1,8 @@
 {
   "id": "m01",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/matter/m01",
-  "@context": "https://sonsteng.damienriehl.com/spine/",
+  "@id": "https://legalpracticum.org/spine/matter/m01",
+  "@context": "https://legalpracticum.org/spine/",
   "slug": "m01-arbitration-meridian",
   "shape": "employment_arbitration",
   "tier": "meridian",
@@ -47,4 +47,6 @@
   ],
   "open_date": "2025-11-05",
   "as_of_date": "2026-06-30"
-}
+,
+  "open_date_day_zero_offset": 0,
+  "as_of_date_day_zero_offset": 237}

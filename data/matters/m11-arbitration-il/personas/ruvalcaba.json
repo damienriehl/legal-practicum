@@ -1,8 +1,8 @@
 {
   "id": "m11.per.ruvalcaba",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/persona/m11.per.ruvalcaba",
-  "@context": "https://sonsteng.damienriehl.com/spine/",
+  "@id": "https://legalpracticum.org/spine/persona/m11.per.ruvalcaba",
+  "@context": "https://legalpracticum.org/spine/",
   "matter_id": "m11",
   "identity": {
     "name": "Tomás Ruvalcaba",

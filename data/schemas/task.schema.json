@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sonsteng.damienriehl.com/spine/schemas/task.schema.json",
+  "$id": "https://legalpracticum.org/spine/schemas/task.schema.json",
   "title": "Task",
   "description": "A primary task under a skill, decomposed into subtasks, placed in a curriculum module, FOLIO-mapped (or no-equivalent), and cross-referenced to the exercises that practice it.",
   "version": "1.0.0",

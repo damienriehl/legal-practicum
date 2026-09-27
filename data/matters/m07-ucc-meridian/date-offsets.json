@@ -1,0 +1,315 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m07",
+  "anchor": "2026-03-16",
+  "entries": [
+    {
+      "source": "data/matters/m07-ucc-meridian/exercise/exercise.json",
+      "block_id": "b:03680ca4",
+      "locator": 0,
+      "literal": "September 10, 2025",
+      "day_zero_offset": -187
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/exercise/exercise.json",
+      "block_id": "b:03680ca4",
+      "locator": 1,
+      "literal": "October 15, 2025",
+      "day_zero_offset": -152
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/exercise/exercise.json",
+      "block_id": "b:03680ca4",
+      "locator": 2,
+      "literal": "December 12, 2025",
+      "day_zero_offset": -94
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/exercise/exercise.json",
+      "block_id": "b:03680ca4",
+      "locator": 3,
+      "literal": "January 20, 2026",
+      "day_zero_offset": -55
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/exercise/exercise.json",
+      "block_id": "b:03680ca4",
+      "locator": 4,
+      "literal": "February 5, 2026",
+      "day_zero_offset": -39
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/exercise/exercise.json",
+      "block_id": "b:03680ca4",
+      "locator": 5,
+      "literal": "February 27, 2026",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/exercise/exercise.json",
+      "block_id": "b:03680ca4",
+      "locator": 6,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 106
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/business/engagement-letter.md",
+      "block_id": "b:612457cd",
+      "locator": 0,
+      "literal": "March 16, 2026",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/business/engagement-letter.md",
+      "block_id": "b:e48a68ff",
+      "locator": 0,
+      "literal": "September 10, 2025",
+      "day_zero_offset": -187
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/demand-and-denial-correspondence.md",
+      "block_id": "b:6cfb6c00",
+      "locator": 0,
+      "literal": "January 20, 2026",
+      "day_zero_offset": -55
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/demand-and-denial-correspondence.md",
+      "block_id": "b:61e99d38",
+      "locator": 0,
+      "literal": "October 15, 2025",
+      "day_zero_offset": -152
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/demand-and-denial-correspondence.md",
+      "block_id": "b:5e055139",
+      "locator": 0,
+      "literal": "February 5, 2026",
+      "day_zero_offset": -39
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/engineer-inspection-report.md",
+      "block_id": "b:9b7497e3",
+      "locator": 0,
+      "literal": "February 27, 2026",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/engineer-inspection-report.md",
+      "block_id": "b:9b7497e3",
+      "locator": 1,
+      "literal": "March 3, 2026",
+      "day_zero_offset": -13
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/installation-commissioning-record.md",
+      "block_id": "b:e46da5e8",
+      "locator": 0,
+      "literal": "October 15, 2025",
+      "day_zero_offset": -152
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/installation-commissioning-record.md",
+      "block_id": "b:e821ac0a",
+      "locator": 0,
+      "literal": "October 15, 2025",
+      "day_zero_offset": -152
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/processor-rejection-tickets.md",
+      "block_id": "b:df8c84c6",
+      "locator": 0,
+      "literal": "November 3, 2025",
+      "day_zero_offset": -133
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/processor-rejection-tickets.md",
+      "block_id": "b:1693f7b0",
+      "locator": 0,
+      "literal": "November 24, 2025",
+      "day_zero_offset": -112
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/processor-rejection-tickets.md",
+      "block_id": "b:b6c9f34f",
+      "locator": 0,
+      "literal": "December 15, 2025",
+      "day_zero_offset": -91
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/purchase-agreement-warranty.md",
+      "block_id": "b:b683d3f8",
+      "locator": 0,
+      "literal": "September 10, 2025",
+      "day_zero_offset": -187
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/purchase-agreement-warranty.md",
+      "block_id": "b:75ea3639",
+      "locator": 0,
+      "literal": "September 10, 2025",
+      "day_zero_offset": -187
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/service-call-reports.md",
+      "block_id": "b:fc2dc055",
+      "locator": 0,
+      "literal": "November 3, 2025",
+      "day_zero_offset": -133
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/service-call-reports.md",
+      "block_id": "b:15b57ca1",
+      "locator": 0,
+      "literal": "November 24, 2025",
+      "day_zero_offset": -112
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/service-call-reports.md",
+      "block_id": "b:3e15473f",
+      "locator": 0,
+      "literal": "December 12, 2025",
+      "day_zero_offset": -94
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/witness-callahan.md",
+      "block_id": "b:c3416b65",
+      "locator": 0,
+      "literal": "May 19, 2026",
+      "day_zero_offset": 64
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/witness-pelletier.md",
+      "block_id": "b:7cdcec25",
+      "locator": 0,
+      "literal": "April 22, 2026",
+      "day_zero_offset": 37
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/witness-rask.md",
+      "block_id": "b:310d661a",
+      "locator": 0,
+      "literal": "May 12, 2026",
+      "day_zero_offset": 57
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/witness-rask.md",
+      "block_id": "b:310d661a",
+      "locator": 1,
+      "literal": "February 27, 2026",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/witness-rask.md",
+      "block_id": "b:63537e2c",
+      "locator": 0,
+      "literal": "February 27, 2026",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/case-file/witness-tuvang.md",
+      "block_id": "b:72c8e1c6",
+      "locator": 0,
+      "literal": "April 8, 2026",
+      "day_zero_offset": 23
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/exercise/answer-key.md",
+      "block_id": "b:1bea15ab",
+      "locator": 0,
+      "literal": "September 10, 2025",
+      "day_zero_offset": -187
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/exercise/answer-key.md",
+      "block_id": "b:1bea15ab",
+      "locator": 1,
+      "literal": "October 15, 2025",
+      "day_zero_offset": -152
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/exercise/answer-key.md",
+      "block_id": "b:1bea15ab",
+      "locator": 2,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 106
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/exercise/answer-key.md",
+      "block_id": "b:240b8722",
+      "locator": 0,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 106
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/facts.md",
+      "block_id": "b:412c19a7",
+      "locator": 0,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 106
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/facts.md",
+      "block_id": "b:83edebad",
+      "locator": 0,
+      "literal": "September 10, 2025",
+      "day_zero_offset": -187
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/facts.md",
+      "block_id": "b:3c0984e0",
+      "locator": 0,
+      "literal": "October 15, 2025",
+      "day_zero_offset": -152
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/facts.md",
+      "block_id": "b:38db4ecb",
+      "locator": 0,
+      "literal": "November 3, 2025",
+      "day_zero_offset": -133
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/facts.md",
+      "block_id": "b:38db4ecb",
+      "locator": 1,
+      "literal": "November 24, 2025",
+      "day_zero_offset": -112
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/facts.md",
+      "block_id": "b:38db4ecb",
+      "locator": 2,
+      "literal": "December 12, 2025",
+      "day_zero_offset": -94
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/facts.md",
+      "block_id": "b:cbb6e320",
+      "locator": 0,
+      "literal": "January 20, 2026",
+      "day_zero_offset": -55
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/facts.md",
+      "block_id": "b:cbb6e320",
+      "locator": 1,
+      "literal": "February 5, 2026",
+      "day_zero_offset": -39
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/facts.md",
+      "block_id": "b:98ded456",
+      "locator": 0,
+      "literal": "February 27, 2026",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m07-ucc-meridian/facts.md",
+      "block_id": "b:a3df8748",
+      "locator": 0,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 106
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "id": "m18",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/matter/m18",
+  "@id": "https://legalpracticum.org/spine/matter/m18",
   "slug": "m18-juvenile-ca",
   "shape": "juvenile_delinquency",
   "tier": "real",
@@ -50,4 +50,6 @@
   ],
   "open_date": "2026-04-20",
   "as_of_date": "2026-06-30"
-}
+,
+  "open_date_day_zero_offset": 0,
+  "as_of_date_day_zero_offset": 71}

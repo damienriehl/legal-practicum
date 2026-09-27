@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/taxonomy/tasks",
+  "@id": "https://legalpracticum.org/spine/taxonomy/tasks",
   "spine_version": "1.0.0",
   "description": "Primary-task -> subtask decomposition for each of the 26 surveyed skills and 5 AI-era extension skills, grounded in the master-outline deliverable set and standard practice-of-law task inventories. exercise_refs point to manifest matters that exercise the task.",
   "task_count": 108,
@@ -8,7 +8,7 @@
     {
       "id": "TSK-001",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-001",
+      "@id": "https://legalpracticum.org/spine/task/TSK-001",
       "skill_id": "SK-LP-01",
       "name": "Conduct a preliminary case analysis",
       "description": "Analyze a new matter to identify governing law and the relative strengths and weaknesses of each side.",
@@ -45,7 +45,7 @@
     {
       "id": "TSK-002",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-002",
+      "@id": "https://legalpracticum.org/spine/task/TSK-002",
       "skill_id": "SK-LP-01",
       "name": "Develop a case theory and strategy",
       "description": "Synthesize the facts and law into a coherent theory of the case and a plan to prevail.",
@@ -82,7 +82,7 @@
     {
       "id": "TSK-003",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-003",
+      "@id": "https://legalpracticum.org/spine/task/TSK-003",
       "skill_id": "SK-LP-01",
       "name": "Create a strategic plan of action",
       "description": "Translate the case theory into a sequenced plan with objectives, steps, and deadlines.",
@@ -118,7 +118,7 @@
     {
       "id": "TSK-004",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-004",
+      "@id": "https://legalpracticum.org/spine/task/TSK-004",
       "skill_id": "SK-LP-01",
       "name": "Diagnose the client's legal problem at intake",
       "description": "Classify the client's problem into the correct area(s) of law and spot threshold issues.",
@@ -150,7 +150,7 @@
     {
       "id": "TSK-005",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-005",
+      "@id": "https://legalpracticum.org/spine/task/TSK-005",
       "skill_id": "SK-LP-02",
       "name": "Write a legal analysis memorandum",
       "description": "Produce a written IRAC analysis of a legal question in a matter.",
@@ -186,7 +186,7 @@
     {
       "id": "TSK-006",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-006",
+      "@id": "https://legalpracticum.org/spine/task/TSK-006",
       "skill_id": "SK-LP-02",
       "name": "Apply governing law to disputed facts",
       "description": "Match the elements of the governing law to the contested facts of the matter.",
@@ -222,7 +222,7 @@
     {
       "id": "TSK-007",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-007",
+      "@id": "https://legalpracticum.org/spine/task/TSK-007",
       "skill_id": "SK-LP-02",
       "name": "Construct and evaluate legal arguments",
       "description": "Build affirmative arguments and critically evaluate their strength against the opposition.",
@@ -258,7 +258,7 @@
     {
       "id": "TSK-008",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-008",
+      "@id": "https://legalpracticum.org/spine/task/TSK-008",
       "skill_id": "SK-LP-02",
       "name": "Synthesize authority into a working rule",
       "description": "Reconcile multiple, possibly conflicting, authorities into a usable statement of the rule.",
@@ -289,7 +289,7 @@
     {
       "id": "TSK-009",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-009",
+      "@id": "https://legalpracticum.org/spine/task/TSK-009",
       "skill_id": "SK-LP-03",
       "name": "Identify the controlling substantive rules",
       "description": "Locate and state the substantive rules that govern the matter.",
@@ -320,7 +320,7 @@
     {
       "id": "TSK-010",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-010",
+      "@id": "https://legalpracticum.org/spine/task/TSK-010",
       "skill_id": "SK-LP-03",
       "name": "Analyze the elements of a claim or defense",
       "description": "Break a claim or defense into its prima facie elements and available defenses.",
@@ -351,7 +351,7 @@
     {
       "id": "TSK-011",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-011",
+      "@id": "https://legalpracticum.org/spine/task/TSK-011",
       "skill_id": "SK-LP-03",
       "name": "Apply area-specific doctrine to the facts",
       "description": "Apply the doctrine of the matter's practice area to its particular facts, noting jurisdictional variation.",
@@ -382,7 +382,7 @@
     {
       "id": "TSK-012",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-012",
+      "@id": "https://legalpracticum.org/spine/task/TSK-012",
       "skill_id": "SK-LP-04",
       "name": "Determine the governing procedural framework",
       "description": "Identify the court, forum, and rule set that will govern the matter's procedure.",
@@ -413,7 +413,7 @@
     {
       "id": "TSK-013",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-013",
+      "@id": "https://legalpracticum.org/spine/task/TSK-013",
       "skill_id": "SK-LP-04",
       "name": "Apply the rules of civil procedure to a filing",
       "description": "Ensure a filing satisfies jurisdiction, venue, and service requirements.",
@@ -443,7 +443,7 @@
     {
       "id": "TSK-014",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-014",
+      "@id": "https://legalpracticum.org/spine/task/TSK-014",
       "skill_id": "SK-LP-04",
       "name": "Apply the rules of evidence in preparation",
       "description": "Assess admissibility and lay foundation for key evidence before a hearing or trial.",
@@ -473,7 +473,7 @@
     {
       "id": "TSK-015",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-015",
+      "@id": "https://legalpracticum.org/spine/task/TSK-015",
       "skill_id": "SK-LP-04",
       "name": "Navigate appellate procedure",
       "description": "Comply with appellate rules, format, and deadlines for a review proceeding.",
@@ -503,7 +503,7 @@
     {
       "id": "TSK-016",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-016",
+      "@id": "https://legalpracticum.org/spine/task/TSK-016",
       "skill_id": "SK-LP-05",
       "name": "Formulate a research plan",
       "description": "Plan a library research effort: issues, sources, and search terms.",
@@ -534,7 +534,7 @@
     {
       "id": "TSK-017",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-017",
+      "@id": "https://legalpracticum.org/spine/task/TSK-017",
       "skill_id": "SK-LP-05",
       "name": "Locate and read primary authority in print",
       "description": "Find and read the controlling statutes and case law in library sources.",
@@ -565,7 +565,7 @@
     {
       "id": "TSK-018",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-018",
+      "@id": "https://legalpracticum.org/spine/task/TSK-018",
       "skill_id": "SK-LP-05",
       "name": "Validate and update authority",
       "description": "Confirm that authority is still good law and note subsequent history.",
@@ -595,7 +595,7 @@
     {
       "id": "TSK-019",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-019",
+      "@id": "https://legalpracticum.org/spine/task/TSK-019",
       "skill_id": "SK-LP-06",
       "name": "Run electronic database searches",
       "description": "Search online legal databases with effective queries filtered to the jurisdiction.",
@@ -626,7 +626,7 @@
     {
       "id": "TSK-020",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-020",
+      "@id": "https://legalpracticum.org/spine/task/TSK-020",
       "skill_id": "SK-LP-06",
       "name": "Cite-check using online tools",
       "description": "Use citator tools to verify citations and check their treatment.",
@@ -656,7 +656,7 @@
     {
       "id": "TSK-021",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-021",
+      "@id": "https://legalpracticum.org/spine/task/TSK-021",
       "skill_id": "SK-LP-06",
       "name": "Assemble a research trail and report",
       "description": "Record the sources found and summarize the findings for the file.",
@@ -686,7 +686,7 @@
     {
       "id": "TSK-022",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-022",
+      "@id": "https://legalpracticum.org/spine/task/TSK-022",
       "skill_id": "SK-LP-07",
       "name": "Conduct a client intake interview",
       "description": "Interview a new client to elicit their story, goals, and concerns while building trust.",
@@ -739,7 +739,7 @@
     {
       "id": "TSK-023",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-023",
+      "@id": "https://legalpracticum.org/spine/task/TSK-023",
       "skill_id": "SK-LP-07",
       "name": "Investigate and develop the facts",
       "description": "Gather documents and witness information and assess factual gaps and inconsistencies.",
@@ -776,7 +776,7 @@
     {
       "id": "TSK-024",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-024",
+      "@id": "https://legalpracticum.org/spine/task/TSK-024",
       "skill_id": "SK-LP-07",
       "name": "Interview fact witnesses",
       "description": "Prepare for and conduct interviews of fact witnesses and memorialize their statements.",
@@ -808,7 +808,7 @@
     {
       "id": "TSK-025",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-025",
+      "@id": "https://legalpracticum.org/spine/task/TSK-025",
       "skill_id": "SK-LP-07",
       "name": "Build and maintain a chronology of facts",
       "description": "Order events into a timeline and link facts to the legal elements they support.",
@@ -839,7 +839,7 @@
     {
       "id": "TSK-026",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-026",
+      "@id": "https://legalpracticum.org/spine/task/TSK-026",
       "skill_id": "SK-LP-08",
       "name": "Deliver an opening statement or oral argument",
       "description": "Present a structured, theme-driven oral argument and respond to questions from the bench.",
@@ -876,7 +876,7 @@
     {
       "id": "TSK-027",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-027",
+      "@id": "https://legalpracticum.org/spine/task/TSK-027",
       "skill_id": "SK-LP-08",
       "name": "Conduct direct and cross-examination",
       "description": "Plan and deliver direct examination to elicit the story and cross to control the witness.",
@@ -907,7 +907,7 @@
     {
       "id": "TSK-028",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-028",
+      "@id": "https://legalpracticum.org/spine/task/TSK-028",
       "skill_id": "SK-LP-08",
       "name": "Counsel and communicate with the client orally",
       "description": "Explain options and confirm understanding in plain, accessible language.",
@@ -938,7 +938,7 @@
     {
       "id": "TSK-029",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-029",
+      "@id": "https://legalpracticum.org/spine/task/TSK-029",
       "skill_id": "SK-LP-08",
       "name": "Present a negotiation position orally",
       "description": "State interests and positions and make and respond to offers in real time.",
@@ -970,7 +970,7 @@
     {
       "id": "TSK-030",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-030",
+      "@id": "https://legalpracticum.org/spine/task/TSK-030",
       "skill_id": "SK-LP-09",
       "name": "Draft client correspondence and letters",
       "description": "Write clear client-facing letters, including status and advice letters.",
@@ -1001,7 +1001,7 @@
     {
       "id": "TSK-031",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-031",
+      "@id": "https://legalpracticum.org/spine/task/TSK-031",
       "skill_id": "SK-LP-09",
       "name": "Draft correspondence to opposing counsel and the court",
       "description": "Write professional correspondence to opposing counsel and the clerk, with proof of service.",
@@ -1032,7 +1032,7 @@
     {
       "id": "TSK-032",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-032",
+      "@id": "https://legalpracticum.org/spine/task/TSK-032",
       "skill_id": "SK-LP-09",
       "name": "Write a persuasive brief or memorandum of law",
       "description": "Draft a persuasive brief with organized argument headings and integrated citations.",
@@ -1063,7 +1063,7 @@
     {
       "id": "TSK-033",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-033",
+      "@id": "https://legalpracticum.org/spine/task/TSK-033",
       "skill_id": "SK-LP-09",
       "name": "Edit and revise written work against a rubric",
       "description": "Self-edit and revise a draft for clarity, concision, and page limits against the rubric.",
@@ -1094,7 +1094,7 @@
     {
       "id": "TSK-034",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-034",
+      "@id": "https://legalpracticum.org/spine/task/TSK-034",
       "skill_id": "SK-LP-10",
       "name": "Advise the client on options and risks",
       "description": "Lay out the alternatives and their consequences and give a candid recommendation.",
@@ -1126,7 +1126,7 @@
     {
       "id": "TSK-035",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-035",
+      "@id": "https://legalpracticum.org/spine/task/TSK-035",
       "skill_id": "SK-LP-10",
       "name": "Counsel on settlement versus proceeding",
       "description": "Help the client weigh settling against proceeding, using BATNA and cost-benefit.",
@@ -1158,7 +1158,7 @@
     {
       "id": "TSK-036",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-036",
+      "@id": "https://legalpracticum.org/spine/task/TSK-036",
       "skill_id": "SK-LP-10",
       "name": "Manage client expectations and decisions",
       "description": "Clarify that the client owns key decisions and document the advice given.",
@@ -1189,7 +1189,7 @@
     {
       "id": "TSK-037",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-037",
+      "@id": "https://legalpracticum.org/spine/task/TSK-037",
       "skill_id": "SK-LP-10",
       "name": "Counsel a distressed or vulnerable client",
       "description": "Acknowledge emotion, rebuild focus, and coordinate with a guardian or parent where needed.",
@@ -1220,7 +1220,7 @@
     {
       "id": "TSK-038",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-038",
+      "@id": "https://legalpracticum.org/spine/task/TSK-038",
       "skill_id": "SK-LP-11",
       "name": "Build client trust and rapport",
       "description": "Earn the client's confidence through competence, preparation, and reliable follow-through.",
@@ -1251,7 +1251,7 @@
     {
       "id": "TSK-039",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-039",
+      "@id": "https://legalpracticum.org/spine/task/TSK-039",
       "skill_id": "SK-LP-11",
       "name": "Establish credibility with the tribunal and opposing counsel",
       "description": "Build a reputation for candor and preparedness before the court and opposing counsel.",
@@ -1279,7 +1279,7 @@
     {
       "id": "TSK-040",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-040",
+      "@id": "https://legalpracticum.org/spine/task/TSK-040",
       "skill_id": "SK-LP-11",
       "name": "Maintain the attorney-client relationship over time",
       "description": "Keep an ongoing client informed and responsive to sustain the relationship.",
@@ -1310,7 +1310,7 @@
     {
       "id": "TSK-041",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-041",
+      "@id": "https://legalpracticum.org/spine/task/TSK-041",
       "skill_id": "SK-LP-12",
       "name": "Conduct a new-client intake and screening",
       "description": "Gather intake information and run a preliminary conflicts screen before accepting a client.",
@@ -1342,7 +1342,7 @@
     {
       "id": "TSK-042",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-042",
+      "@id": "https://legalpracticum.org/spine/task/TSK-042",
       "skill_id": "SK-LP-12",
       "name": "Develop business and generate referrals",
       "description": "Identify prospective clients and communicate the firm's value to win work.",
@@ -1372,7 +1372,7 @@
     {
       "id": "TSK-043",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-043",
+      "@id": "https://legalpracticum.org/spine/task/TSK-043",
       "skill_id": "SK-LP-12",
       "name": "Retain clients through service and relationship",
       "description": "Keep clients by delivering responsive service and acting on their feedback.",
@@ -1402,7 +1402,7 @@
     {
       "id": "TSK-044",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-044",
+      "@id": "https://legalpracticum.org/spine/task/TSK-044",
       "skill_id": "SK-LP-13",
       "name": "Prepare a strategic settlement and negotiation plan (SSNP)",
       "description": "Plan a negotiation: interests, positions, BATNA, targets, and confidential concessions.",
@@ -1439,7 +1439,7 @@
     {
       "id": "TSK-045",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-045",
+      "@id": "https://legalpracticum.org/spine/task/TSK-045",
       "skill_id": "SK-LP-13",
       "name": "Conduct a settlement or plea negotiation",
       "description": "Exchange and evaluate offers using principled bargaining and document the terms reached.",
@@ -1476,7 +1476,7 @@
     {
       "id": "TSK-046",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-046",
+      "@id": "https://legalpracticum.org/spine/task/TSK-046",
       "skill_id": "SK-LP-13",
       "name": "Negotiate a transaction to agreement",
       "description": "Reconcile competing deal terms and draft the negotiated agreement.",
@@ -1508,7 +1508,7 @@
     {
       "id": "TSK-047",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-047",
+      "@id": "https://legalpracticum.org/spine/task/TSK-047",
       "skill_id": "SK-LP-13",
       "name": "Participate in mediation",
       "description": "Prepare a mediation position and engage the neutral to explore options.",
@@ -1540,7 +1540,7 @@
     {
       "id": "TSK-048",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-048",
+      "@id": "https://legalpracticum.org/spine/task/TSK-048",
       "skill_id": "SK-LP-14",
       "name": "Draft pleadings to initiate or respond",
       "description": "Draft the complaint or petition and the answer and counterclaim.",
@@ -1571,7 +1571,7 @@
     {
       "id": "TSK-049",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-049",
+      "@id": "https://legalpracticum.org/spine/task/TSK-049",
       "skill_id": "SK-LP-14",
       "name": "Conduct discovery",
       "description": "Propound and respond to written discovery and take and defend depositions.",
@@ -1608,7 +1608,7 @@
     {
       "id": "TSK-050",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-050",
+      "@id": "https://legalpracticum.org/spine/task/TSK-050",
       "skill_id": "SK-LP-14",
       "name": "Engage in motion practice",
       "description": "Draft and argue a motion with supporting and opposing memoranda and a proposed order.",
@@ -1644,7 +1644,7 @@
     {
       "id": "TSK-051",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-051",
+      "@id": "https://legalpracticum.org/spine/task/TSK-051",
       "skill_id": "SK-LP-14",
       "name": "Try a case to verdict",
       "description": "Prepare and present a trial from openings through witnesses to closings and jury instructions.",
@@ -1681,7 +1681,7 @@
     {
       "id": "TSK-052",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-052",
+      "@id": "https://legalpracticum.org/spine/task/TSK-052",
       "skill_id": "SK-LP-14",
       "name": "Conduct an arbitration hearing",
       "description": "Draft the statement of the case and present evidence to the arbitrator.",
@@ -1712,7 +1712,7 @@
     {
       "id": "TSK-053",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-053",
+      "@id": "https://legalpracticum.org/spine/task/TSK-053",
       "skill_id": "SK-LP-14",
       "name": "Handle an appeal",
       "description": "Frame issues and standard of review, write the appellate brief, and argue the appeal.",
@@ -1747,7 +1747,7 @@
     {
       "id": "TSK-054",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-054",
+      "@id": "https://legalpracticum.org/spine/task/TSK-054",
       "skill_id": "SK-LP-15",
       "name": "Manage the matter file and documents",
       "description": "Organize the case file, exhibits, and document versions for a matter.",
@@ -1778,7 +1778,7 @@
     {
       "id": "TSK-055",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-055",
+      "@id": "https://legalpracticum.org/spine/task/TSK-055",
       "skill_id": "SK-LP-15",
       "name": "Calendar deadlines and manage the docket",
       "description": "Docket court and discovery deadlines with reminders and buffers.",
@@ -1809,7 +1809,7 @@
     {
       "id": "TSK-056",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-056",
+      "@id": "https://legalpracticum.org/spine/task/TSK-056",
       "skill_id": "SK-LP-15",
       "name": "Coordinate the two-person firm's division of labor",
       "description": "Allocate tasks between the two partners and balance the workload realistically.",
@@ -1840,7 +1840,7 @@
     {
       "id": "TSK-057",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-057",
+      "@id": "https://legalpracticum.org/spine/task/TSK-057",
       "skill_id": "SK-LP-15",
       "name": "Track time and prepare for billing",
       "description": "Record contemporaneous time entries and categorize the work for the invoice.",
@@ -1871,7 +1871,7 @@
     {
       "id": "TSK-058",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-058",
+      "@id": "https://legalpracticum.org/spine/task/TSK-058",
       "skill_id": "SK-LP-16",
       "name": "Identify and resolve conflicts of interest",
       "description": "Run a conflicts check and evaluate waiver or withdrawal where a conflict appears.",
@@ -1902,7 +1902,7 @@
     {
       "id": "TSK-059",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-059",
+      "@id": "https://legalpracticum.org/spine/task/TSK-059",
       "skill_id": "SK-LP-16",
       "name": "Safeguard client confidences and privilege",
       "description": "Protect privileged material and avoid improper disclosures.",
@@ -1933,7 +1933,7 @@
     {
       "id": "TSK-060",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-060",
+      "@id": "https://legalpracticum.org/spine/task/TSK-060",
       "skill_id": "SK-LP-16",
       "name": "Comply with the rules of professional conduct",
       "description": "Honor duties such as the no-contact rule and candor to the tribunal.",
@@ -1960,7 +1960,7 @@
     {
       "id": "TSK-061",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-061",
+      "@id": "https://legalpracticum.org/spine/task/TSK-061",
       "skill_id": "SK-LP-16",
       "name": "Handle client funds and trust duties ethically",
       "description": "Keep client funds in trust, avoid commingling, and reconcile the trust ledger.",
@@ -1992,7 +1992,7 @@
     {
       "id": "TSK-062",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-062",
+      "@id": "https://legalpracticum.org/spine/task/TSK-062",
       "skill_id": "SK-LP-17",
       "name": "Draft transactional agreements",
       "description": "Draft a purchase or sale agreement and its protective clauses.",
@@ -2024,7 +2024,7 @@
     {
       "id": "TSK-063",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-063",
+      "@id": "https://legalpracticum.org/spine/task/TSK-063",
       "skill_id": "SK-LP-17",
       "name": "Draft a will and estate-planning documents",
       "description": "Draft a will to the client's instructions with an explanatory client letter.",
@@ -2054,7 +2054,7 @@
     {
       "id": "TSK-064",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-064",
+      "@id": "https://legalpracticum.org/spine/task/TSK-064",
       "skill_id": "SK-LP-17",
       "name": "Draft an engagement letter and fee agreement",
       "description": "Draft the engagement letter stating scope, fee structure, and required billing terms.",
@@ -2086,7 +2086,7 @@
     {
       "id": "TSK-065",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-065",
+      "@id": "https://legalpracticum.org/spine/task/TSK-065",
       "skill_id": "SK-LP-17",
       "name": "Draft pleadings and litigation documents",
       "description": "Draft pleadings, motions, affidavits, and proposed orders.",
@@ -2117,7 +2117,7 @@
     {
       "id": "TSK-066",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-066",
+      "@id": "https://legalpracticum.org/spine/task/TSK-066",
       "skill_id": "SK-LP-17",
       "name": "Draft discovery instruments",
       "description": "Draft interrogatories and requests for production.",
@@ -2148,7 +2148,7 @@
     {
       "id": "TSK-067",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-067",
+      "@id": "https://legalpracticum.org/spine/task/TSK-067",
       "skill_id": "SK-PM-01",
       "name": "Select and structure the fee arrangement",
       "description": "Match the fee type to the matter and document it in the agreement.",
@@ -2180,7 +2180,7 @@
     {
       "id": "TSK-068",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-068",
+      "@id": "https://legalpracticum.org/spine/task/TSK-068",
       "skill_id": "SK-PM-01",
       "name": "Record time and expenses",
       "description": "Keep contemporaneous time sheets and capture disbursements.",
@@ -2211,7 +2211,7 @@
     {
       "id": "TSK-069",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-069",
+      "@id": "https://legalpracticum.org/spine/task/TSK-069",
       "skill_id": "SK-PM-01",
       "name": "Prepare a client billing statement",
       "description": "Compile time entries into an invoice, compute the balance due, and enclose a cover letter.",
@@ -2248,7 +2248,7 @@
     {
       "id": "TSK-070",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-070",
+      "@id": "https://legalpracticum.org/spine/task/TSK-070",
       "skill_id": "SK-PM-01",
       "name": "Manage retainers and trust accounting",
       "description": "Deposit funds to trust and reconcile the trust ledger so it is never negative.",
@@ -2280,7 +2280,7 @@
     {
       "id": "TSK-071",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-071",
+      "@id": "https://legalpracticum.org/spine/task/TSK-071",
       "skill_id": "SK-PM-02",
       "name": "Define staffing needs and roles",
       "description": "Identify the support-staff roles the firm needs and write role expectations.",
@@ -2306,7 +2306,7 @@
     {
       "id": "TSK-072",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-072",
+      "@id": "https://legalpracticum.org/spine/task/TSK-072",
       "skill_id": "SK-PM-02",
       "name": "Supervise and delegate to non-lawyer staff",
       "description": "Delegate appropriate tasks and supervise staff for competence and ethical compliance.",
@@ -2335,7 +2335,7 @@
     {
       "id": "TSK-073",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-073",
+      "@id": "https://legalpracticum.org/spine/task/TSK-073",
       "skill_id": "SK-PM-02",
       "name": "Onboard and manage support staff",
       "description": "Train new staff on firm systems and set performance expectations.",
@@ -2361,7 +2361,7 @@
     {
       "id": "TSK-074",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-074",
+      "@id": "https://legalpracticum.org/spine/task/TSK-074",
       "skill_id": "SK-PM-03",
       "name": "Plan the firm's startup capitalization",
       "description": "Estimate startup costs and identify sources of capital for the firm.",
@@ -2384,7 +2384,7 @@
     {
       "id": "TSK-075",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-075",
+      "@id": "https://legalpracticum.org/spine/task/TSK-075",
       "skill_id": "SK-PM-03",
       "name": "Manage cash flow and reserves",
       "description": "Forecast cash flow and maintain operating reserves.",
@@ -2410,7 +2410,7 @@
     {
       "id": "TSK-076",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-076",
+      "@id": "https://legalpracticum.org/spine/task/TSK-076",
       "skill_id": "SK-PM-03",
       "name": "Evaluate investment in tools and growth",
       "description": "Assess the return on a purchase and prioritize investments.",
@@ -2433,7 +2433,7 @@
     {
       "id": "TSK-077",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-077",
+      "@id": "https://legalpracticum.org/spine/task/TSK-077",
       "skill_id": "SK-PM-04",
       "name": "Plan and scope a matter as a project",
       "description": "Define deliverables and milestones and estimate the effort and time required.",
@@ -2464,7 +2464,7 @@
     {
       "id": "TSK-078",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-078",
+      "@id": "https://legalpracticum.org/spine/task/TSK-078",
       "skill_id": "SK-PM-04",
       "name": "Manage personal and firm time",
       "description": "Prioritize tasks and track billable versus non-billable time.",
@@ -2494,7 +2494,7 @@
     {
       "id": "TSK-079",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-079",
+      "@id": "https://legalpracticum.org/spine/task/TSK-079",
       "skill_id": "SK-PM-04",
       "name": "Improve process efficiency",
       "description": "Identify bottlenecks and standardize repeatable work.",
@@ -2520,7 +2520,7 @@
     {
       "id": "TSK-080",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-080",
+      "@id": "https://legalpracticum.org/spine/task/TSK-080",
       "skill_id": "SK-PM-05",
       "name": "Prepare a matter or firm budget",
       "description": "Estimate fees and costs and set a budget baseline.",
@@ -2550,7 +2550,7 @@
     {
       "id": "TSK-081",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-081",
+      "@id": "https://legalpracticum.org/spine/task/TSK-081",
       "skill_id": "SK-PM-05",
       "name": "Allocate resources across the docket",
       "description": "Match resources to matter priority and rebalance as needs change.",
@@ -2576,7 +2576,7 @@
     {
       "id": "TSK-082",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-082",
+      "@id": "https://legalpracticum.org/spine/task/TSK-082",
       "skill_id": "SK-PM-05",
       "name": "Monitor budget versus actuals",
       "description": "Compare actuals to budget and adjust the plan.",
@@ -2602,7 +2602,7 @@
     {
       "id": "TSK-083",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-083",
+      "@id": "https://legalpracticum.org/spine/task/TSK-083",
       "skill_id": "SK-PM-06",
       "name": "Develop a marketing and client-development plan",
       "description": "Define the target clients and niche and choose outreach channels.",
@@ -2628,7 +2628,7 @@
     {
       "id": "TSK-084",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-084",
+      "@id": "https://legalpracticum.org/spine/task/TSK-084",
       "skill_id": "SK-PM-06",
       "name": "Build the firm's brand and network",
       "description": "Cultivate referral relationships and maintain a professional presence.",
@@ -2654,7 +2654,7 @@
     {
       "id": "TSK-085",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-085",
+      "@id": "https://legalpracticum.org/spine/task/TSK-085",
       "skill_id": "SK-PM-06",
       "name": "Prepare pitches and proposals",
       "description": "Scope a prospective engagement and present fees and value.",
@@ -2680,7 +2680,7 @@
     {
       "id": "TSK-086",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-086",
+      "@id": "https://legalpracticum.org/spine/task/TSK-086",
       "skill_id": "SK-PM-07",
       "name": "Adopt and use practice technology",
       "description": "Select case-management tools and use document and billing software.",
@@ -2703,7 +2703,7 @@
     {
       "id": "TSK-087",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-087",
+      "@id": "https://legalpracticum.org/spine/task/TSK-087",
       "skill_id": "SK-PM-07",
       "name": "Manage electronic communications and records",
       "description": "Organize email and files and retain records per policy.",
@@ -2729,7 +2729,7 @@
     {
       "id": "TSK-088",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-088",
+      "@id": "https://legalpracticum.org/spine/task/TSK-088",
       "skill_id": "SK-PM-07",
       "name": "Protect data security and client information",
       "description": "Secure devices and accounts and guard against data loss.",
@@ -2759,7 +2759,7 @@
     {
       "id": "TSK-089",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-089",
+      "@id": "https://legalpracticum.org/spine/task/TSK-089",
       "skill_id": "SK-PM-08",
       "name": "Establish firm governance and decision rules",
       "description": "Define partner decision rights and document firm policies.",
@@ -2785,7 +2785,7 @@
     {
       "id": "TSK-090",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-090",
+      "@id": "https://legalpracticum.org/spine/task/TSK-090",
       "skill_id": "SK-PM-08",
       "name": "Set long-range strategy",
       "description": "Set multi-year goals and align resources to the strategy.",
@@ -2811,7 +2811,7 @@
     {
       "id": "TSK-091",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-091",
+      "@id": "https://legalpracticum.org/spine/task/TSK-091",
       "skill_id": "SK-PM-08",
       "name": "Make and review firm-level decisions",
       "description": "Weigh options and risks and review outcomes to adjust.",
@@ -2837,7 +2837,7 @@
     {
       "id": "TSK-092",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-092",
+      "@id": "https://legalpracticum.org/spine/task/TSK-092",
       "skill_id": "SK-PM-09",
       "name": "Communicate effectively within the firm",
       "description": "Hold regular partner check-ins and give constructive feedback.",
@@ -2866,7 +2866,7 @@
     {
       "id": "TSK-093",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-093",
+      "@id": "https://legalpracticum.org/spine/task/TSK-093",
       "skill_id": "SK-PM-09",
       "name": "Manage partner and staff relationships",
       "description": "Align on expectations and address friction early.",
@@ -2892,7 +2892,7 @@
     {
       "id": "TSK-094",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-094",
+      "@id": "https://legalpracticum.org/spine/task/TSK-094",
       "skill_id": "SK-PM-09",
       "name": "Resolve internal conflict",
       "description": "Surface disagreements constructively and reach a workable resolution.",
@@ -2918,7 +2918,7 @@
     {
       "id": "TSK-095",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-095",
+      "@id": "https://legalpracticum.org/spine/task/TSK-095",
       "skill_id": "SK-LP-18",
       "name": "Formulate an effective legal prompt",
       "description": "Write a prompt that specifies role, task, context, and the governing facts and constraints.",
@@ -2945,7 +2945,7 @@
     {
       "id": "TSK-096",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-096",
+      "@id": "https://legalpracticum.org/spine/task/TSK-096",
       "skill_id": "SK-LP-18",
       "name": "Iterate and refine prompts",
       "description": "Diagnose weak outputs and revise the prompt to improve results.",
@@ -2971,7 +2971,7 @@
     {
       "id": "TSK-097",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-097",
+      "@id": "https://legalpracticum.org/spine/task/TSK-097",
       "skill_id": "SK-LP-18",
       "name": "Build reusable prompt templates for tasks",
       "description": "Template recurring prompts for memos or interviews and document their usage and limits.",
@@ -2994,7 +2994,7 @@
     {
       "id": "TSK-098",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-098",
+      "@id": "https://legalpracticum.org/spine/task/TSK-098",
       "skill_id": "SK-LP-19",
       "name": "Verify AI-asserted facts against the record",
       "description": "Cross-check AI claims to the case file and flag unsupported assertions.",
@@ -3021,7 +3021,7 @@
     {
       "id": "TSK-099",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-099",
+      "@id": "https://legalpracticum.org/spine/task/TSK-099",
       "skill_id": "SK-LP-19",
       "name": "Check AI-provided citations and authority",
       "description": "Confirm each AI citation exists and says what the output claims.",
@@ -3047,7 +3047,7 @@
     {
       "id": "TSK-100",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-100",
+      "@id": "https://legalpracticum.org/spine/task/TSK-100",
       "skill_id": "SK-LP-19",
       "name": "Detect and correct hallucinations and errors",
       "description": "Identify fabricated content and correct it before relying on or filing the work.",
@@ -3070,7 +3070,7 @@
     {
       "id": "TSK-101",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-101",
+      "@id": "https://legalpracticum.org/spine/task/TSK-101",
       "skill_id": "SK-LP-20",
       "name": "Decide which tasks to delegate to AI versus retain",
       "description": "Assess task risk and reversibility and keep judgment-heavy work with the human.",
@@ -3093,7 +3093,7 @@
     {
       "id": "TSK-102",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-102",
+      "@id": "https://legalpracticum.org/spine/task/TSK-102",
       "skill_id": "SK-LP-20",
       "name": "Integrate AI first-pass into the revise-and-repeat loop",
       "description": "Obtain an AI first-pass critique and revise the work against the rubric.",
@@ -3120,7 +3120,7 @@
     {
       "id": "TSK-103",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-103",
+      "@id": "https://legalpracticum.org/spine/task/TSK-103",
       "skill_id": "SK-LP-20",
       "name": "Supervise AI as you would a junior",
       "description": "Set the assignment clearly and review AI work before it leaves the firm.",
@@ -3143,7 +3143,7 @@
     {
       "id": "TSK-104",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-104",
+      "@id": "https://legalpracticum.org/spine/task/TSK-104",
       "skill_id": "SK-LP-21",
       "name": "Avoid disclosing client confidences to AI tools",
       "description": "Strip or avoid identifiers and use only approved tools when working with AI.",
@@ -3170,7 +3170,7 @@
     {
       "id": "TSK-105",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-105",
+      "@id": "https://legalpracticum.org/spine/task/TSK-105",
       "skill_id": "SK-LP-21",
       "name": "Preserve privilege when using AI",
       "description": "Assess waiver risk and document the safeguards taken.",
@@ -3193,7 +3193,7 @@
     {
       "id": "TSK-106",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-106",
+      "@id": "https://legalpracticum.org/spine/task/TSK-106",
       "skill_id": "SK-PM-10",
       "name": "Maintain clean matter data for AI use",
       "description": "Keep the record complete and current and separate facts from work product.",
@@ -3216,7 +3216,7 @@
     {
       "id": "TSK-107",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-107",
+      "@id": "https://legalpracticum.org/spine/task/TSK-107",
       "skill_id": "SK-PM-10",
       "name": "Govern AI use across the firm",
       "description": "Set an AI-use policy and log the tools and data flows.",
@@ -3239,7 +3239,7 @@
     {
       "id": "TSK-108",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/task/TSK-108",
+      "@id": "https://legalpracticum.org/spine/task/TSK-108",
       "skill_id": "SK-PM-10",
       "name": "Manage retention and deletion of AI interactions",
       "description": "Retain AI interactions per policy and delete transient prompts and outputs.",

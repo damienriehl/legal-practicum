@@ -1,7 +1,7 @@
 {
   "id": "m16.per.steinhauer",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/persona/m16.per.steinhauer",
+  "@id": "https://legalpracticum.org/spine/persona/m16.per.steinhauer",
   "matter_id": "m16",
   "identity": {
     "name": "Roland Steinhauer",

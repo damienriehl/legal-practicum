@@ -1,0 +1,287 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m10",
+  "anchor": "2024-09-16",
+  "entries": [
+    {
+      "source": "data/matters/m10-probate-meridian/exercise/exercise.json",
+      "block_id": "b:d968d1dc",
+      "locator": 0,
+      "literal": "October 18, 2024",
+      "day_zero_offset": 32
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/exercise/exercise.json",
+      "block_id": "b:d968d1dc",
+      "locator": 1,
+      "literal": "June 22, 2025",
+      "day_zero_offset": 279
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/exercise/exercise.json",
+      "block_id": "b:d968d1dc",
+      "locator": 2,
+      "literal": "August 11, 2025",
+      "day_zero_offset": 329
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/exercise/exercise.json",
+      "block_id": "b:d968d1dc",
+      "locator": 3,
+      "literal": "September 15, 2025",
+      "day_zero_offset": 364
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/business/engagement-letter.md",
+      "block_id": "b:7b0dbbe3",
+      "locator": 0,
+      "literal": "September 16, 2024",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/business/engagement-letter.md",
+      "block_id": "b:8e30d81e",
+      "locator": 0,
+      "literal": "September 16, 2024",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/case-file/exhibit-001-will-2024.md",
+      "block_id": "b:b6e17001",
+      "locator": 0,
+      "literal": "October 18, 2024",
+      "day_zero_offset": 32
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/case-file/exhibit-002-explanatory-letter.md",
+      "block_id": "b:fd046de3",
+      "locator": 0,
+      "literal": "October 18, 2024",
+      "day_zero_offset": 32
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/case-file/exhibit-003-prior-will-2015.md",
+      "block_id": "b:fc334fa9",
+      "locator": 0,
+      "literal": "October 18, 2024",
+      "day_zero_offset": 32
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/case-file/exhibit-003-prior-will-2015.md",
+      "block_id": "b:fae7c15f",
+      "locator": 0,
+      "literal": "May 12, 2015",
+      "day_zero_offset": -3415
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/case-file/exhibit-004-drafting-memo.md",
+      "block_id": "b:d830de78",
+      "locator": 0,
+      "literal": "October 18, 2024",
+      "day_zero_offset": 32
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/case-file/exhibit-005-capacity-letter.md",
+      "block_id": "b:5151f5c8",
+      "locator": 0,
+      "literal": "October 4, 2024",
+      "day_zero_offset": 18
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/case-file/exhibit-005-capacity-letter.md",
+      "block_id": "b:0643de86",
+      "locator": 0,
+      "literal": "October 4, 2024",
+      "day_zero_offset": 18
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/case-file/exhibit-005-capacity-letter.md",
+      "block_id": "b:9da37825",
+      "locator": 0,
+      "literal": "October 4, 2024",
+      "day_zero_offset": 18
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/case-file/exhibit-006-objection-petition.md",
+      "block_id": "b:1fcbd797",
+      "locator": 0,
+      "literal": "August 11, 2025",
+      "day_zero_offset": 329
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/case-file/exhibit-006-objection-petition.md",
+      "block_id": "b:57ccd806",
+      "locator": 0,
+      "literal": "June 22, 2025",
+      "day_zero_offset": 279
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/case-file/exhibit-006-objection-petition.md",
+      "block_id": "b:cf51f7d9",
+      "locator": 0,
+      "literal": "October 18, 2024",
+      "day_zero_offset": 32
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/case-file/exhibit-006-objection-petition.md",
+      "block_id": "b:ee6fbdc2",
+      "locator": 0,
+      "literal": "May 12, 2015",
+      "day_zero_offset": -3415
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/case-file/exhibit-006-objection-petition.md",
+      "block_id": "b:3e0eb0d1",
+      "locator": 0,
+      "literal": "September 15, 2025",
+      "day_zero_offset": 364
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/case-file/witness-brashear.md",
+      "block_id": "b:b1f4af84",
+      "locator": 0,
+      "literal": "October 9, 2025",
+      "day_zero_offset": 388
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/case-file/witness-brashear.md",
+      "block_id": "b:1d826d0b",
+      "locator": 0,
+      "literal": "October 4, 2024",
+      "day_zero_offset": 18
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/case-file/witness-grenfell.md",
+      "block_id": "b:32db77c5",
+      "locator": 0,
+      "literal": "October 2, 2025",
+      "day_zero_offset": 381
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/case-file/witness-sundberg.md",
+      "block_id": "b:29e62804",
+      "locator": 0,
+      "literal": "October 6, 2025",
+      "day_zero_offset": 385
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/exercise/answer-key.md",
+      "block_id": "b:2ee2cf46",
+      "locator": 0,
+      "literal": "August 11, 2025",
+      "day_zero_offset": 329
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/exercise/answer-key.md",
+      "block_id": "b:2ee2cf46",
+      "locator": 1,
+      "literal": "September 15, 2025",
+      "day_zero_offset": 364
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/exercise/answer-key.md",
+      "block_id": "b:057e42c6",
+      "locator": 0,
+      "literal": "October 18, 2024",
+      "day_zero_offset": 32
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/exercise/answer-key.md",
+      "block_id": "b:78191366",
+      "locator": 0,
+      "literal": "October 4, 2024",
+      "day_zero_offset": 18
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/exercise/answer-key.md",
+      "block_id": "b:2c84f89a",
+      "locator": 0,
+      "literal": "2015-05-12",
+      "day_zero_offset": -3415
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/exercise/answer-key.md",
+      "block_id": "b:2c84f89a",
+      "locator": 1,
+      "literal": "2024-09-16",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/exercise/answer-key.md",
+      "block_id": "b:2c84f89a",
+      "locator": 2,
+      "literal": "2024-10-04",
+      "day_zero_offset": 18
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/exercise/answer-key.md",
+      "block_id": "b:2c84f89a",
+      "locator": 3,
+      "literal": "2024-10-18",
+      "day_zero_offset": 32
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/exercise/answer-key.md",
+      "block_id": "b:2c84f89a",
+      "locator": 4,
+      "literal": "2025-06-22",
+      "day_zero_offset": 279
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/exercise/answer-key.md",
+      "block_id": "b:2c84f89a",
+      "locator": 5,
+      "literal": "2025-08-11",
+      "day_zero_offset": 329
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/exercise/answer-key.md",
+      "block_id": "b:2c84f89a",
+      "locator": 6,
+      "literal": "2025-09-15",
+      "day_zero_offset": 364
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/exercise/instructor-notes.md",
+      "block_id": "b:e0c49634",
+      "locator": 0,
+      "literal": "October 4, 2024",
+      "day_zero_offset": 18
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/facts.md",
+      "block_id": "b:a40d4603",
+      "locator": 0,
+      "literal": "October 18, 2024",
+      "day_zero_offset": 32
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/facts.md",
+      "block_id": "b:92b0818d",
+      "locator": 0,
+      "literal": "October 4, 2024",
+      "day_zero_offset": 18
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/facts.md",
+      "block_id": "b:41e7cba8",
+      "locator": 0,
+      "literal": "June 22, 2025",
+      "day_zero_offset": 279
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/facts.md",
+      "block_id": "b:41e7cba8",
+      "locator": 1,
+      "literal": "August 11, 2025",
+      "day_zero_offset": 329
+    },
+    {
+      "source": "data/matters/m10-probate-meridian/facts.md",
+      "block_id": "b:41e7cba8",
+      "locator": 2,
+      "literal": "September 15, 2025",
+      "day_zero_offset": 364
+    }
+  ]
+}

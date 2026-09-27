@@ -1,8 +1,8 @@
 {
   "id": "m13.ex",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/exercise/m13.ex",
-  "@context": "https://sonsteng.damienriehl.com/spine/",
+  "@id": "https://legalpracticum.org/spine/exercise/m13.ex",
+  "@context": "https://legalpracticum.org/spine/",
   "matter_id": "m13",
   "role_id": "m13.role.plaintiff",
   "sections": {

@@ -1,0 +1,119 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m05",
+  "anchor": "2026-02-16",
+  "entries": [
+    {
+      "source": "data/matters/m05-dwi-meridian/exercise/exercise.json",
+      "block_id": "b:65435959",
+      "locator": 0,
+      "literal": "February 7, 2026",
+      "day_zero_offset": -9
+    },
+    {
+      "source": "data/matters/m05-dwi-meridian/exercise/exercise.json",
+      "block_id": "b:65435959",
+      "locator": 1,
+      "literal": "February 16, 2026",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m05-dwi-meridian/business/engagement-letter.md",
+      "block_id": "b:b30484f3",
+      "locator": 0,
+      "literal": "February 17, 2026",
+      "day_zero_offset": 1
+    },
+    {
+      "source": "data/matters/m05-dwi-meridian/case-file/breath-test-record.md",
+      "block_id": "b:5b5df53a",
+      "locator": 0,
+      "literal": "February 7, 2026",
+      "day_zero_offset": -9
+    },
+    {
+      "source": "data/matters/m05-dwi-meridian/case-file/copper-larder-guest-check.md",
+      "block_id": "b:0a7cff84",
+      "locator": 0,
+      "literal": "February 7, 2026",
+      "day_zero_offset": -9
+    },
+    {
+      "source": "data/matters/m05-dwi-meridian/case-file/driving-record.md",
+      "block_id": "b:1d8dc601",
+      "locator": 0,
+      "literal": "February 20, 2026",
+      "day_zero_offset": 4
+    },
+    {
+      "source": "data/matters/m05-dwi-meridian/case-file/implied-consent-advisory.md",
+      "block_id": "b:b76d0ad3",
+      "locator": 0,
+      "literal": "February 7, 2026",
+      "day_zero_offset": -9
+    },
+    {
+      "source": "data/matters/m05-dwi-meridian/case-file/incident-report-broshears.md",
+      "block_id": "b:4124f464",
+      "locator": 0,
+      "literal": "February 7, 2026",
+      "day_zero_offset": -9
+    },
+    {
+      "source": "data/matters/m05-dwi-meridian/case-file/sfst-worksheet.md",
+      "block_id": "b:339677a6",
+      "locator": 0,
+      "literal": "February 7, 2026",
+      "day_zero_offset": -9
+    },
+    {
+      "source": "data/matters/m05-dwi-meridian/case-file/stop-location-photos.md",
+      "block_id": "b:f1c91393",
+      "locator": 0,
+      "literal": "February 21, 2026",
+      "day_zero_offset": 5
+    },
+    {
+      "source": "data/matters/m05-dwi-meridian/case-file/weather-road-report.md",
+      "block_id": "b:a652748f",
+      "locator": 0,
+      "literal": "February 7, 2026",
+      "day_zero_offset": -9
+    },
+    {
+      "source": "data/matters/m05-dwi-meridian/case-file/witness-statement-rahimi.md",
+      "block_id": "b:0248dc62",
+      "locator": 0,
+      "literal": "March 14, 2026",
+      "day_zero_offset": 26
+    },
+    {
+      "source": "data/matters/m05-dwi-meridian/case-file/witness-statement-selkirk.md",
+      "block_id": "b:8b00e1f1",
+      "locator": 0,
+      "literal": "March 12, 2026",
+      "day_zero_offset": 24
+    },
+    {
+      "source": "data/matters/m05-dwi-meridian/case-file/witness-statement-vandehey.md",
+      "block_id": "b:dfd8b6f2",
+      "locator": 0,
+      "literal": "March 12, 2026",
+      "day_zero_offset": 24
+    },
+    {
+      "source": "data/matters/m05-dwi-meridian/facts.md",
+      "block_id": "b:6c8d6c89",
+      "locator": 0,
+      "literal": "February 7, 2026",
+      "day_zero_offset": -9
+    },
+    {
+      "source": "data/matters/m05-dwi-meridian/facts.md",
+      "block_id": "b:05d824de",
+      "locator": 0,
+      "literal": "February 16, 2026",
+      "day_zero_offset": 0
+    }
+  ]
+}

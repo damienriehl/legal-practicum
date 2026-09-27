@@ -1,0 +1,280 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m14",
+  "anchor": "2025-11-20",
+  "entries": [
+    {
+      "source": "data/matters/m14-realestate-tx/exercise/exercise.json",
+      "block_id": "b:18f2e00f",
+      "locator": 0,
+      "literal": "November 14, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/exercise/exercise.json",
+      "block_id": "b:18f2e00f",
+      "locator": 1,
+      "literal": "February 27, 2026",
+      "day_zero_offset": 99
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/exercise/exercise.json",
+      "block_id": "b:18f2e00f",
+      "locator": 2,
+      "literal": "December 5, 2025",
+      "day_zero_offset": 15
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/exercise/exercise.json",
+      "block_id": "b:18f2e00f",
+      "locator": 3,
+      "literal": "December 18, 2025",
+      "day_zero_offset": 28
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/exercise/exercise.json",
+      "block_id": "b:18f2e00f",
+      "locator": 4,
+      "literal": "February 20, 2026",
+      "day_zero_offset": 92
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/exercise/exercise.json",
+      "block_id": "b:18f2e00f",
+      "locator": 5,
+      "literal": "April 30, 2026",
+      "day_zero_offset": 161
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/business/engagement-letter.md",
+      "block_id": "b:ed95aa14",
+      "locator": 0,
+      "literal": "November 20, 2025",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/business/engagement-letter.md",
+      "block_id": "b:35dbd6db",
+      "locator": 0,
+      "literal": "November 14, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/amendment.md",
+      "block_id": "b:0c787eb5",
+      "locator": 0,
+      "literal": "February 20, 2026",
+      "day_zero_offset": 92
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/amendment.md",
+      "block_id": "b:e0849ac4",
+      "locator": 0,
+      "literal": "November 14, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/amendment.md",
+      "block_id": "b:139a6a3c",
+      "locator": 0,
+      "literal": "February 27, 2026",
+      "day_zero_offset": 99
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/amendment.md",
+      "block_id": "b:139a6a3c",
+      "locator": 1,
+      "literal": "April 30, 2026",
+      "day_zero_offset": 161
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/amendment.md",
+      "block_id": "b:675a0b4b",
+      "locator": 0,
+      "literal": "February 20, 2026",
+      "day_zero_offset": 92
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/correspondence-faircloth.md",
+      "block_id": "b:1ecde3b3",
+      "locator": 0,
+      "literal": "February 12, 2026",
+      "day_zero_offset": 84
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/correspondence-faircloth.md",
+      "block_id": "b:b6549865",
+      "locator": 0,
+      "literal": "February 24, 2026",
+      "day_zero_offset": 96
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/earnest-money-contract.md",
+      "block_id": "b:1886bb92",
+      "locator": 0,
+      "literal": "November 14, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/earnest-money-contract.md",
+      "block_id": "b:6d89bcc0",
+      "locator": 0,
+      "literal": "February 27, 2026",
+      "day_zero_offset": 99
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/earnest-money-contract.md",
+      "block_id": "b:277e23d8",
+      "locator": 0,
+      "literal": "November 14, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/solar-term-sheet.md",
+      "block_id": "b:54d377a0",
+      "locator": 0,
+      "literal": "October 30, 2025",
+      "day_zero_offset": -21
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/solar-term-sheet.md",
+      "block_id": "b:c3cc8f4a",
+      "locator": 0,
+      "literal": "March 31, 2026",
+      "day_zero_offset": 131
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/solar-term-sheet.md",
+      "block_id": "b:c3cc8f4a",
+      "locator": 1,
+      "literal": "April 30, 2026",
+      "day_zero_offset": 161
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/statement-castellano.md",
+      "block_id": "b:a07903b2",
+      "locator": 0,
+      "literal": "January 22, 2026",
+      "day_zero_offset": 63
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/statement-castellano.md",
+      "block_id": "b:e6c65c1c",
+      "locator": 0,
+      "literal": "November 14, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/statement-castellano.md",
+      "block_id": "b:e6c65c1c",
+      "locator": 1,
+      "literal": "December 5, 2025",
+      "day_zero_offset": 15
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/statement-castellano.md",
+      "block_id": "b:0d43d833",
+      "locator": 0,
+      "literal": "February 20, 2026",
+      "day_zero_offset": 92
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/statement-castellano.md",
+      "block_id": "b:0d43d833",
+      "locator": 1,
+      "literal": "April 30, 2026",
+      "day_zero_offset": 161
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/statement-deloria.md",
+      "block_id": "b:83e30231",
+      "locator": 0,
+      "literal": "January 9, 2026",
+      "day_zero_offset": 50
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/statement-deloria.md",
+      "block_id": "b:5cf8e349",
+      "locator": 0,
+      "literal": "December 18, 2025",
+      "day_zero_offset": 28
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/statement-sandoval.md",
+      "block_id": "b:0b465be5",
+      "locator": 0,
+      "literal": "January 16, 2026",
+      "day_zero_offset": 57
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/survey-notes.md",
+      "block_id": "b:71a038ab",
+      "locator": 0,
+      "literal": "December 18, 2025",
+      "day_zero_offset": 28
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/case-file/title-commitment.md",
+      "block_id": "b:5acfabc6",
+      "locator": 0,
+      "literal": "December 5, 2025",
+      "day_zero_offset": 15
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/exercise/answer-key.md",
+      "block_id": "b:6e1b05a4",
+      "locator": 0,
+      "literal": "March 31, 2026",
+      "day_zero_offset": 131
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/facts.md",
+      "block_id": "b:a3245b06",
+      "locator": 0,
+      "literal": "November 14, 2025",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/facts.md",
+      "block_id": "b:a3245b06",
+      "locator": 1,
+      "literal": "February 27, 2026",
+      "day_zero_offset": 99
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/facts.md",
+      "block_id": "b:a3245b06",
+      "locator": 2,
+      "literal": "February 20, 2026",
+      "day_zero_offset": 92
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/facts.md",
+      "block_id": "b:a3245b06",
+      "locator": 3,
+      "literal": "April 30, 2026",
+      "day_zero_offset": 161
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/facts.md",
+      "block_id": "b:e72d8af7",
+      "locator": 0,
+      "literal": "December 5, 2025",
+      "day_zero_offset": 15
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/facts.md",
+      "block_id": "b:c31520c6",
+      "locator": 0,
+      "literal": "December 18, 2025",
+      "day_zero_offset": 28
+    },
+    {
+      "source": "data/matters/m14-realestate-tx/facts.md",
+      "block_id": "b:f33dde15",
+      "locator": 0,
+      "literal": "March 31, 2026",
+      "day_zero_offset": 131
+    }
+  ]
+}

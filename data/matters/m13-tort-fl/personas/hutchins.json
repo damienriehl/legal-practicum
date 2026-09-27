@@ -1,8 +1,8 @@
 {
   "id": "m13.per.hutchins",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/persona/m13.per.hutchins",
-  "@context": "https://sonsteng.damienriehl.com/spine/",
+  "@id": "https://legalpracticum.org/spine/persona/m13.per.hutchins",
+  "@context": "https://legalpracticum.org/spine/",
   "matter_id": "m13",
   "identity": {
     "name": "Bradley Hutchins",

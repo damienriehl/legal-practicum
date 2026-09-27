@@ -1,7 +1,7 @@
 {
   "spine_version": "1.0.0",
   "description": "Data-spine version + per-entity-type schema versions. Validator check F29/versioning: entity.schema_version must equal schemas[entity_type].",
-  "jsonld_context_base": "https://sonsteng.damienriehl.com/spine/",
+  "jsonld_context_base": "https://legalpracticum.org/spine/",
   "schemas": {
     "matter": "1.0.0",
     "persona": "1.0.0",

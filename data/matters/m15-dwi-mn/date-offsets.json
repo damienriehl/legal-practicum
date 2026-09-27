@@ -1,0 +1,147 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m15",
+  "anchor": "2025-01-22",
+  "entries": [
+    {
+      "source": "data/matters/m15-dwi-mn/exercise/exercise.json",
+      "block_id": "b:1c310709",
+      "locator": 0,
+      "literal": "January 17, 2025",
+      "day_zero_offset": -5
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/exercise/exercise.json",
+      "block_id": "b:1c310709",
+      "locator": 1,
+      "literal": "January 22, 2025",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/business/engagement-letter.md",
+      "block_id": "b:ea56de1e",
+      "locator": 0,
+      "literal": "January 23, 2025",
+      "day_zero_offset": 1
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/case-file/breath-test-record.md",
+      "block_id": "b:e7e4e23f",
+      "locator": 0,
+      "literal": "January 17, 2025",
+      "day_zero_offset": -5
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/case-file/cad-911-log.md",
+      "block_id": "b:88bfd94c",
+      "locator": 0,
+      "literal": "January 17, 2025",
+      "day_zero_offset": -5
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/case-file/dashcam-bodycam-index.md",
+      "block_id": "b:cfc14409",
+      "locator": 0,
+      "literal": "January 17, 2025",
+      "day_zero_offset": -5
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/case-file/driving-record.md",
+      "block_id": "b:f5b5bacb",
+      "locator": 0,
+      "literal": "January 24, 2025",
+      "day_zero_offset": 2
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/case-file/implied-consent-advisory.md",
+      "block_id": "b:092cc862",
+      "locator": 0,
+      "literal": "January 17, 2025",
+      "day_zero_offset": -5
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/case-file/incident-report-kallestad.md",
+      "block_id": "b:be180339",
+      "locator": 0,
+      "literal": "January 17, 2025",
+      "day_zero_offset": -5
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/case-file/medication-summary.md",
+      "block_id": "b:a6a45302",
+      "locator": 0,
+      "literal": "February 18, 2025",
+      "day_zero_offset": 27
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/case-file/medication-summary.md",
+      "block_id": "b:1ae150b7",
+      "locator": 0,
+      "literal": "January 17, 2025",
+      "day_zero_offset": -5
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/case-file/sfst-worksheet.md",
+      "block_id": "b:a92bd9dc",
+      "locator": 0,
+      "literal": "January 17, 2025",
+      "day_zero_offset": -5
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/case-file/weather-road-report.md",
+      "block_id": "b:e53244a8",
+      "locator": 0,
+      "literal": "January 17, 2025",
+      "day_zero_offset": -5
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/case-file/weather-road-report.md",
+      "block_id": "b:e53244a8",
+      "locator": 1,
+      "literal": "January 18, 2025",
+      "day_zero_offset": -4
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/case-file/witness-statement-skovgaard.md",
+      "block_id": "b:0ad30d9c",
+      "locator": 0,
+      "literal": "February 6, 2025",
+      "day_zero_offset": 15
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/case-file/witness-statement-vandersteen.md",
+      "block_id": "b:b05a3451",
+      "locator": 0,
+      "literal": "February 4, 2025",
+      "day_zero_offset": 13
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/case-file/witness-statement-zavaleta.md",
+      "block_id": "b:af7552f4",
+      "locator": 0,
+      "literal": "February 11, 2025",
+      "day_zero_offset": 20
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/case-file/work-order-timesheet.md",
+      "block_id": "b:a28fec2d",
+      "locator": 0,
+      "literal": "January 17, 2025",
+      "day_zero_offset": -5
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/facts.md",
+      "block_id": "b:15c5a82a",
+      "locator": 0,
+      "literal": "January 17, 2025",
+      "day_zero_offset": -5
+    },
+    {
+      "source": "data/matters/m15-dwi-mn/facts.md",
+      "block_id": "b:20ebd520",
+      "locator": 0,
+      "literal": "January 22, 2025",
+      "day_zero_offset": 0
+    }
+  ]
+}

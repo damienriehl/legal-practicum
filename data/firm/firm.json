@@ -1,7 +1,7 @@
 {
   "id": "FIRM",
   "schema_version": "1.1.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/firm/FIRM",
+  "@id": "https://legalpracticum.org/spine/firm/FIRM",
   "identity": {
     "name": "Ellingboe & Ravndal LLP",
     "address": "310 Riverwalk Plaza, Suite 400, Norsholm, Meridian 55901",

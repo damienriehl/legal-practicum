@@ -1,8 +1,8 @@
 {
   "id": "m02",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/matter/m02",
-  "@context": "https://sonsteng.damienriehl.com/spine/",
+  "@id": "https://legalpracticum.org/spine/matter/m02",
+  "@context": "https://legalpracticum.org/spine/",
   "slug": "m02-discipline-meridian",
   "shape": "attorney_discipline",
   "tier": "meridian",
@@ -53,4 +53,6 @@
   ],
   "open_date": "2025-11-10",
   "as_of_date": "2026-06-30"
-}
+,
+  "open_date_day_zero_offset": 0,
+  "as_of_date_day_zero_offset": 232}

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sonsteng.damienriehl.com/spine/schemas/assessment-instrument.schema.json",
+  "$id": "https://legalpracticum.org/spine/schemas/assessment-instrument.schema.json",
   "title": "Memo assessment instrument",
   "description": "The single versioned contract that routes memo deliverables to seven heading-level 1-7 competency scores and keeps weighted rubrics for non-memo and legacy exercises.",
   "version": "1.1.0",

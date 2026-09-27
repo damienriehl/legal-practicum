@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sonsteng.damienriehl.com/spine/schemas/persona.schema.json",
+  "$id": "https://legalpracticum.org/spine/schemas/persona.schema.json",
   "title": "Persona",
   "description": "An interviewable person in a matter, with a five-tier disclosure model, machine-checkable rapport triggers (closed enum), Rule 4.2 teaching-moment config, and a case-file knowledge boundary.",
   "version": "1.0.0",

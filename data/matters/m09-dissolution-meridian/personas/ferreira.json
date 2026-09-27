@@ -1,8 +1,8 @@
 {
   "id": "m09.per.ferreira",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/persona/m09.per.ferreira",
-  "@context": "https://sonsteng.damienriehl.com/spine/",
+  "@id": "https://legalpracticum.org/spine/persona/m09.per.ferreira",
+  "@context": "https://legalpracticum.org/spine/",
   "matter_id": "m09",
   "identity": {
     "name": "Marisol Ferreira",

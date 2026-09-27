@@ -1,8 +1,8 @@
 {
   "id": "m09.rub",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/rubric/m09.rub",
-  "@context": "https://sonsteng.damienriehl.com/spine/",
+  "@id": "https://legalpracticum.org/spine/rubric/m09.rub",
+  "@context": "https://legalpracticum.org/spine/",
   "matter_id": "m09",
   "declared_total": 220,
   "criteria": [

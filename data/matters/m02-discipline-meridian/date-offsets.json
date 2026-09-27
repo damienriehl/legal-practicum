@@ -1,0 +1,112 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m02",
+  "anchor": "2025-11-10",
+  "entries": [
+    {
+      "source": "data/matters/m02-discipline-meridian/business/engagement-letter.md",
+      "block_id": "b:39783cf1",
+      "locator": 0,
+      "literal": "November 14, 2025",
+      "day_zero_offset": 4
+    },
+    {
+      "source": "data/matters/m02-discipline-meridian/case-file/exhibit-01-petition-for-disciplinary-action.md",
+      "block_id": "b:78debe03",
+      "locator": 0,
+      "literal": "January 14, 2026",
+      "day_zero_offset": 65
+    },
+    {
+      "source": "data/matters/m02-discipline-meridian/case-file/exhibit-01-petition-for-disciplinary-action.md",
+      "block_id": "b:1ae11e43",
+      "locator": 0,
+      "literal": "January 14, 2026",
+      "day_zero_offset": 65
+    },
+    {
+      "source": "data/matters/m02-discipline-meridian/case-file/exhibit-02-answer-to-petition.md",
+      "block_id": "b:4ec94958",
+      "locator": 0,
+      "literal": "February 11, 2026",
+      "day_zero_offset": 93
+    },
+    {
+      "source": "data/matters/m02-discipline-meridian/case-file/exhibit-02-answer-to-petition.md",
+      "block_id": "b:db50e331",
+      "locator": 0,
+      "literal": "February 11, 2026",
+      "day_zero_offset": 93
+    },
+    {
+      "source": "data/matters/m02-discipline-meridian/case-file/exhibit-03-trust-account-reconciliation.md",
+      "block_id": "b:a3cc615d",
+      "locator": 0,
+      "literal": "February 26, 2024",
+      "day_zero_offset": -623
+    },
+    {
+      "source": "data/matters/m02-discipline-meridian/case-file/exhibit-03-trust-account-reconciliation.md",
+      "block_id": "b:db04135f",
+      "locator": 0,
+      "literal": "February 26, 2024",
+      "day_zero_offset": -623
+    },
+    {
+      "source": "data/matters/m02-discipline-meridian/case-file/exhibit-04-marchetti-settlement-statement.md",
+      "block_id": "b:83d7369d",
+      "locator": 0,
+      "literal": "June 18, 2024",
+      "day_zero_offset": -510
+    },
+    {
+      "source": "data/matters/m02-discipline-meridian/case-file/exhibit-05-beckwith-demand-letter.md",
+      "block_id": "b:f8e65eb1",
+      "locator": 0,
+      "literal": "June 3, 2024",
+      "day_zero_offset": -525
+    },
+    {
+      "source": "data/matters/m02-discipline-meridian/case-file/exhibit-06-molc-investigation-notice.md",
+      "block_id": "b:345e2df5",
+      "locator": 0,
+      "literal": "August 12, 2024",
+      "day_zero_offset": -455
+    },
+    {
+      "source": "data/matters/m02-discipline-meridian/case-file/witness-statement-fenwick.md",
+      "block_id": "b:9f883fc7",
+      "locator": 0,
+      "literal": "November 22, 2025",
+      "day_zero_offset": 12
+    },
+    {
+      "source": "data/matters/m02-discipline-meridian/case-file/witness-statement-marchetti.md",
+      "block_id": "b:e4f4b942",
+      "locator": 0,
+      "literal": "October 3, 2024",
+      "day_zero_offset": -403
+    },
+    {
+      "source": "data/matters/m02-discipline-meridian/case-file/witness-statement-osei.md",
+      "block_id": "b:f1f9ecd0",
+      "locator": 0,
+      "literal": "September 18, 2024",
+      "day_zero_offset": -418
+    },
+    {
+      "source": "data/matters/m02-discipline-meridian/exercise/answer-key.md",
+      "block_id": "b:30e62a21",
+      "locator": 0,
+      "literal": "June 18, 2024",
+      "day_zero_offset": -510
+    },
+    {
+      "source": "data/matters/m02-discipline-meridian/exercise/answer-key.md",
+      "block_id": "b:64c4b34d",
+      "locator": 0,
+      "literal": "June 3, 2024",
+      "day_zero_offset": -525
+    }
+  ]
+}

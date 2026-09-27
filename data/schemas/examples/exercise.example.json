@@ -1,7 +1,7 @@
 {
   "id": "m06.ex",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/exercise/m06.ex",
+  "@id": "https://legalpracticum.org/spine/exercise/m06.ex",
   "matter_id": "m06",
   "sections": {
     "intro": { "title": "Introduction", "body_md": "You represent Dana Baines in a non-compete dispute." },

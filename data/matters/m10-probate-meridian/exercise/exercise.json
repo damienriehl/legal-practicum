@@ -1,7 +1,7 @@
 {
   "id": "m10.ex",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/exercise/m10.ex",
+  "@id": "https://legalpracticum.org/spine/exercise/m10.ex",
   "matter_id": "m10",
   "role_id": "m10.role.proponent-counsel",
   "sections": {

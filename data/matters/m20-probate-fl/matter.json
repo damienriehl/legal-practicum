@@ -1,7 +1,7 @@
 {
   "id": "m20",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/matter/m20",
+  "@id": "https://legalpracticum.org/spine/matter/m20",
   "slug": "m20-probate-fl",
   "shape": "wills_probate",
   "tier": "real",
@@ -49,4 +49,6 @@
   ],
   "open_date": "2024-01-15",
   "as_of_date": "2026-06-30"
-}
+,
+  "open_date_day_zero_offset": 0,
+  "as_of_date_day_zero_offset": 897}

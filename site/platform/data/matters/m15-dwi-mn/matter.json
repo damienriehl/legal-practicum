@@ -1,8 +1,8 @@
 {
   "id": "m15",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/matter/m15",
-  "@context": "https://sonsteng.damienriehl.com/spine/",
+  "@id": "https://legalpracticum.org/spine/matter/m15",
+  "@context": "https://legalpracticum.org/spine/",
   "slug": "m15-dwi-mn",
   "shape": "criminal_dwi",
   "tier": "real",
@@ -51,4 +51,6 @@
   ],
   "open_date": "2025-01-22",
   "as_of_date": "2026-06-30"
-}
+,
+  "open_date_day_zero_offset": 0,
+  "as_of_date_day_zero_offset": 524}

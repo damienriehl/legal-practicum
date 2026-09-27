@@ -1,0 +1,448 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m11",
+  "anchor": "2026-01-26",
+  "entries": [
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/exercise.json",
+      "block_id": "b:64f8e01a",
+      "locator": 0,
+      "literal": "November 10, 2025",
+      "day_zero_offset": -77
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/exercise.json",
+      "block_id": "b:64f8e01a",
+      "locator": 1,
+      "literal": "November 18, 2025",
+      "day_zero_offset": -69
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/exercise.json",
+      "block_id": "b:64f8e01a",
+      "locator": 2,
+      "literal": "December 5, 2025",
+      "day_zero_offset": -52
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/exercise.json",
+      "block_id": "b:64f8e01a",
+      "locator": 3,
+      "literal": "January 9, 2026",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/exercise.json",
+      "block_id": "b:64f8e01a",
+      "locator": 4,
+      "literal": "January 8, 2026",
+      "day_zero_offset": -18
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/exercise.json",
+      "block_id": "b:64f8e01a",
+      "locator": 5,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 155
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/business/engagement-letter.md",
+      "block_id": "b:6dd8c35f",
+      "locator": 0,
+      "literal": "January 26, 2026",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/business/engagement-letter.md",
+      "block_id": "b:b5322d4e",
+      "locator": 0,
+      "literal": "January 9, 2026",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/employment-agreement.md",
+      "block_id": "b:6eca5b54",
+      "locator": 0,
+      "literal": "March 18, 2019",
+      "day_zero_offset": -2506
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/employment-agreement.md",
+      "block_id": "b:6eca5b54",
+      "locator": 1,
+      "literal": "June 1, 2022",
+      "day_zero_offset": -1335
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/employment-agreement.md",
+      "block_id": "b:80dc88c4",
+      "locator": 0,
+      "literal": "March 18, 2019",
+      "day_zero_offset": -2506
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/employment-agreement.md",
+      "block_id": "b:80dc88c4",
+      "locator": 1,
+      "literal": "June 1, 2022",
+      "day_zero_offset": -1335
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/fire-exit-photo-exhibit.md",
+      "block_id": "b:c75a9798",
+      "locator": 0,
+      "literal": "November 5, 2025",
+      "day_zero_offset": -82
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/fire-exit-photo-exhibit.md",
+      "block_id": "b:86b6cfc0",
+      "locator": 0,
+      "literal": "November 10, 2025",
+      "day_zero_offset": -77
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/hr-complaint-email-chain.md",
+      "block_id": "b:064b3e8e",
+      "locator": 0,
+      "literal": "November 10, 2025",
+      "day_zero_offset": -77
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/hr-complaint-email-chain.md",
+      "block_id": "b:774081b6",
+      "locator": 0,
+      "literal": "November 12, 2025",
+      "day_zero_offset": -75
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/hr-complaint-email-chain.md",
+      "block_id": "b:64eb11ee",
+      "locator": 0,
+      "literal": "November 12, 2025",
+      "day_zero_offset": -75
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/performance-improvement-plan.md",
+      "block_id": "b:bb6de07d",
+      "locator": 0,
+      "literal": "December 5, 2025",
+      "day_zero_offset": -52
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/rif-memo.md",
+      "block_id": "b:c364e173",
+      "locator": 0,
+      "literal": "January 8, 2026",
+      "day_zero_offset": -18
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/rif-memo.md",
+      "block_id": "b:4b22def1",
+      "locator": 0,
+      "literal": "January 9, 2026",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/state-hotline-confirmation.md",
+      "block_id": "b:2ef61fc2",
+      "locator": 0,
+      "literal": "November 18, 2025",
+      "day_zero_offset": -69
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/statement-adeyemi.md",
+      "block_id": "b:80074af1",
+      "locator": 0,
+      "literal": "February 10, 2026",
+      "day_zero_offset": 15
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/statement-croll.md",
+      "block_id": "b:282091dc",
+      "locator": 0,
+      "literal": "March 3, 2026",
+      "day_zero_offset": 36
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/statement-croll.md",
+      "block_id": "b:2b221fdd",
+      "locator": 0,
+      "literal": "November 10, 2025",
+      "day_zero_offset": -77
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/statement-nyarko.md",
+      "block_id": "b:06a08772",
+      "locator": 0,
+      "literal": "February 18, 2026",
+      "day_zero_offset": 23
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/statement-ruvalcaba.md",
+      "block_id": "b:681182a4",
+      "locator": 0,
+      "literal": "February 12, 2026",
+      "day_zero_offset": 17
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/termination-notice.md",
+      "block_id": "b:acde7096",
+      "locator": 0,
+      "literal": "January 9, 2026",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/termination-notice.md",
+      "block_id": "b:e83673dd",
+      "locator": 0,
+      "literal": "December 5, 2025",
+      "day_zero_offset": -52
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/termination-notice.md",
+      "block_id": "b:c532daf9",
+      "locator": 0,
+      "literal": "January 9, 2026",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/answer-key.md",
+      "block_id": "b:a267f3d1",
+      "locator": 0,
+      "literal": "November 10, 2025",
+      "day_zero_offset": -77
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/answer-key.md",
+      "block_id": "b:a267f3d1",
+      "locator": 1,
+      "literal": "November 18, 2025",
+      "day_zero_offset": -69
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/answer-key.md",
+      "block_id": "b:299a7d1b",
+      "locator": 0,
+      "literal": "November 12, 2025",
+      "day_zero_offset": -75
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/answer-key.md",
+      "block_id": "b:8156507a",
+      "locator": 0,
+      "literal": "December 5, 2025",
+      "day_zero_offset": -52
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/answer-key.md",
+      "block_id": "b:8156507a",
+      "locator": 1,
+      "literal": "January 9, 2026",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/answer-key.md",
+      "block_id": "b:d71843ea",
+      "locator": 0,
+      "literal": "2025-11-05",
+      "day_zero_offset": -82
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/answer-key.md",
+      "block_id": "b:d71843ea",
+      "locator": 1,
+      "literal": "2025-11-10",
+      "day_zero_offset": -77
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/answer-key.md",
+      "block_id": "b:d71843ea",
+      "locator": 2,
+      "literal": "2025-11-12",
+      "day_zero_offset": -75
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/answer-key.md",
+      "block_id": "b:d71843ea",
+      "locator": 3,
+      "literal": "2025-11-18",
+      "day_zero_offset": -69
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/answer-key.md",
+      "block_id": "b:d71843ea",
+      "locator": 4,
+      "literal": "2025-12-05",
+      "day_zero_offset": -52
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/answer-key.md",
+      "block_id": "b:d71843ea",
+      "locator": 5,
+      "literal": "2026-01-08",
+      "day_zero_offset": -18
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/answer-key.md",
+      "block_id": "b:d71843ea",
+      "locator": 6,
+      "literal": "2026-01-09",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/instructor-notes.md",
+      "block_id": "b:5a130af9",
+      "locator": 0,
+      "literal": "2025-11-05",
+      "day_zero_offset": -82
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/instructor-notes.md",
+      "block_id": "b:5a130af9",
+      "locator": 1,
+      "literal": "2025-11-10",
+      "day_zero_offset": -77
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/instructor-notes.md",
+      "block_id": "b:5a130af9",
+      "locator": 2,
+      "literal": "2025-11-12",
+      "day_zero_offset": -75
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/instructor-notes.md",
+      "block_id": "b:5a130af9",
+      "locator": 3,
+      "literal": "2025-11-18",
+      "day_zero_offset": -69
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/instructor-notes.md",
+      "block_id": "b:5a130af9",
+      "locator": 4,
+      "literal": "2025-12-05",
+      "day_zero_offset": -52
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/instructor-notes.md",
+      "block_id": "b:5a130af9",
+      "locator": 5,
+      "literal": "2026-01-08",
+      "day_zero_offset": -18
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/exercise/instructor-notes.md",
+      "block_id": "b:5a130af9",
+      "locator": 6,
+      "literal": "2026-01-09",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/facts.md",
+      "block_id": "b:91a3b828",
+      "locator": 0,
+      "literal": "November 5, 2025",
+      "day_zero_offset": -82
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/facts.md",
+      "block_id": "b:97bf336e",
+      "locator": 0,
+      "literal": "November 10, 2025",
+      "day_zero_offset": -77
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/facts.md",
+      "block_id": "b:97bf336e",
+      "locator": 1,
+      "literal": "November 12, 2025",
+      "day_zero_offset": -75
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/facts.md",
+      "block_id": "b:97bf336e",
+      "locator": 2,
+      "literal": "November 18, 2025",
+      "day_zero_offset": -69
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/facts.md",
+      "block_id": "b:dacf0d26",
+      "locator": 0,
+      "literal": "November 12, 2025",
+      "day_zero_offset": -75
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/facts.md",
+      "block_id": "b:02a6377c",
+      "locator": 0,
+      "literal": "December 5, 2025",
+      "day_zero_offset": -52
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/facts.md",
+      "block_id": "b:bada1831",
+      "locator": 0,
+      "literal": "January 9, 2026",
+      "day_zero_offset": -17
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/facts.md",
+      "block_id": "b:bada1831",
+      "locator": 1,
+      "literal": "January 8, 2026",
+      "day_zero_offset": -18
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/facts.md",
+      "block_id": "b:d599e872",
+      "locator": 0,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 155
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/timekeeping-records.md",
+      "locator": 0,
+      "literal": "2025-11-05",
+      "day_zero_offset": -82,
+      "durable_locator": "raw:68259152a060f625:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/timekeeping-records.md",
+      "locator": 0,
+      "literal": "2025-11-11",
+      "day_zero_offset": -76,
+      "durable_locator": "raw:b6f9969dbb14a606:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/timekeeping-records.md",
+      "locator": 0,
+      "literal": "2025-10-14",
+      "day_zero_offset": -104,
+      "durable_locator": "raw:365083828c90100f:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/timekeeping-records.md",
+      "locator": 0,
+      "literal": "2025-10-14",
+      "day_zero_offset": -104,
+      "durable_locator": "raw:78f0ce54bf8fc77c:occurrence:2:date:0"
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/timekeeping-records.md",
+      "locator": 0,
+      "literal": "2025-10-21",
+      "day_zero_offset": -97,
+      "durable_locator": "raw:aa574abb77deb62d:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m11-arbitration-il/case-file/timekeeping-records.md",
+      "locator": 0,
+      "literal": "2025-11-04",
+      "day_zero_offset": -83,
+      "durable_locator": "raw:12975b692d9054db:occurrence:1:date:0"
+    }
+  ]
+}

@@ -1,0 +1,245 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m08",
+  "anchor": "2026-03-18",
+  "entries": [
+    {
+      "source": "data/matters/m08-juvenile-meridian/exercise/exercise.json",
+      "block_id": "b:e49c37e8",
+      "locator": 0,
+      "literal": "March 14, 2026",
+      "day_zero_offset": -4
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/exercise/exercise.json",
+      "block_id": "b:e49c37e8",
+      "locator": 1,
+      "literal": "March 27, 2026",
+      "day_zero_offset": 9
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/exercise/exercise.json",
+      "block_id": "b:e49c37e8",
+      "locator": 2,
+      "literal": "April 2, 2026",
+      "day_zero_offset": 15
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/exercise/exercise.json",
+      "block_id": "b:e49c37e8",
+      "locator": 3,
+      "literal": "April 20, 2026",
+      "day_zero_offset": 33
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/exercise/exercise.json",
+      "block_id": "b:e49c37e8",
+      "locator": 4,
+      "literal": "May 15, 2026",
+      "day_zero_offset": 58
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/business/engagement-letter.md",
+      "block_id": "b:e7660f99",
+      "locator": 0,
+      "literal": "March 19, 2026",
+      "day_zero_offset": 1
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/case-file/cctv-stills-description.md",
+      "block_id": "b:c8b467fc",
+      "locator": 0,
+      "literal": "March 14, 2026",
+      "day_zero_offset": -4
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/case-file/delinquency-petition.md",
+      "block_id": "b:81ff9f53",
+      "locator": 0,
+      "literal": "March 14, 2026",
+      "day_zero_offset": -4
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/case-file/delinquency-petition.md",
+      "block_id": "b:250cd4be",
+      "locator": 0,
+      "literal": "March 27, 2026",
+      "day_zero_offset": 9
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/case-file/diversion-offer-letter.md",
+      "block_id": "b:3b718a31",
+      "locator": 0,
+      "literal": "April 20, 2026",
+      "day_zero_offset": 33
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/case-file/diversion-offer-letter.md",
+      "block_id": "b:ba71adbb",
+      "locator": 0,
+      "literal": "May 15, 2026",
+      "day_zero_offset": 58
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/case-file/lp-incident-report.md",
+      "block_id": "b:d381265f",
+      "locator": 0,
+      "literal": "March 14, 2026",
+      "day_zero_offset": -4
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/case-file/lp-incident-report.md",
+      "block_id": "b:d381265f",
+      "locator": 1,
+      "literal": "March 14, 2026",
+      "day_zero_offset": -4
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/case-file/police-report.md",
+      "block_id": "b:3c0d5d62",
+      "locator": 0,
+      "literal": "March 14, 2026",
+      "day_zero_offset": -4
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/case-file/store-inventory-record.md",
+      "block_id": "b:a1da071d",
+      "locator": 0,
+      "literal": "March 15, 2026",
+      "day_zero_offset": -3
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/case-file/witness-statement-nwosu.md",
+      "block_id": "b:6d77034f",
+      "locator": 0,
+      "literal": "April 8, 2026",
+      "day_zero_offset": 21
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/case-file/witness-statement-nwosu.md",
+      "block_id": "b:fd2845fa",
+      "locator": 0,
+      "literal": "April 8, 2026",
+      "day_zero_offset": 21
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/case-file/witness-statement-quintero.md",
+      "block_id": "b:c62fec87",
+      "locator": 0,
+      "literal": "March 19, 2026",
+      "day_zero_offset": 1
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/case-file/witness-statement-quintero.md",
+      "block_id": "b:1d6479f5",
+      "locator": 0,
+      "literal": "March 19, 2026",
+      "day_zero_offset": 1
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/case-file/witness-statement-vanderhoek.md",
+      "block_id": "b:d4e5819d",
+      "locator": 0,
+      "literal": "March 16, 2026",
+      "day_zero_offset": -2
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/case-file/witness-statement-vanderhoek.md",
+      "block_id": "b:cbf74497",
+      "locator": 0,
+      "literal": "March 16, 2026",
+      "day_zero_offset": -2
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/exercise/answer-key.md",
+      "block_id": "b:26622159",
+      "locator": 0,
+      "literal": "May 15, 2026",
+      "day_zero_offset": 58
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/exercise/answer-key.md",
+      "block_id": "b:7589403f",
+      "locator": 0,
+      "literal": "May 15, 2026",
+      "day_zero_offset": 58
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/exercise/answer-key.md",
+      "block_id": "b:8e9495b2",
+      "locator": 0,
+      "literal": "2026-03-14",
+      "day_zero_offset": -4
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/exercise/answer-key.md",
+      "block_id": "b:8e9495b2",
+      "locator": 1,
+      "literal": "2026-03-27",
+      "day_zero_offset": 9
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/exercise/answer-key.md",
+      "block_id": "b:8e9495b2",
+      "locator": 2,
+      "literal": "2026-04-02",
+      "day_zero_offset": 15
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/exercise/answer-key.md",
+      "block_id": "b:8e9495b2",
+      "locator": 3,
+      "literal": "2026-04-20",
+      "day_zero_offset": 33
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/exercise/answer-key.md",
+      "block_id": "b:8e9495b2",
+      "locator": 4,
+      "literal": "2026-05-15",
+      "day_zero_offset": 58
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/exercise/instructor-notes.md",
+      "block_id": "b:380ed1dd",
+      "locator": 0,
+      "literal": "May 15, 2026",
+      "day_zero_offset": 58
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/facts.md",
+      "block_id": "b:1ae8ccad",
+      "locator": 0,
+      "literal": "March 14, 2026",
+      "day_zero_offset": -4
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/facts.md",
+      "block_id": "b:51a826c4",
+      "locator": 0,
+      "literal": "April 2, 2026",
+      "day_zero_offset": 15
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/facts.md",
+      "block_id": "b:f6fe63ac",
+      "locator": 0,
+      "literal": "April 20, 2026",
+      "day_zero_offset": 33
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/facts.md",
+      "block_id": "b:f6fe63ac",
+      "locator": 1,
+      "literal": "May 15, 2026",
+      "day_zero_offset": 58
+    },
+    {
+      "source": "data/matters/m08-juvenile-meridian/business/business.json",
+      "locator": 0,
+      "literal": "March 14, 2026",
+      "day_zero_offset": -4,
+      "durable_locator": "json:intake.matter_summary:date:0"
+    }
+  ]
+}

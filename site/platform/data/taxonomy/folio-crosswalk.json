@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/taxonomy/folio-crosswalk",
+  "@id": "https://legalpracticum.org/spine/taxonomy/folio-crosswalk",
   "verified_at": "2026-07-17",
   "source": "folio MCP live retrieval",
   "description": "FOLIO crosswalk for every skill and every primary task. Each entry either records a verified FOLIO concept {folio_iri, folio_label (as retrieved), branch, mapping_confidence in exact|near|parent} or declares no_folio_equivalent with a note. This snapshot is the offline source of truth; the ship gate validates against it, not live MCP.",

@@ -1,8 +1,8 @@
 {
   "id": "m02.ex",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/exercise/m02.ex",
-  "@context": "https://sonsteng.damienriehl.com/spine/",
+  "@id": "https://legalpracticum.org/spine/exercise/m02.ex",
+  "@context": "https://legalpracticum.org/spine/",
   "matter_id": "m02",
   "role_id": "m02.role.respondent-counsel",
   "sections": {

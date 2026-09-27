@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sonsteng.damienriehl.com/spine/schemas/rubric.schema.json",
+  "$id": "https://legalpracticum.org/spine/schemas/rubric.schema.json",
   "title": "Rubric",
   "description": "A point-weighted grading rubric for one matter. Criteria (and nested subcriteria) carry weight_points that sum to the declared total; /critique is generic code over 20 of these.",
   "version": "1.0.0",

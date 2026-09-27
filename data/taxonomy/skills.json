@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/taxonomy/skills",
+  "@id": "https://legalpracticum.org/spine/taxonomy/skills",
   "spine_version": "1.0.0",
   "description": "Sonsteng's 17 Legal Practice + 9 Law Practice Management skills (exact survey names, both phrasings preserved) plus a clearly-marked AI-era extension set. Survey importance/preparedness from reliable tables in docs/research/skills-survey.md (Table 4 management-importance percentages deliberately omitted as unreliable).",
   "surveyed_count": 26,
@@ -9,7 +9,7 @@
     {
       "id": "SK-LP-01",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-01",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-01",
       "name": "Ability to diagnose and plan solutions for legal problems",
       "category": "legal_practice",
       "extension": false,
@@ -24,7 +24,7 @@
     {
       "id": "SK-LP-02",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-02",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-02",
       "name": "Ability in legal analysis and reasoning",
       "category": "legal_practice",
       "extension": false,
@@ -37,7 +37,7 @@
     {
       "id": "SK-LP-03",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-03",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-03",
       "name": "Knowledge of substantive law",
       "category": "legal_practice",
       "extension": false,
@@ -46,7 +46,7 @@
     {
       "id": "SK-LP-04",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-04",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-04",
       "name": "Knowledge of procedural law",
       "category": "legal_practice",
       "extension": false,
@@ -55,7 +55,7 @@
     {
       "id": "SK-LP-05",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-05",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-05",
       "name": "Library legal research",
       "category": "legal_practice",
       "extension": false,
@@ -71,7 +71,7 @@
     {
       "id": "SK-LP-06",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-06",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-06",
       "name": "Computer legal research",
       "category": "legal_practice",
       "extension": false,
@@ -88,7 +88,7 @@
     {
       "id": "SK-LP-07",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-07",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-07",
       "name": "Fact gathering",
       "category": "legal_practice",
       "extension": false,
@@ -100,7 +100,7 @@
     {
       "id": "SK-LP-08",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-08",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-08",
       "name": "Oral communication",
       "category": "legal_practice",
       "extension": false,
@@ -113,7 +113,7 @@
     {
       "id": "SK-LP-09",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-09",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-09",
       "name": "Written communication",
       "category": "legal_practice",
       "extension": false,
@@ -126,7 +126,7 @@
     {
       "id": "SK-LP-10",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-10",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-10",
       "name": "Counseling",
       "category": "legal_practice",
       "extension": false,
@@ -142,7 +142,7 @@
     {
       "id": "SK-LP-11",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-11",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-11",
       "name": "Instilling others' confidence in you",
       "category": "legal_practice",
       "extension": false,
@@ -156,7 +156,7 @@
     {
       "id": "SK-LP-12",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-12",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-12",
       "name": "Ability to obtain and keep clients",
       "category": "legal_practice",
       "extension": false,
@@ -172,7 +172,7 @@
     {
       "id": "SK-LP-13",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-13",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-13",
       "name": "Negotiation",
       "category": "legal_practice",
       "extension": false,
@@ -188,7 +188,7 @@
     {
       "id": "SK-LP-14",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-14",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-14",
       "name": "Litigation",
       "category": "legal_practice",
       "extension": false,
@@ -205,7 +205,7 @@
     {
       "id": "SK-LP-15",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-15",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-15",
       "name": "Organization and management of legal work",
       "category": "legal_practice",
       "extension": false,
@@ -221,7 +221,7 @@
     {
       "id": "SK-LP-16",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-16",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-16",
       "name": "Sensitivity to professional and ethical concerns",
       "category": "legal_practice",
       "extension": false,
@@ -230,7 +230,7 @@
     {
       "id": "SK-LP-17",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-17",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-17",
       "name": "Drafting legal documents",
       "category": "legal_practice",
       "extension": false,
@@ -244,7 +244,7 @@
     {
       "id": "SK-PM-01",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-PM-01",
+      "@id": "https://legalpracticum.org/spine/skill/SK-PM-01",
       "name": "Fee arrangements, pricing, billing",
       "category": "practice_management",
       "extension": false,
@@ -259,7 +259,7 @@
     {
       "id": "SK-PM-02",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-PM-02",
+      "@id": "https://legalpracticum.org/spine/skill/SK-PM-02",
       "name": "Human resources, hiring, support staff",
       "category": "practice_management",
       "extension": false,
@@ -274,7 +274,7 @@
     {
       "id": "SK-PM-03",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-PM-03",
+      "@id": "https://legalpracticum.org/spine/skill/SK-PM-03",
       "name": "Capitalization, investment",
       "category": "practice_management",
       "extension": false,
@@ -286,7 +286,7 @@
     {
       "id": "SK-PM-04",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-PM-04",
+      "@id": "https://legalpracticum.org/spine/skill/SK-PM-04",
       "name": "Project and time management, efficiency",
       "category": "practice_management",
       "extension": false,
@@ -301,7 +301,7 @@
     {
       "id": "SK-PM-05",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-PM-05",
+      "@id": "https://legalpracticum.org/spine/skill/SK-PM-05",
       "name": "Planning, resource allocation, budgeting",
       "category": "practice_management",
       "extension": false,
@@ -316,7 +316,7 @@
     {
       "id": "SK-PM-06",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-PM-06",
+      "@id": "https://legalpracticum.org/spine/skill/SK-PM-06",
       "name": "Marketing, client development",
       "category": "practice_management",
       "extension": false,
@@ -331,7 +331,7 @@
     {
       "id": "SK-PM-07",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-PM-07",
+      "@id": "https://legalpracticum.org/spine/skill/SK-PM-07",
       "name": "Technology, computers, communications",
       "category": "practice_management",
       "extension": false,
@@ -343,7 +343,7 @@
     {
       "id": "SK-PM-08",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-PM-08",
+      "@id": "https://legalpracticum.org/spine/skill/SK-PM-08",
       "name": "Governance, decision-making, long-range strategic planning",
       "category": "practice_management",
       "extension": false,
@@ -358,7 +358,7 @@
     {
       "id": "SK-PM-09",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-PM-09",
+      "@id": "https://legalpracticum.org/spine/skill/SK-PM-09",
       "name": "Interpersonal communications, staff relations",
       "category": "practice_management",
       "extension": false,
@@ -373,7 +373,7 @@
     {
       "id": "SK-LP-18",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-18",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-18",
       "name": "Prompt formulation and iteration",
       "category": "legal_practice",
       "extension": true,
@@ -382,7 +382,7 @@
     {
       "id": "SK-LP-19",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-19",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-19",
       "name": "AI-output verification and citation checking",
       "category": "legal_practice",
       "extension": true,
@@ -391,7 +391,7 @@
     {
       "id": "SK-LP-20",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-20",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-20",
       "name": "Centaur workflow judgment",
       "category": "legal_practice",
       "extension": true,
@@ -400,7 +400,7 @@
     {
       "id": "SK-LP-21",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-LP-21",
+      "@id": "https://legalpracticum.org/spine/skill/SK-LP-21",
       "name": "Confidentiality and privilege protection in AI-assisted work",
       "category": "legal_practice",
       "extension": true,
@@ -409,7 +409,7 @@
     {
       "id": "SK-PM-10",
       "schema_version": "1.0.0",
-      "@id": "https://sonsteng.damienriehl.com/spine/skill/SK-PM-10",
+      "@id": "https://legalpracticum.org/spine/skill/SK-PM-10",
       "name": "Data and matter hygiene with AI tools",
       "category": "practice_management",
       "extension": true,

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sonsteng.damienriehl.com/spine/schemas/memo-scorecard.schema.json",
+  "$id": "https://legalpracticum.org/spine/schemas/memo-scorecard.schema.json",
   "title": "Memo heading scorecard",
   "description": "Evidence-grounded evaluator output for the seven-heading, integer 1-7 memo assessment. No overall score or letter-grade field is accepted.",
   "version": "1.0.0",

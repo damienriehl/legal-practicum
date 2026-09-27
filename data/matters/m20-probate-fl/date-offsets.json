@@ -1,0 +1,203 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m20",
+  "anchor": "2024-01-15",
+  "entries": [
+    {
+      "source": "data/matters/m20-probate-fl/exercise/exercise.json",
+      "block_id": "b:262cdedf",
+      "locator": 0,
+      "literal": "March 14, 2024",
+      "day_zero_offset": 59
+    },
+    {
+      "source": "data/matters/m20-probate-fl/exercise/exercise.json",
+      "block_id": "b:262cdedf",
+      "locator": 1,
+      "literal": "February 20, 2025",
+      "day_zero_offset": 402
+    },
+    {
+      "source": "data/matters/m20-probate-fl/business/engagement-letter.md",
+      "block_id": "b:a36000a3",
+      "locator": 0,
+      "literal": "January 15, 2024",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m20-probate-fl/business/engagement-letter.md",
+      "block_id": "b:4921b7ae",
+      "locator": 0,
+      "literal": "January 15, 2024",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/exhibit-001-will-2024.md",
+      "block_id": "b:9bb261d4",
+      "locator": 0,
+      "literal": "March 14, 2024",
+      "day_zero_offset": 59
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/exhibit-001-will-2024.md",
+      "block_id": "b:cdb1c3ce",
+      "locator": 0,
+      "literal": "March 14, 2024",
+      "day_zero_offset": 59
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/exhibit-001-will-2024.md",
+      "block_id": "b:1f97d63e",
+      "locator": 0,
+      "literal": "March 14, 2024",
+      "day_zero_offset": 59
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/exhibit-002-explanatory-letter.md",
+      "block_id": "b:abae25b9",
+      "locator": 0,
+      "literal": "March 14, 2024",
+      "day_zero_offset": 59
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/exhibit-002-explanatory-letter.md",
+      "block_id": "b:9e38a6ba",
+      "locator": 0,
+      "literal": "March 14, 2024",
+      "day_zero_offset": 59
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/exhibit-003-prior-will-2019.md",
+      "block_id": "b:261b0d72",
+      "locator": 0,
+      "literal": "March 14, 2024",
+      "day_zero_offset": 59
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/exhibit-005-drafting-memo.md",
+      "block_id": "b:812e3c93",
+      "locator": 0,
+      "literal": "March 14, 2024",
+      "day_zero_offset": 59
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/exhibit-005-drafting-memo.md",
+      "block_id": "b:cd81c462",
+      "locator": 0,
+      "literal": "March 14, 2024",
+      "day_zero_offset": 59
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/exhibit-006-capacity-assessment.md",
+      "block_id": "b:b5babdae",
+      "locator": 0,
+      "literal": "February 28, 2024",
+      "day_zero_offset": 44
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/exhibit-006-capacity-assessment.md",
+      "block_id": "b:73368c71",
+      "locator": 0,
+      "literal": "February 28, 2024",
+      "day_zero_offset": 44
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/exhibit-007-petition-to-revoke.md",
+      "block_id": "b:35d1515e",
+      "locator": 0,
+      "literal": "March 14, 2024",
+      "day_zero_offset": 59
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/exhibit-007-petition-to-revoke.md",
+      "block_id": "b:e41249e8",
+      "locator": 0,
+      "literal": "February 20, 2025",
+      "day_zero_offset": 402
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/exhibit-007-petition-to-revoke.md",
+      "block_id": "b:7375275e",
+      "locator": 0,
+      "literal": "March 14, 2024",
+      "day_zero_offset": 59
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/exhibit-007-petition-to-revoke.md",
+      "block_id": "b:4c025a8a",
+      "locator": 0,
+      "literal": "March 14, 2024",
+      "day_zero_offset": 59
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/exhibit-008-asset-homestead-summary.md",
+      "block_id": "b:2f4dad30",
+      "locator": 0,
+      "literal": "March 14, 2024",
+      "day_zero_offset": 59
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/witness-bastien.md",
+      "block_id": "b:e04b57f5",
+      "locator": 0,
+      "literal": "July 22, 2025",
+      "day_zero_offset": 554
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/witness-tancredi.md",
+      "block_id": "b:15e874c8",
+      "locator": 0,
+      "literal": "March 14, 2024",
+      "day_zero_offset": 59
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/witness-tancredi.md",
+      "block_id": "b:15e874c8",
+      "locator": 1,
+      "literal": "July 15, 2025",
+      "day_zero_offset": 547
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/witness-vandermolen.md",
+      "block_id": "b:a6a44944",
+      "locator": 0,
+      "literal": "July 8, 2025",
+      "day_zero_offset": 540
+    },
+    {
+      "source": "data/matters/m20-probate-fl/case-file/witness-vandermolen.md",
+      "block_id": "b:60a9b812",
+      "locator": 0,
+      "literal": "February 28, 2024",
+      "day_zero_offset": 44
+    },
+    {
+      "source": "data/matters/m20-probate-fl/exercise/answer-key.md",
+      "block_id": "b:54d7f6e0",
+      "locator": 0,
+      "literal": "March 14, 2024",
+      "day_zero_offset": 59
+    },
+    {
+      "source": "data/matters/m20-probate-fl/facts.md",
+      "block_id": "b:e9eb8aeb",
+      "locator": 0,
+      "literal": "March 14, 2024",
+      "day_zero_offset": 59
+    },
+    {
+      "source": "data/matters/m20-probate-fl/facts.md",
+      "block_id": "b:414bc6d1",
+      "locator": 0,
+      "literal": "February 28, 2024",
+      "day_zero_offset": 44
+    },
+    {
+      "source": "data/matters/m20-probate-fl/facts.md",
+      "block_id": "b:ae44c83a",
+      "locator": 0,
+      "literal": "February 20, 2025",
+      "day_zero_offset": 402
+    }
+  ]
+}

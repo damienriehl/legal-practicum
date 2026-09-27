@@ -1,8 +1,8 @@
 {
   "id": "m01.per.rennick",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/persona/m01.per.rennick",
-  "@context": "https://sonsteng.damienriehl.com/spine/",
+  "@id": "https://legalpracticum.org/spine/persona/m01.per.rennick",
+  "@context": "https://legalpracticum.org/spine/",
   "matter_id": "m01",
   "identity": {
     "name": "Gerald Rennick",

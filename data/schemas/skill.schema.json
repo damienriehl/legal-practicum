@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sonsteng.damienriehl.com/spine/schemas/skill.schema.json",
+  "$id": "https://legalpracticum.org/spine/schemas/skill.schema.json",
   "title": "Skill",
   "description": "One Sonsteng skill (17 Legal Practice + 9 Practice Management surveyed, plus clearly-marked AI-era extension skills). FOLIO-mapped or explicitly no-equivalent.",
   "version": "1.0.0",

@@ -1,7 +1,7 @@
 {
   "id": "m08",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/matter/m08",
+  "@id": "https://legalpracticum.org/spine/matter/m08",
   "slug": "m08-juvenile-meridian",
   "shape": "juvenile_delinquency",
   "tier": "meridian",
@@ -49,4 +49,6 @@
   ],
   "open_date": "2026-03-18",
   "as_of_date": "2026-06-30"
-}
+,
+  "open_date_day_zero_offset": 0,
+  "as_of_date_day_zero_offset": 104}

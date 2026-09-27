@@ -1,7 +1,7 @@
 {
   "id": "m06",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/matter/m06",
+  "@id": "https://legalpracticum.org/spine/matter/m06",
   "slug": "m06-noncompete-meridian",
   "shape": "noncompete_trade_secret",
   "tier": "meridian",
@@ -47,4 +47,6 @@
   ],
   "open_date": "2026-02-16",
   "as_of_date": "2026-06-30"
-}
+,
+  "open_date_day_zero_offset": 0,
+  "as_of_date_day_zero_offset": 134}

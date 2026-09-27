@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sonsteng.damienriehl.com/spine/schemas/matter.schema.json",
+  "$id": "https://legalpracticum.org/spine/schemas/matter.schema.json",
   "title": "Matter",
   "description": "A single synthetic legal matter: metadata, jurisdiction, sides/parties, skill/task mappings, and listings of its child artifacts (personas, witnesses, exhibits). One per data/matters/<slug>/matter.json.",
   "version": "1.0.0",
@@ -40,7 +40,7 @@
     },
     "@id": {
       "type": "string",
-      "description": "Canonical JSON-LD @id; base https://sonsteng.damienriehl.com/spine/ (see @context)."
+      "description": "Canonical JSON-LD @id; base https://legalpracticum.org/spine/ (see @context)."
     },
     "@context": {
       "type": [

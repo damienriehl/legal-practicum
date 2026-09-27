@@ -1,8 +1,8 @@
 {
   "id": "m15.per.wenzloff",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/persona/m15.per.wenzloff",
-  "@context": "https://sonsteng.damienriehl.com/spine/",
+  "@id": "https://legalpracticum.org/spine/persona/m15.per.wenzloff",
+  "@context": "https://legalpracticum.org/spine/",
   "matter_id": "m15",
   "identity": {
     "name": "Travis O. Wenzloff",

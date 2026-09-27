@@ -1,0 +1,273 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m13",
+  "anchor": "2025-03-10",
+  "entries": [
+    {
+      "source": "data/matters/m13-tort-fl/exercise/exercise.json",
+      "block_id": "b:e62ec1ef",
+      "locator": 0,
+      "literal": "February 6, 2025",
+      "day_zero_offset": -32
+    },
+    {
+      "source": "data/matters/m13-tort-fl/exercise/exercise.json",
+      "block_id": "b:e62ec1ef",
+      "locator": 1,
+      "literal": "March 18, 2025",
+      "day_zero_offset": 8
+    },
+    {
+      "source": "data/matters/m13-tort-fl/business/engagement-letter.md",
+      "block_id": "b:dbd36c17",
+      "locator": 0,
+      "literal": "March 8, 2025",
+      "day_zero_offset": -2
+    },
+    {
+      "source": "data/matters/m13-tort-fl/business/engagement-letter.md",
+      "block_id": "b:41389422",
+      "locator": 0,
+      "literal": "February 6, 2025",
+      "day_zero_offset": -32
+    },
+    {
+      "source": "data/matters/m13-tort-fl/business/engagement-letter.md",
+      "block_id": "b:ca2dc607",
+      "locator": 0,
+      "literal": "February 6, 2025",
+      "day_zero_offset": -32
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/crash-report.md",
+      "block_id": "b:121beaab",
+      "locator": 0,
+      "literal": "February 6, 2025",
+      "day_zero_offset": -32
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/demand-letter.md",
+      "block_id": "b:5f4745ed",
+      "locator": 0,
+      "literal": "October 20, 2025",
+      "day_zero_offset": 224
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/demand-letter.md",
+      "block_id": "b:5f4745ed",
+      "locator": 1,
+      "literal": "February 6, 2025",
+      "day_zero_offset": -32
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/demand-letter.md",
+      "block_id": "b:8be2eb35",
+      "locator": 0,
+      "literal": "February 6, 2025",
+      "day_zero_offset": -32
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/demand-letter.md",
+      "block_id": "b:05c9a0b3",
+      "locator": 0,
+      "literal": "March 18, 2025",
+      "day_zero_offset": 8
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/medical-records.md",
+      "block_id": "b:2037ccf2",
+      "locator": 0,
+      "literal": "February 6, 2025",
+      "day_zero_offset": -32
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/medical-records.md",
+      "block_id": "b:9575a670",
+      "locator": 0,
+      "literal": "February 20, 2025",
+      "day_zero_offset": -18
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/medical-records.md",
+      "block_id": "b:22ea01ee",
+      "locator": 0,
+      "literal": "March 18, 2025",
+      "day_zero_offset": 8
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/medical-records.md",
+      "block_id": "b:c15bbb15",
+      "locator": 0,
+      "literal": "February 6, 2025",
+      "day_zero_offset": -32
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/rideshare-earnings.md",
+      "block_id": "b:cb550e5a",
+      "locator": 0,
+      "literal": "February 6, 2025",
+      "day_zero_offset": -32
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/rideshare-earnings.md",
+      "block_id": "b:cb550e5a",
+      "locator": 1,
+      "literal": "March 18, 2025",
+      "day_zero_offset": 8
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/statement-fontaine.md",
+      "block_id": "b:425e7075",
+      "locator": 0,
+      "literal": "February 6, 2025",
+      "day_zero_offset": -32
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/statement-hutchins.md",
+      "block_id": "b:a5586dbb",
+      "locator": 0,
+      "literal": "February 6, 2025",
+      "day_zero_offset": -32
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/statement-reyes.md",
+      "block_id": "b:436bd2ea",
+      "locator": 0,
+      "literal": "February 6, 2025",
+      "day_zero_offset": -32
+    },
+    {
+      "source": "data/matters/m13-tort-fl/facts.md",
+      "block_id": "b:2308d8da",
+      "locator": 0,
+      "literal": "February 6, 2025",
+      "day_zero_offset": -32
+    },
+    {
+      "source": "data/matters/m13-tort-fl/facts.md",
+      "block_id": "b:caaa6739",
+      "locator": 0,
+      "literal": "February 20, 2025",
+      "day_zero_offset": -18
+    },
+    {
+      "source": "data/matters/m13-tort-fl/facts.md",
+      "block_id": "b:caaa6739",
+      "locator": 1,
+      "literal": "March 18, 2025",
+      "day_zero_offset": 8
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/pip-correspondence.md",
+      "locator": 0,
+      "literal": "2025-03-14",
+      "day_zero_offset": 4,
+      "durable_locator": "raw:6ecdab84e2f85eae:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/pip-correspondence.md",
+      "locator": 0,
+      "literal": "2025-04-08",
+      "day_zero_offset": 29,
+      "durable_locator": "raw:f14a76dd2f7c504d:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/pip-correspondence.md",
+      "locator": 0,
+      "literal": "2025-05-02",
+      "day_zero_offset": 53,
+      "durable_locator": "raw:4b017409f610a544:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/pip-correspondence.md",
+      "locator": 0,
+      "literal": "2025-05-20",
+      "day_zero_offset": 71,
+      "durable_locator": "raw:820563aff0bdbadd:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/pip-correspondence.md",
+      "locator": 0,
+      "literal": "2025-02-10",
+      "day_zero_offset": -28,
+      "durable_locator": "raw:0d01f8e6509ddde9:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/pip-correspondence.md",
+      "locator": 0,
+      "literal": "2025-02-24",
+      "day_zero_offset": -14,
+      "durable_locator": "raw:f21e0d6181b8e897:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/rideshare-earnings.md",
+      "locator": 0,
+      "literal": "2024-12-08",
+      "day_zero_offset": -92,
+      "durable_locator": "raw:61942f7a222051e7:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/rideshare-earnings.md",
+      "locator": 0,
+      "literal": "2024-12-15",
+      "day_zero_offset": -85,
+      "durable_locator": "raw:b6f770aa8078c540:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/rideshare-earnings.md",
+      "locator": 0,
+      "literal": "2024-12-22",
+      "day_zero_offset": -78,
+      "durable_locator": "raw:9c5897b230370065:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/rideshare-earnings.md",
+      "locator": 0,
+      "literal": "2025-01-05",
+      "day_zero_offset": -64,
+      "durable_locator": "raw:5f880864c2d42c4e:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/rideshare-earnings.md",
+      "locator": 0,
+      "literal": "2025-01-12",
+      "day_zero_offset": -57,
+      "durable_locator": "raw:3f7318167c7a7d2a:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/rideshare-earnings.md",
+      "locator": 0,
+      "literal": "2025-01-19",
+      "day_zero_offset": -50,
+      "durable_locator": "raw:f491bca5ba2cf07a:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/rideshare-earnings.md",
+      "locator": 0,
+      "literal": "2025-01-26",
+      "day_zero_offset": -43,
+      "durable_locator": "raw:113804393bc40011:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/rideshare-earnings.md",
+      "locator": 0,
+      "literal": "2025-02-02",
+      "day_zero_offset": -36,
+      "durable_locator": "raw:26ac01da1426c490:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/rideshare-earnings.md",
+      "locator": 0,
+      "literal": "2024-11-24",
+      "day_zero_offset": -106,
+      "durable_locator": "raw:4f43be6b8c5d56a8:occurrence:1:date:0"
+    },
+    {
+      "source": "data/matters/m13-tort-fl/case-file/rideshare-earnings.md",
+      "locator": 0,
+      "literal": "2024-12-01",
+      "day_zero_offset": -99,
+      "durable_locator": "raw:c49527252465b8f5:occurrence:1:date:0"
+    }
+  ]
+}

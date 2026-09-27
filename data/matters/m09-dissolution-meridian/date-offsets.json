@@ -1,0 +1,210 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m09",
+  "anchor": "2026-02-18",
+  "entries": [
+    {
+      "source": "data/matters/m09-dissolution-meridian/exercise/exercise.json",
+      "block_id": "b:4fb0918e",
+      "locator": 0,
+      "literal": "March 4, 2026",
+      "day_zero_offset": 14
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/exercise/exercise.json",
+      "block_id": "b:4fb0918e",
+      "locator": 1,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 132
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/business/engagement-letter.md",
+      "block_id": "b:d3a08954",
+      "locator": 0,
+      "literal": "February 18, 2026",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/case-file/gal-preliminary-report.md",
+      "block_id": "b:9ebb2048",
+      "locator": 0,
+      "literal": "June 8, 2026",
+      "day_zero_offset": 110
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/case-file/marital-home-records.md",
+      "block_id": "b:d8bef118",
+      "locator": 0,
+      "literal": "April 3, 2026",
+      "day_zero_offset": 44
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/case-file/parenting-journal.md",
+      "block_id": "b:de5d42ba",
+      "locator": 0,
+      "literal": "May 13, 2026",
+      "day_zero_offset": 84
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/case-file/petition-dissolution.md",
+      "block_id": "b:e1925a4a",
+      "locator": 0,
+      "literal": "June 11, 2011",
+      "day_zero_offset": -5366
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/case-file/petition-dissolution.md",
+      "block_id": "b:39fb9e50",
+      "locator": 0,
+      "literal": "March 2, 2014",
+      "day_zero_offset": -4371
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/case-file/petition-dissolution.md",
+      "block_id": "b:39fb9e50",
+      "locator": 1,
+      "literal": "September 19, 2017",
+      "day_zero_offset": -3074
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/case-file/petition-dissolution.md",
+      "block_id": "b:10fd45d7",
+      "locator": 0,
+      "literal": "November 15, 2025",
+      "day_zero_offset": -95
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/case-file/petition-dissolution.md",
+      "block_id": "b:cdeb2151",
+      "locator": 0,
+      "literal": "March 4, 2026",
+      "day_zero_offset": 14
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/case-file/text-messages.md",
+      "block_id": "b:912f5b33",
+      "locator": 0,
+      "literal": "May 20, 2026",
+      "day_zero_offset": 91
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/case-file/witness-statement-ferreira.md",
+      "block_id": "b:d6bf8b27",
+      "locator": 0,
+      "literal": "May 6, 2026",
+      "day_zero_offset": 77
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/case-file/witness-statement-kilbane.md",
+      "block_id": "b:920dcc56",
+      "locator": 0,
+      "literal": "May 19, 2026",
+      "day_zero_offset": 90
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/case-file/witness-statement-yamada.md",
+      "block_id": "b:571c1c13",
+      "locator": 0,
+      "literal": "May 12, 2026",
+      "day_zero_offset": 83
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/exercise/answer-key.md",
+      "block_id": "b:fdec2a9e",
+      "locator": 0,
+      "literal": "2011-06-11",
+      "day_zero_offset": -5366
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/exercise/answer-key.md",
+      "block_id": "b:fdec2a9e",
+      "locator": 1,
+      "literal": "2026-02-12",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/exercise/answer-key.md",
+      "block_id": "b:fdec2a9e",
+      "locator": 2,
+      "literal": "2026-02-18",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/exercise/answer-key.md",
+      "block_id": "b:fdec2a9e",
+      "locator": 3,
+      "literal": "2026-03-04",
+      "day_zero_offset": 14
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/exercise/answer-key.md",
+      "block_id": "b:fdec2a9e",
+      "locator": 4,
+      "literal": "2026-06-08",
+      "day_zero_offset": 110
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/exercise/answer-key.md",
+      "block_id": "b:fdec2a9e",
+      "locator": 5,
+      "literal": "2026-06-30",
+      "day_zero_offset": 132
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/facts.md",
+      "block_id": "b:8fc1ff34",
+      "locator": 0,
+      "literal": "June 11, 2011",
+      "day_zero_offset": -5366
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/facts.md",
+      "block_id": "b:8fc1ff34",
+      "locator": 1,
+      "literal": "March 2, 2014",
+      "day_zero_offset": -4371
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/facts.md",
+      "block_id": "b:8fc1ff34",
+      "locator": 2,
+      "literal": "September 19, 2017",
+      "day_zero_offset": -3074
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/facts.md",
+      "block_id": "b:a6973adf",
+      "locator": 0,
+      "literal": "February 12, 2026",
+      "day_zero_offset": -6
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/facts.md",
+      "block_id": "b:a6973adf",
+      "locator": 1,
+      "literal": "February 18, 2026",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/facts.md",
+      "block_id": "b:a6973adf",
+      "locator": 2,
+      "literal": "March 4, 2026",
+      "day_zero_offset": 14
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/facts.md",
+      "block_id": "b:021d7d44",
+      "locator": 0,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 132
+    },
+    {
+      "source": "data/matters/m09-dissolution-meridian/case-file/marital-home-records.md",
+      "locator": 0,
+      "literal": "April 1, 2026",
+      "day_zero_offset": 42,
+      "durable_locator": "raw:b6736326c8ea9f39:occurrence:1:date:0"
+    }
+  ]
+}

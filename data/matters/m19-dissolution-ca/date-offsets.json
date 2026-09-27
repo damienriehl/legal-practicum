@@ -1,0 +1,154 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m19",
+  "anchor": "2026-02-13",
+  "entries": [
+    {
+      "source": "data/matters/m19-dissolution-ca/exercise/exercise.json",
+      "block_id": "b:6e5067c7",
+      "locator": 0,
+      "literal": "February 27, 2026",
+      "day_zero_offset": 14
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/exercise/exercise.json",
+      "block_id": "b:6e5067c7",
+      "locator": 1,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 137
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/business/engagement-letter.md",
+      "block_id": "b:09d74d01",
+      "locator": 0,
+      "literal": "February 13, 2026",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/case-file/parenting-journal.md",
+      "block_id": "b:7d0265f1",
+      "locator": 0,
+      "literal": "June 14, 2025",
+      "day_zero_offset": -244
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/case-file/parenting-journal.md",
+      "block_id": "b:c0739a1a",
+      "locator": 0,
+      "literal": "May 24, 2026",
+      "day_zero_offset": 100
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/case-file/parenting-journal.md",
+      "block_id": "b:894cc473",
+      "locator": 0,
+      "literal": "June 20, 2026",
+      "day_zero_offset": 127
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/case-file/petition-dissolution.md",
+      "block_id": "b:06747876",
+      "locator": 0,
+      "literal": "April 21, 2018",
+      "day_zero_offset": -2855
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/case-file/petition-dissolution.md",
+      "block_id": "b:06747876",
+      "locator": 1,
+      "literal": "January 15, 2026",
+      "day_zero_offset": -29
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/case-file/petition-dissolution.md",
+      "block_id": "b:c19b3700",
+      "locator": 0,
+      "literal": "August 14, 2019",
+      "day_zero_offset": -2375
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/case-file/petition-dissolution.md",
+      "block_id": "b:4bca0ab3",
+      "locator": 0,
+      "literal": "February 27, 2026",
+      "day_zero_offset": 14
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/case-file/text-messages.md",
+      "block_id": "b:abdbc922",
+      "locator": 0,
+      "literal": "May 24, 2026",
+      "day_zero_offset": 100
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/case-file/valuation-report.md",
+      "block_id": "b:8fda56de",
+      "locator": 0,
+      "literal": "June 17, 2026",
+      "day_zero_offset": 124
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/case-file/witness-statement-ferrante.md",
+      "block_id": "b:f89fbd9d",
+      "locator": 0,
+      "literal": "June 18, 2026",
+      "day_zero_offset": 125
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/case-file/witness-statement-larue.md",
+      "block_id": "b:e6476dd7",
+      "locator": 0,
+      "literal": "May 8, 2026",
+      "day_zero_offset": 84
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/case-file/witness-statement-tessier.md",
+      "block_id": "b:36e5b060",
+      "locator": 0,
+      "literal": "May 15, 2026",
+      "day_zero_offset": 91
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/facts.md",
+      "block_id": "b:2259e934",
+      "locator": 0,
+      "literal": "April 21, 2018",
+      "day_zero_offset": -2855
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/facts.md",
+      "block_id": "b:2259e934",
+      "locator": 1,
+      "literal": "August 14, 2019",
+      "day_zero_offset": -2375
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/facts.md",
+      "block_id": "b:315e5e81",
+      "locator": 0,
+      "literal": "February 9, 2026",
+      "day_zero_offset": -4
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/facts.md",
+      "block_id": "b:315e5e81",
+      "locator": 1,
+      "literal": "February 13, 2026",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/facts.md",
+      "block_id": "b:315e5e81",
+      "locator": 2,
+      "literal": "February 27, 2026",
+      "day_zero_offset": 14
+    },
+    {
+      "source": "data/matters/m19-dissolution-ca/facts.md",
+      "block_id": "b:1c5af142",
+      "locator": 0,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 137
+    }
+  ]
+}

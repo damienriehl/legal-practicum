@@ -1,0 +1,273 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m17",
+  "anchor": "2026-03-09",
+  "entries": [
+    {
+      "source": "data/matters/m17-ucc-ny/exercise/exercise.json",
+      "block_id": "b:89aa1917",
+      "locator": 0,
+      "literal": "May 15, 2025",
+      "day_zero_offset": -298
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/exercise/exercise.json",
+      "block_id": "b:89aa1917",
+      "locator": 1,
+      "literal": "August 12, 2025",
+      "day_zero_offset": -209
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/exercise/exercise.json",
+      "block_id": "b:89aa1917",
+      "locator": 2,
+      "literal": "February 10, 2026",
+      "day_zero_offset": -27
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/exercise/exercise.json",
+      "block_id": "b:89aa1917",
+      "locator": 3,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 113
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/business/engagement-letter.md",
+      "block_id": "b:b0a81871",
+      "locator": 0,
+      "literal": "March 9, 2026",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/consultant-inspection-report.md",
+      "block_id": "b:b8624d52",
+      "locator": 0,
+      "literal": "April 14, 2026",
+      "day_zero_offset": 36
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/consultant-inspection-report.md",
+      "block_id": "b:c7d2d001",
+      "locator": 0,
+      "literal": "September 22, 2025",
+      "day_zero_offset": -168
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/empire-resale-inventory-records.md",
+      "block_id": "b:4affdee3",
+      "locator": 0,
+      "literal": "October 6, 2025",
+      "day_zero_offset": -154
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/empire-resale-inventory-records.md",
+      "block_id": "b:76429000",
+      "locator": 0,
+      "literal": "October 6, 2025",
+      "day_zero_offset": -154
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/empire-resale-inventory-records.md",
+      "block_id": "b:fe776388",
+      "locator": 0,
+      "literal": "October 24, 2025",
+      "day_zero_offset": -136
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/label-photo-exhibits.md",
+      "block_id": "b:256e26ab",
+      "locator": 0,
+      "literal": "September 22, 2025",
+      "day_zero_offset": -168
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/label-photo-exhibits.md",
+      "block_id": "b:5dd1f0ba",
+      "locator": 0,
+      "literal": "September 30, 2025",
+      "day_zero_offset": -160
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/label-photo-exhibits.md",
+      "block_id": "b:5dd1f0ba",
+      "locator": 1,
+      "literal": "September 22, 2025",
+      "day_zero_offset": -168
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/label-photo-exhibits.md",
+      "block_id": "b:0742691c",
+      "locator": 0,
+      "literal": "October 1, 2025",
+      "day_zero_offset": -159
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/label-photo-exhibits.md",
+      "block_id": "b:e5d4b38a",
+      "locator": 0,
+      "literal": "October 6, 2025",
+      "day_zero_offset": -154
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/receiving-inspection-and-rejection-notices.md",
+      "block_id": "b:1b2ec83e",
+      "locator": 0,
+      "literal": "September 5, 2025",
+      "day_zero_offset": -185
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/receiving-inspection-and-rejection-notices.md",
+      "block_id": "b:9af101b2",
+      "locator": 0,
+      "literal": "September 30, 2025",
+      "day_zero_offset": -160
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/receiving-inspection-and-rejection-notices.md",
+      "block_id": "b:f068f307",
+      "locator": 0,
+      "literal": "October 8, 2025",
+      "day_zero_offset": -152
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/rejection-and-demand-correspondence.md",
+      "block_id": "b:dc62e685",
+      "locator": 0,
+      "literal": "October 15, 2025",
+      "day_zero_offset": -145
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/rejection-and-demand-correspondence.md",
+      "block_id": "b:88dfeb86",
+      "locator": 0,
+      "literal": "October 20, 2025",
+      "day_zero_offset": -140
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/rejection-and-demand-correspondence.md",
+      "block_id": "b:c6e56715",
+      "locator": 0,
+      "literal": "December 1, 2025",
+      "day_zero_offset": -98
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/rejection-and-demand-correspondence.md",
+      "block_id": "b:8d572019",
+      "locator": 0,
+      "literal": "February 10, 2026",
+      "day_zero_offset": -27
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/case-file/supply-agreement-and-pos.md",
+      "block_id": "b:64bc48f6",
+      "locator": 0,
+      "literal": "May 15, 2025",
+      "day_zero_offset": -298
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/exercise/answer-key.md",
+      "block_id": "b:863c29ef",
+      "locator": 0,
+      "literal": "May 15, 2025",
+      "day_zero_offset": -298
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/facts.md",
+      "block_id": "b:7e86240f",
+      "locator": 0,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 113
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/facts.md",
+      "block_id": "b:0c2edf2f",
+      "locator": 0,
+      "literal": "May 15, 2025",
+      "day_zero_offset": -298
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/facts.md",
+      "block_id": "b:ab5ba2bb",
+      "locator": 0,
+      "literal": "August 12, 2025",
+      "day_zero_offset": -209
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/facts.md",
+      "block_id": "b:ab5ba2bb",
+      "locator": 1,
+      "literal": "September 3, 2025",
+      "day_zero_offset": -187
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/facts.md",
+      "block_id": "b:ab5ba2bb",
+      "locator": 2,
+      "literal": "September 5, 2025",
+      "day_zero_offset": -185
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/facts.md",
+      "block_id": "b:da199ff6",
+      "locator": 0,
+      "literal": "September 22, 2025",
+      "day_zero_offset": -168
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/facts.md",
+      "block_id": "b:da199ff6",
+      "locator": 1,
+      "literal": "September 30, 2025",
+      "day_zero_offset": -160
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/facts.md",
+      "block_id": "b:25d1c47f",
+      "locator": 0,
+      "literal": "October 6, 2025",
+      "day_zero_offset": -154
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/facts.md",
+      "block_id": "b:25d1c47f",
+      "locator": 1,
+      "literal": "October 8, 2025",
+      "day_zero_offset": -152
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/facts.md",
+      "block_id": "b:b6062441",
+      "locator": 0,
+      "literal": "October 15, 2025",
+      "day_zero_offset": -145
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/facts.md",
+      "block_id": "b:b6062441",
+      "locator": 1,
+      "literal": "October 20, 2025",
+      "day_zero_offset": -140
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/facts.md",
+      "block_id": "b:5de57b3e",
+      "locator": 0,
+      "literal": "February 10, 2026",
+      "day_zero_offset": -27
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/facts.md",
+      "block_id": "b:3ecb75f6",
+      "locator": 0,
+      "literal": "April 14, 2026",
+      "day_zero_offset": 36
+    },
+    {
+      "source": "data/matters/m17-ucc-ny/facts.md",
+      "block_id": "b:56bf03ac",
+      "locator": 0,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 113
+    }
+  ]
+}

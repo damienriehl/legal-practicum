@@ -1,8 +1,8 @@
 {
   "id": "m05.per.halvard",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/persona/m05.per.halvard",
-  "@context": "https://sonsteng.damienriehl.com/spine/",
+  "@id": "https://legalpracticum.org/spine/persona/m05.per.halvard",
+  "@context": "https://legalpracticum.org/spine/",
   "matter_id": "m05",
   "identity": {
     "name": "Devon R. Halvard",

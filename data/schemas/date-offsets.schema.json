@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sonsteng.damienriehl.com/spine/schemas/date-offsets.schema.json",
+  "$id": "https://legalpracticum.org/spine/schemas/date-offsets.schema.json",
   "title": "Matter prose Day Zero offsets",
   "version": "1.0.0",
   "type": "object",

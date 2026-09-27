@@ -1,0 +1,273 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m01",
+  "anchor": "2025-11-05",
+  "entries": [
+    {
+      "source": "data/matters/m01-arbitration-meridian/exercise/exercise.json",
+      "block_id": "b:9cd01e61",
+      "locator": 0,
+      "literal": "September 22, 2025",
+      "day_zero_offset": -44
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/exercise/exercise.json",
+      "block_id": "b:9cd01e61",
+      "locator": 1,
+      "literal": "October 1, 2025",
+      "day_zero_offset": -35
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/exercise/exercise.json",
+      "block_id": "b:9cd01e61",
+      "locator": 2,
+      "literal": "October 15, 2025",
+      "day_zero_offset": -21
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/exercise/exercise.json",
+      "block_id": "b:9cd01e61",
+      "locator": 3,
+      "literal": "October 20, 2025",
+      "day_zero_offset": -16
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/exercise/exercise.json",
+      "block_id": "b:9cd01e61",
+      "locator": 4,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 237
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/business/engagement-letter.md",
+      "block_id": "b:a9ffd552",
+      "locator": 0,
+      "literal": "November 5, 2025",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-001-cba-excerpts.md",
+      "block_id": "b:dd05cfda",
+      "locator": 0,
+      "literal": "January 1, 2024",
+      "day_zero_offset": -674
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-001-cba-excerpts.md",
+      "block_id": "b:dd05cfda",
+      "locator": 1,
+      "literal": "December 31, 2026",
+      "day_zero_offset": 421
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-002-notice-of-discharge.md",
+      "block_id": "b:5ea66955",
+      "locator": 0,
+      "literal": "October 15, 2025",
+      "day_zero_offset": -21
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-002-notice-of-discharge.md",
+      "block_id": "b:dd865992",
+      "locator": 0,
+      "literal": "October 15, 2025",
+      "day_zero_offset": -21
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-002-notice-of-discharge.md",
+      "block_id": "b:c766c8fd",
+      "locator": 0,
+      "literal": "September 22, 2025",
+      "day_zero_offset": -44
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-002-notice-of-discharge.md",
+      "block_id": "b:e5ef87c3",
+      "locator": 0,
+      "literal": "October 9, 2025",
+      "day_zero_offset": -27
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-003-safety-emails.md",
+      "block_id": "b:a4c725c7",
+      "locator": 0,
+      "literal": "October 1, 2025",
+      "day_zero_offset": -35
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-003-safety-emails.md",
+      "block_id": "b:fcabfe8a",
+      "locator": 0,
+      "literal": "October 1, 2025",
+      "day_zero_offset": -35
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-004-repair-logs.md",
+      "block_id": "b:b7f484c2",
+      "locator": 0,
+      "literal": "September 22, 2025",
+      "day_zero_offset": -44
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-004-repair-logs.md",
+      "block_id": "b:8125011a",
+      "locator": 0,
+      "literal": "2025-09-22",
+      "day_zero_offset": -44
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-004-repair-logs.md",
+      "block_id": "b:cbe8137a",
+      "locator": 0,
+      "literal": "2025-09-22",
+      "day_zero_offset": -44
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-004-repair-logs.md",
+      "block_id": "b:1c04150b",
+      "locator": 0,
+      "literal": "2025-09-22",
+      "day_zero_offset": -44
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-004-repair-logs.md",
+      "block_id": "b:006eeaf2",
+      "locator": 0,
+      "literal": "2025-09-22",
+      "day_zero_offset": -44
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-004-repair-logs.md",
+      "block_id": "b:f3506e8a",
+      "locator": 0,
+      "literal": "2025-09-22",
+      "day_zero_offset": -44
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-005-personnel-file.md",
+      "block_id": "b:54980aba",
+      "locator": 0,
+      "literal": "2023-03-14",
+      "day_zero_offset": -967
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-005-personnel-file.md",
+      "block_id": "b:6953db5a",
+      "locator": 0,
+      "literal": "2024-11-08",
+      "day_zero_offset": -362
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-005-personnel-file.md",
+      "block_id": "b:86aed323",
+      "locator": 0,
+      "literal": "2025-10-15",
+      "day_zero_offset": -21
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-006-grievance-record.md",
+      "block_id": "b:54a9815e",
+      "locator": 0,
+      "literal": "October 20, 2025",
+      "day_zero_offset": -16
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-006-grievance-record.md",
+      "block_id": "b:61008f65",
+      "locator": 0,
+      "literal": "October 27, 2025",
+      "day_zero_offset": -9
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-006-grievance-record.md",
+      "block_id": "b:bed32683",
+      "locator": 0,
+      "literal": "November 6, 2025",
+      "day_zero_offset": 1
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-006-grievance-record.md",
+      "block_id": "b:267f9a1d",
+      "locator": 0,
+      "literal": "November 18, 2025",
+      "day_zero_offset": 13
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-006-grievance-record.md",
+      "block_id": "b:d24319a1",
+      "locator": 0,
+      "literal": "December 2, 2025",
+      "day_zero_offset": 27
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-007-brake-photos.md",
+      "block_id": "b:4b68a64a",
+      "locator": 0,
+      "literal": "October 24, 2025",
+      "day_zero_offset": -12
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/case-file/exh-007-brake-photos.md",
+      "block_id": "b:fda67814",
+      "locator": 0,
+      "literal": "September 22, 2025",
+      "day_zero_offset": -44
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/facts.md",
+      "block_id": "b:722d9e97",
+      "locator": 0,
+      "literal": "September 22, 2025",
+      "day_zero_offset": -44
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/facts.md",
+      "block_id": "b:dd694243",
+      "locator": 0,
+      "literal": "October 1, 2025",
+      "day_zero_offset": -35
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/facts.md",
+      "block_id": "b:2ed9597d",
+      "locator": 0,
+      "literal": "October 14, 2025",
+      "day_zero_offset": -22
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/facts.md",
+      "block_id": "b:2ed9597d",
+      "locator": 1,
+      "literal": "October 15, 2025",
+      "day_zero_offset": -21
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/facts.md",
+      "block_id": "b:75f1d7d5",
+      "locator": 0,
+      "literal": "October 20, 2025",
+      "day_zero_offset": -16
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/facts.md",
+      "block_id": "b:67d82a01",
+      "locator": 0,
+      "literal": "June 30, 2026",
+      "day_zero_offset": 237
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/matter.json",
+      "locator": 0,
+      "literal": "October 15, 2025",
+      "day_zero_offset": -21,
+      "durable_locator": "json:exhibits.1.title:date:0"
+    },
+    {
+      "source": "data/matters/m01-arbitration-meridian/matter.json",
+      "locator": 0,
+      "literal": "October 1, 2025",
+      "day_zero_offset": -35,
+      "durable_locator": "json:exhibits.2.title:date:0"
+    }
+  ]
+}

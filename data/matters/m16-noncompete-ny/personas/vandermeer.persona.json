@@ -1,7 +1,7 @@
 {
   "id": "m16.per.vandermeer",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/persona/m16.per.vandermeer",
+  "@id": "https://legalpracticum.org/spine/persona/m16.per.vandermeer",
   "matter_id": "m16",
   "identity": {
     "name": "Naomi Vandermeer",

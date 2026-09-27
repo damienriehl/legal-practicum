@@ -1,7 +1,7 @@
 {
   "id": "m03",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/matter/m03",
+  "@id": "https://legalpracticum.org/spine/matter/m03",
   "slug": "m03-tort-meridian",
   "shape": "auto_negligence",
   "tier": "meridian",
@@ -45,4 +45,6 @@
   ],
   "open_date": "2025-02-13",
   "as_of_date": "2026-06-30"
-}
+,
+  "open_date_day_zero_offset": 0,
+  "as_of_date_day_zero_offset": 502}

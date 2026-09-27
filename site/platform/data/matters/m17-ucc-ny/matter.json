@@ -1,7 +1,7 @@
 {
   "id": "m17",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/matter/m17",
+  "@id": "https://legalpracticum.org/spine/matter/m17",
   "slug": "m17-ucc-ny",
   "shape": "ucc_sale_of_goods",
   "tier": "real",
@@ -50,4 +50,6 @@
   ],
   "open_date": "2026-03-09",
   "as_of_date": "2026-06-30"
-}
+,
+  "open_date_day_zero_offset": 0,
+  "as_of_date_day_zero_offset": 113}

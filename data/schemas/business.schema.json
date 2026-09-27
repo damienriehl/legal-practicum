@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sonsteng.damienriehl.com/spine/schemas/business.schema.json",
+  "$id": "https://legalpracticum.org/spine/schemas/business.schema.json",
   "title": "Business",
   "description": "The consolidated per-matter business-of-law layer: intake, conflicts check, engagement/fee agreement, time entries, invoices, and trust-ledger entries. Money-math is validated in validate_spine.py (Decimal arithmetic).",
   "version": "1.0.0",

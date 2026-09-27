@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0.0",
+  "matter_id": "m04",
+  "anchor": "2026-02-18",
+  "entries": [
+    {
+      "source": "data/matters/m04-realestate-meridian/exercise/exercise.json",
+      "block_id": "b:c0b5310a",
+      "locator": 0,
+      "literal": "February 10, 2026",
+      "day_zero_offset": -8
+    },
+    {
+      "source": "data/matters/m04-realestate-meridian/exercise/exercise.json",
+      "block_id": "b:c0b5310a",
+      "locator": 1,
+      "literal": "February 18, 2026",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m04-realestate-meridian/business/engagement-letter.md",
+      "block_id": "b:dd9a5601",
+      "locator": 0,
+      "literal": "February 18, 2026",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m04-realestate-meridian/case-file/exhibit-007-email-meskin-achleitner.md",
+      "block_id": "b:02a9c5ed",
+      "locator": 0,
+      "literal": "February 9, 2026",
+      "day_zero_offset": -9
+    },
+    {
+      "source": "data/matters/m04-realestate-meridian/case-file/exhibit-007-email-meskin-achleitner.md",
+      "block_id": "b:246de346",
+      "locator": 0,
+      "literal": "February 9, 2026",
+      "day_zero_offset": -9
+    },
+    {
+      "source": "data/matters/m04-realestate-meridian/case-file/exhibit-007-email-meskin-achleitner.md",
+      "block_id": "b:f5aa54d8",
+      "locator": 0,
+      "literal": "February 10, 2026",
+      "day_zero_offset": -8
+    },
+    {
+      "source": "data/matters/m04-realestate-meridian/case-file/exhibit-008-sellercounsel-letter.md",
+      "block_id": "b:597e2f6d",
+      "locator": 0,
+      "literal": "March 19, 2026",
+      "day_zero_offset": 29
+    },
+    {
+      "source": "data/matters/m04-realestate-meridian/case-file/witness-achleitner.md",
+      "block_id": "b:e6673225",
+      "locator": 0,
+      "literal": "March 25, 2026",
+      "day_zero_offset": 35
+    },
+    {
+      "source": "data/matters/m04-realestate-meridian/case-file/witness-delahaye.md",
+      "block_id": "b:2259b8f5",
+      "locator": 0,
+      "literal": "March 21, 2026",
+      "day_zero_offset": 31
+    },
+    {
+      "source": "data/matters/m04-realestate-meridian/case-file/witness-vestergaard.md",
+      "block_id": "b:a383765f",
+      "locator": 0,
+      "literal": "April 2, 2026",
+      "day_zero_offset": 43
+    },
+    {
+      "source": "data/matters/m04-realestate-meridian/facts.md",
+      "block_id": "b:c1fac08c",
+      "locator": 0,
+      "literal": "February 10, 2026",
+      "day_zero_offset": -8
+    },
+    {
+      "source": "data/matters/m04-realestate-meridian/facts.md",
+      "block_id": "b:ca6811c8",
+      "locator": 0,
+      "literal": "February 18, 2026",
+      "day_zero_offset": 0
+    },
+    {
+      "source": "data/matters/m04-realestate-meridian/facts.md",
+      "block_id": "b:2102406b",
+      "locator": 0,
+      "literal": "August 15, 2026",
+      "day_zero_offset": 178
+    }
+  ]
+}

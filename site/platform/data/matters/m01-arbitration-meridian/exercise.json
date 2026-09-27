@@ -1,8 +1,8 @@
 {
   "id": "m01.ex",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/exercise/m01.ex",
-  "@context": "https://sonsteng.damienriehl.com/spine/",
+  "@id": "https://legalpracticum.org/spine/exercise/m01.ex",
+  "@context": "https://legalpracticum.org/spine/",
   "matter_id": "m01",
   "role_id": "m01.role.employee-counsel",
   "sections": {

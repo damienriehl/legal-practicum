@@ -1,7 +1,7 @@
 {
   "id": "m12",
   "schema_version": "1.0.0",
-  "@id": "https://sonsteng.damienriehl.com/spine/matter/m12",
+  "@id": "https://legalpracticum.org/spine/matter/m12",
   "slug": "m12-discipline-mn",
   "shape": "attorney_discipline",
   "tier": "real",
@@ -46,4 +46,6 @@
   ],
   "open_date": "2025-12-01",
   "as_of_date": "2026-06-30"
-}
+,
+  "open_date_day_zero_offset": 0,
+  "as_of_date_day_zero_offset": 211}
