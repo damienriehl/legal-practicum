@@ -42,7 +42,7 @@ for (const hosted of [false, true]) test(`chat ${hosted ? 'hosted' : 'BYOK'} com
   const transport = t.mock.method(globalThis, 'fetch', async (url, options) => {
     assert.match(url, hosted ? /api.anthropic.com/ : /api.openai.com/);
     const request = JSON.parse(options.body);
-    assert.equal(request.max_tokens, 300);
+    assert.equal(hosted ? request.max_tokens : request.max_completion_tokens, 300);
     assert.equal(hosted ? request.messages.at(-1).content[0].text : request.messages.at(-1).content, 'Tell me what happened.');
     assert.equal(request.messages.at(-1).injected, undefined);
     assert.ok(hosted ? request.system : request.messages[0].role === 'system');
@@ -168,7 +168,7 @@ for (const provider of ['openai', 'anthropic', 'google', 'hosted']) test(`memo a
     assert.equal(requests[0].thinkingBudget, undefined);
     assert.equal(requests[0].thinkingConfig, undefined);
     assert.equal(requests[0].thinking, undefined);
-    assert.ok(requests[0].max_tokens > 0);
+    assert.ok((provider === 'openai' ? requests[0].max_completion_tokens : requests[0].max_tokens) > 0);
   }
   assert.equal(response.status, 200); const result = await response.json();
   assert.equal(result.assessment.assessment_use, 'formative'); assert.equal(result.assessment.summative_eligible, false);

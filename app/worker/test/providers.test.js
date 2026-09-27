@@ -55,13 +55,13 @@ const NON_GOOGLE_EVALUATOR_BODIES = {
   openai: [
     {
       model: "test-model",
-      max_tokens: 1200,
+      max_completion_tokens: 1200,
       messages: [{ role: "user", content: "Return ONLY valid JSON …" }],
       response_format: { type: "json_object" },
     },
     {
       model: "test-model",
-      max_tokens: 1500,
+      max_completion_tokens: 1500,
       messages: [{ role: "user", content: "Critique this deliverable as valid JSON …" }],
       response_format: { type: "json_object" },
     },
@@ -117,12 +117,13 @@ test("anthropic parseResponse: canonical usage and stop reason passthrough", () 
 
 // ---- OpenAI ------------------------------------------------------------------
 
-test("openai chat: system message first, bearer auth, max_tokens mapped", () => {
+test("openai chat: system message first, bearer auth, max_completion_tokens mapped", () => {
   const { url, headers, body } = openai.buildRequest(CHAT);
   assert.equal(url, "https://api.openai.com/v1/chat/completions");
   assert.equal(headers.authorization, "Bearer sk-test-abc");
   assert.equal(body.model, "test-model");
-  assert.equal(body.max_tokens, 300);
+  assert.equal(body.max_completion_tokens, 300);
+  assert.equal(body.max_tokens, undefined); // legacy field rejected by current OpenAI models
   assert.equal(body.messages[0].role, "system");
   assert.equal(body.messages[0].content, "SEGMENT-A-TEXT\n\nPERSONA-TAIL");
   assert.equal(body.messages.length, 4); // system + 3 chat messages
