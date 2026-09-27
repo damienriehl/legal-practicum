@@ -63,16 +63,22 @@ node app/worker/test/assessment-live-uat.mjs
 ### Paste back Packet A
 
 ```text
-Packet A result: PASS | FAIL
-Editor page:
-First suggestion/batch ID:
-Restoration suggestion/batch ID:
-Original text restored: YES | NO
-Assessment audit ID:
-Override persisted: YES | NO
-Desktop and 390px both usable: YES | NO
-Error shown (if any):
+Packet A result: PASS — completed by Damien, 2026-09-27
+Editor page: not captured
+First suggestion/batch ID: not captured
+Restoration suggestion/batch ID: not captured
+Original text restored: YES — completed round-trip; “done, looks good”
+Assessment audit ID: memo-assessment-55a1292a-b56a-49be-a4b5-6ff0ca01b76d
+Override persisted: YES — PASS after PR #76
+Desktop and 390px both usable: YES; scores PASS
+Error shown (if any): initial override impossible because submit button was invisible;
+fixed in PR #76. Override receipt ID not captured.
 ```
+
+Recorded evidence and automated sweep counts: [Packet A UAT record](../uat/editor-publisher-matrix.md#evidence-record--2026-09-27-packet-a-completed).
+Shipped follow-ups: PR #75 (memo grader Gemini thinking-budget 502), PR #74
+(journey click stability), and PR #77 (Damien-requested in-place per-heading
+overrides; Median always derived). Packet A's U10 and assessment human gates are closed.
 
 ## Packet B — Resolve the three-provider validation disposition
 

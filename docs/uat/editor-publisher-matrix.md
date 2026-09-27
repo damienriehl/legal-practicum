@@ -232,3 +232,30 @@ the earlier dated browser and human Publisher rows retain their original scope.
 | 4 | `packet-d-2026-09-26.w4` | live CAS forward | push unauthenticated; `incomplete`, remote unchanged | Local bookkeeping inverted to prior; prior state proved; PR #70 (push-auth probe) |
 | 5 | `packet-d-2026-09-26.w5` | before live CAS forward | operator agent execution policy refused the live forward command | No mutation beyond DEV step 1a; prior state proved |
 | 6 | `packet-d-2026-09-27.w6` | — | Damien ran the live forward; operator ran the rest | **COMPLETED**: candidate `daea1e1` on `main`, production, DEV, and editor |
+
+## Evidence record — 2026-09-27 Packet A completed
+
+Damien completed Packet A. These human results close the U10 authenticated editor
+round-trip and assessment signer UAT gates; earlier dated NOT RUN rows remain historical.
+
+| Field | Evidence |
+|---|---|
+| Human tester / date | Damien / 2026-09-27 |
+| A1 — editor round-trip (U10) | **PASS** — “done, looks good”; original wording restored as part of the completed round-trip |
+| Editor page / suggestion and restoration batch IDs | Not captured; no IDs inferred |
+| A2 — assessment audit | `memo-assessment-55a1292a-b56a-49be-a4b5-6ff0ca01b76d` |
+| A2 — desktop, scores, 390px | **PASS** |
+| A2 — initial override attempt | **FAIL** — invisible submit button made submission impossible; fixed in PR #76 |
+| A2 — override after fix | **PASS** — Damien confirmed the override persisted; override receipt ID not captured |
+| Shipped follow-ups | PR #75: memo grader Gemini thinking-budget 502 fix; PR #74: journey click stability; PR #77: in-place per-heading override UX at Damien's request, with Median always derived |
+| Automated sweep evidence | `build/codex/packet-a-sweep-report.md` (counts summarized below; predates the human completion and follow-ups) |
+| Local preflight | 22 passed, 0 failed, 0 skipped; Python: 2,936 passed, 1 skipped, 21,693 subtests; editor: 89/89 assertions |
+| Browser revalidation | Local 44/44; DEV initially 42/44, then affected journeys 12/12 on rerun; read-only production 44/44 |
+| Binding revalidation | Local 41/41; DEV 3/3; production 1/1 |
+| Accessibility | Local: 0 FAIL, 85 WARN across 23 cases; live: 0 FAIL, 126 WARN across 12 cases |
+| Red-team | Offline: 0/8 leaks; live: 9 PASS, 0 FAIL, 5 REVIEW of 14, with all five REVIEW responses judged correct by the sweep agent |
+| Post-migration checks | 187/187 files returned 200 on both environments; production 180 byte-identical and 7 edge-only differences; 677/677 date offsets matched, with 642 public and 35 instructor-only literals |
+
+The sweep made no production content changes and did not prepare A2. Its pending
+human checklist is superseded by Damien's results above. Other packets and the
+separate Publisher release/recovery drills are not closed by this record.
