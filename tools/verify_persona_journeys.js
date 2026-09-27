@@ -278,10 +278,13 @@ async function requireElement(page, step, {allowHidden = false, timeout = 0} = {
   stepFailure(step, `control not found (${step.selector || step.name || 'no selector or name'})`);
 }
 
-async function waitForElementVisibility(page, handle, expected = true, timeout = ASSERTION_VISIBILITY_TIMEOUT) {
-  await handle.evaluate((element) => {
-    if (element.isConnected) element.scrollIntoView({block: 'center'});
-  });
+async function waitForElementVisibility(page, handle, expected = true, timeout = ASSERTION_VISIBILITY_TIMEOUT, scrollIfNeeded = false) {
+  if (!scrollIfNeeded || (await handle.evaluate((element) => element.isConnected)
+    && !await handle.isIntersectingViewport({threshold: 1}))) {
+    await handle.evaluate((element) => {
+      if (element.isConnected) element.scrollIntoView({block: 'center'});
+    });
+  }
   try {
     await page.waitForFunction(
       elementIsVisible,
@@ -297,7 +300,7 @@ async function waitForElementVisibility(page, handle, expected = true, timeout =
 
 async function waitForControlStability(page, handle, step) {
   const timeout = step.timeout_ms || ASSERTION_VISIBILITY_TIMEOUT;
-  if (!await waitForElementVisibility(page, handle, true, timeout)) {
+  if (!await waitForElementVisibility(page, handle, true, timeout, true)) {
     stepFailure(step, `control not visible (${step.selector || step.name})`);
   }
   const stable = await handle.evaluate((element, timeoutMs) => new Promise((resolve) => {
