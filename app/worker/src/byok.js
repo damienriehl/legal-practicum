@@ -26,7 +26,7 @@ export function providerModelConfig(env) {
     },
     openai: {
       default: env.MODEL_DEFAULT_OPENAI || "gpt-6-luna",
-      allow: csv(env.MODEL_ALLOW_OPENAI || "gpt-6-luna"),
+      allow: csv(env.MODEL_ALLOW_OPENAI || "gpt-6-luna,gpt-4o-mini,gpt-4o"),
     },
     google: {
       default: env.MODEL_DEFAULT_GOOGLE || "gemini-2.5-flash",

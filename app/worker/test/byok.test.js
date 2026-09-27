@@ -85,6 +85,23 @@ test("model config comes from env vars, with safe fallbacks", () => {
   assert.deepEqual(custom.google.allow, ["a", "b", "c"]);
 });
 
+for (const [label, env] of [["absent", {}], ["empty", { MODEL_ALLOW_OPENAI: "" }]]) {
+  test(`saved OpenAI BYOK selections resolve when the allowlist is ${label}`, () => {
+    for (const model of ["gpt-6-luna", "gpt-4o-mini", "gpt-4o"]) {
+      const savedByok = { provider: "openai", api_key: "fixture-only-key", model };
+      assert.deepEqual(resolveUpstream(env, savedByok), {
+        ok: true, mode: "byok", provider: "openai",
+        apiKey: "fixture-only-key", model, skipBudget: true,
+      });
+    }
+    const defaultUpstream = resolveUpstream(env, {
+      provider: "openai", api_key: "fixture-only-key",
+    });
+    assert.equal(defaultUpstream.ok, true);
+    assert.equal(defaultUpstream.model, "gpt-6-luna");
+  });
+}
+
 test("published API contract matches the Worker contract", () => {
   const testDir = dirname(fileURLToPath(import.meta.url));
   const workerContract = readFileSync(join(testDir, "..", "API-CONTRACTS.md"), "utf8");
