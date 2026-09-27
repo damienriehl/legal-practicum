@@ -961,7 +961,7 @@ verify the static curriculum before configuring any account.
 - **Binding:** command
 - **Entry surface:** `README.md` Quickstart
 - **Preconditions:** disposable directory, Git, Python 3, network access to the public repository
-- **Command:** `git clone <repository-url> sonsteng-magnum-opus && cd sonsteng-magnum-opus/site && python3 -m http.server 8791`
+- **Command:** `git clone https://github.com/damienriehl/legal-practicum.git sonsteng-magnum-opus && cd sonsteng-magnum-opus/site && python3 -m http.server 8791`
 - **Local target:** `http://localhost:8791/platform/`
 - **Account boundary:** cloning the public repository and static serving require no Cloudflare or
   model-provider account

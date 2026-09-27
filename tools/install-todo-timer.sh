@@ -39,7 +39,7 @@ if [[ ! -f "$ENV_FILE" ]]; then
   umask 077
   cat > "$ENV_FILE" <<'EOF'
 # Legal Practicum TODO reminder environment (0600). All optional.
-# SONSTENG_TODO_URL=https://github.com/damienriehl/sonsteng-magnum-opus/blob/main/docs/TODO.md
+# SONSTENG_TODO_URL=https://github.com/damienriehl/legal-practicum/blob/main/docs/TODO.md
 # SONSTENG_NTFY_TOPIC=   # normally read from ~/.config/claude-rc/ntfy-topic
 # SONSTENG_NTFY_SERVER=https://ntfy.sh
 EOF
@@ -57,7 +57,7 @@ fi
 cat > "$UNIT_DIR/$SERVICE" <<EOF
 [Unit]
 Description=Legal Practicum — TODO reminder (docs/TODO.md -> ntfy)
-Documentation=https://github.com/damienriehl/sonsteng-magnum-opus/blob/main/docs/TODO.md
+Documentation=https://github.com/damienriehl/legal-practicum/blob/main/docs/TODO.md
 
 [Service]
 Type=oneshot

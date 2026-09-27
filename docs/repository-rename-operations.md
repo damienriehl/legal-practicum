@@ -1,8 +1,9 @@
 # Repository rename operations
 
-The planned GitHub repository name is `legal-practicum`. The current repository and every active
-reference remain unchanged until Packet D migration evidence has passed and an operator schedules a
-quiet rename window. Historical plans, decisions, handoffs, and evidence remain unchanged forever.
+The confirmed GitHub repository name is `legal-practicum` (Damien, 2026-09-07).
+Active GitHub references use the new name. External cutover still requires accepted Packet D
+migration evidence and a quiet rename window. Local directory names, paths, systemd unit names,
+and the Cockpit repo alias stay unchanged. Historical references remain unchanged forever.
 
 ## Prepare the inventory
 
@@ -39,18 +40,19 @@ confirmed the quiet window and target name.
 4. Patch only entries classified for change. Do not replace occurrences under historical plans,
    decisions, handoffs, or evidence.
 5. Repair each clone remote with the exact new repository URL. Re-read every remote after writing it.
-6. Repair worktree and local checkout paths only where the operator wants the directory name changed;
-   Git worktree metadata must be verified after any filesystem move.
-7. Regenerate user-level systemd units from the repository installers so `WorkingDirectory`, `ExecStart`,
-   and `Documentation` resolve to the intended checkout and URL. Reload the user daemon, but leave
+6. Preserve worktree and local checkout paths, directory names, and the Cockpit repo alias.
+   Verify existing worktree metadata without moving directories.
+7. Regenerate user-level systemd units from the repository installers to update `Documentation` URLs.
+   Preserve unit names, `WorkingDirectory`, and `ExecStart` paths. Reload the user daemon, but leave
    timers stopped until verification passes.
 8. Verify the apply daemon, production-release daemon, TODO timer, build source, and public source links
    against the new canonical repository. Confirm each service uses the intended credentials and scope.
 9. Verify a new clone and ordinary web/blob redirects from the old URL. Separately verify every hosted
    Actions `uses:` consumer against the new name; do not accept a redirect as proof for that class.
-10. Re-run the inventory with `--current sonsteng-magnum-opus`. Only preserved historical entries may
-    remain. Start timers only after the new clone, daemons, build source, links, and Actions consumers
-    all pass.
+10. Re-run the inventory with `--current sonsteng-magnum-opus`. No active GitHub references to the old name may
+    remain. The scanner also labels local paths, decision IDs, and old-name scan parameters as
+    `_patch`; preserve those intentionally retained references and document them in the report.
+    Start timers only after the new clone, daemons, build source, links, and Actions consumers all pass.
 
 If any verification fails, keep timers stopped and repair the active reference. The GitHub rename can
 be reversed through the owner workflow, but do not rewrite historical evidence or use a global search

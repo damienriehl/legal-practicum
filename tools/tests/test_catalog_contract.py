@@ -115,7 +115,7 @@ def test_catalog_source_contract_has_histories_pagination_and_one_free_action():
 
 def test_public_source_repository_is_a_sanctioned_navigation_link():
     import build_site
-    assert "https://github.com/damienriehl/sonsteng-magnum-opus" in build_site._EXTERNAL_ALLOW
+    assert "https://github.com/damienriehl/legal-practicum" in build_site._EXTERNAL_ALLOW
 
 
 def test_machine_catalog_omits_renderer_only_attributes():

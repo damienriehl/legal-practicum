@@ -35,7 +35,7 @@ Use this attribution, adapted only as needed for the medium:
 
 > Legal Practicum — John O. Sonsteng · Damien Riehl · Roger S. Haydock.
 > Licensed under CC BY 4.0. Source:
-> https://github.com/damienriehl/sonsteng-magnum-opus
+> https://github.com/damienriehl/legal-practicum
 
 Retain the license link, credit the source, and indicate if changes were made.
 Do not imply endorsement by the authors or by any institution.

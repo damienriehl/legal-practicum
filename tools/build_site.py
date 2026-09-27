@@ -49,7 +49,7 @@ OUT = os.path.join(SITE, "platform")          # generation root
 MATTERS_DIR = os.path.join(DATA, "matters")
 CURRICULUM_DIR = os.path.join(DATA, "curriculum")   # handbook prose + deliverable templates
 CATALOG_PAGE_SIZE = 50
-PUBLIC_SOURCE_REPOSITORY = "https://github.com/damienriehl/sonsteng-magnum-opus"
+PUBLIC_SOURCE_REPOSITORY = "https://github.com/damienriehl/legal-practicum"
 
 # --------------------------------------------------------------------------- #
 # Small helpers
@@ -3842,7 +3842,7 @@ _HREF_RE = re.compile(r'(?:href|src)="([^"]+)"')
 _EXTERNAL_ALLOW = (
     "https://challenges.cloudflare.com/",
     "https://creativecommons.org/licenses/by/4.0/",
-    "https://github.com/damienriehl/sonsteng-magnum-opus",
+    "https://github.com/damienriehl/legal-practicum",
 )
 _ID_RE = re.compile(r'id="([^"]+)"')
 
