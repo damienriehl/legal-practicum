@@ -1065,9 +1065,33 @@ export class EditorStoreCore {
     if (input.dry_run === true) {
       if (input.suggestion_ids !== undefined) return { ok:false,reason:"validation_error" };
       const rows = this._all(
-        "SELECT s.id,s.kind,s.original_text,s.new_text FROM suggestions s WHERE s.status=? AND NOT EXISTS (SELECT 1 FROM production_noop_applications n WHERE n.suggestion_id=s.id) AND NOT EXISTS (SELECT 1 FROM production_legacy_exclusions e WHERE e.suggestion_id=s.id) AND NOT EXISTS (SELECT 1 FROM production_review_revisions r JOIN json_each(r.suggestion_ids_json) j WHERE j.value=s.id) ORDER BY s.id",STATUS.APPLIED);
-      return { ok:true,dry_run:true,suggestions:rows.map((row) => ({ id:row.id,noop_verified:this._verifiedNoop(row),
-        normalized_match:this._verifiedNoop(row,"normalized") })) };
+        "SELECT s.id,s.kind,s.source_ref,s.group_id,s.apply_batch_id,b.phase,b.commit_sha,s.original_text,s.new_text FROM suggestions s LEFT JOIN apply_batches b ON b.batch_id=s.apply_batch_id WHERE s.status=? AND NOT EXISTS (SELECT 1 FROM production_noop_applications n WHERE n.suggestion_id=s.id) AND NOT EXISTS (SELECT 1 FROM production_legacy_exclusions e WHERE e.suggestion_id=s.id) AND NOT EXISTS (SELECT 1 FROM production_review_revisions r JOIN json_each(r.suggestion_ids_json) j WHERE j.value=s.id) ORDER BY s.id LIMIT 100",STATUS.APPLIED);
+      const encoder = new TextEncoder();
+      // Match the audit's bounded-ID convention: suppress oversized metadata,
+      // never truncate an identifier into a different, apparently valid one.
+      const metadata = (value) => typeof value === "string" && encoder.encode(value).byteLength <= 256 ? value : null;
+      return { ok:true,dry_run:true,suggestions:rows.map((row) => {
+        const original = typeof row.original_text === "string" ? encoder.encode(row.original_text) : null;
+        const proposed = typeof row.new_text === "string" ? encoder.encode(row.new_text) : null;
+        let prefix = null, suffix = null;
+        if (original !== null && proposed !== null) {
+          const limit = Math.min(original.byteLength,proposed.byteLength);
+          prefix = 0; suffix = 0;
+          while (prefix < limit && original[prefix] === proposed[prefix]) prefix++;
+          // Prefix and suffix are independent and may overlap (including exact matches).
+          while (suffix < limit && original[original.byteLength - 1 - suffix] === proposed[proposed.byteLength - 1 - suffix]) suffix++;
+        }
+        // Explicit allowlist: no source text or text fragments may leave this method.
+        return { id:metadata(row.id),noop_verified:this._verifiedNoop(row),
+          normalized_match:this._verifiedNoop(row,"normalized"),kind:metadata(row.kind),
+          op:STRUCTURAL_KINDS.has(row.kind) ? metadata(row.kind) : null,
+          source_ref:metadata(row.source_ref),group_id:metadata(row.group_id),
+          apply_batch_id:metadata(row.apply_batch_id),batch_phase:metadata(row.phase),batch_commit_sha:metadata(row.commit_sha),
+          original_type:row.original_text === null ? "null" : typeof row.original_text,
+          new_type:row.new_text === null ? "null" : typeof row.new_text,
+          original_length:original?.byteLength ?? null,new_length:proposed?.byteLength ?? null,
+          common_prefix_bytes:prefix,common_suffix_bytes:suffix };
+      }) };
     }
     const ids = input.suggestion_ids;
     if ((input.dry_run !== undefined && input.dry_run !== false) || !Array.isArray(ids) ||

@@ -12,6 +12,13 @@ function suggestion(core, id, original = "Same text", proposed = original, kind 
 function finish(core, id, extra = {}) {
   return core.finalize(`batch-${id}`,{ phase:"done",applied:[id],commit_sha:"commit",...extra });
 }
+function diagnostic(id, original, proposed, prefix, suffix, extra = {}) {
+  return { id,noop_verified:original === proposed,normalized_match:true,
+    kind:"prose",op:null,source_ref:"data/copy/home.json#lead",group_id:null,
+    apply_batch_id:`batch-${id}`,batch_phase:"done",batch_commit_sha:"commit",
+    original_type:"string",new_type:"string",original_length:Buffer.byteLength(original),
+    new_length:Buffer.byteLength(proposed),common_prefix_bytes:prefix,common_suffix_bytes:suffix,...extra };
+}
 function rows(core) { return core._all("SELECT * FROM production_noop_applications"); }
 
 test("finalize covers exact no-op text atomically and replay preserves its receipt", () => {
@@ -58,7 +65,7 @@ test("dry run discovers only uncovered applied IDs without text or writes; remed
   const core = makeCore();
   historic(core); historic(core,"real","Old","New"); historic(core,"covered"); cover(core,"covered","legacy");
   assert.deepEqual(core.reconcileNoopReview({ actor:"service:test",dry_run:true }),{
-    ok:true,dry_run:true,suggestions:[{ id:"historic",noop_verified:true,normalized_match:true },{ id:"real",noop_verified:false,normalized_match:false }] });
+    ok:true,dry_run:true,suggestions:[diagnostic("historic","Same text","Same text",9,9),diagnostic("real","Old","New",0,0,{ normalized_match:false })] });
   assert.equal(rows(core).length,0);
   assert.deepEqual(reconcile(core,["historic"]),{ ok:true,replay:false,inserted:1,suggestion_ids:["historic"] });
   const receipt = rows(core);
@@ -313,7 +320,7 @@ for (const review_revisions of [undefined,null,[]]) {
 test("normalized reconciliation requires explicit match and replays only the same match", async () => {
   const core = makeCore(); historic(core,"norm","‘Same  text’","'Same text'"); historic(core,"other");
   const dry = core.reconcileNoopReview({ actor:"service:test",dry_run:true });
-  assert.deepEqual(dry.suggestions[0],{ id:"norm",noop_verified:false,normalized_match:true });
+  assert.deepEqual(dry.suggestions[0],diagnostic("norm","‘Same  text’","'Same text'",0,0));
   assert.deepEqual(reconcile(core,["norm"]),{ ok:false,reason:"not_noop" });
   assert.equal(reconcile(core,["norm"],{ match:"normalized" }).inserted,1);
   const receipt = rows(core);
@@ -354,4 +361,65 @@ test("finalize replays exact evidence regardless of revision array presence", ()
   assert.equal(receipt[0].match,"exact");
   assert.deepEqual(finish(core,"same"),{ ok:true });
   assert.deepEqual(rows(core),receipt);
+});
+
+for (const [id,original,proposed,kind,prefix,suffix,normalized] of [
+  ["exact","SECRET_EXACT_é","SECRET_EXACT_é","prose",15,15,true],
+  ["normalized","SECRET_NORM  é","SECRET_NORM é","json_scalar",12,3,true],
+  ["real","SECRET_CHANGE_é_tail","SECRET_CHANGE_ê_tail","prose",15,5,false],
+  ["structural","SECRET_MOVE_é","SECRET_MOVE_é","move",14,14,false],
+]) test(`dry-run diagnostics for ${id} contain only metadata and byte counts`, () => {
+  const core = makeCore(); historic(core,id,original,proposed);
+  core.sql.exec("UPDATE suggestions SET kind=?,group_id='group' WHERE id=?",kind,id);
+  const result = core.reconcileNoopReview({ actor:"test",dry_run:true });
+  assert.deepEqual(result.suggestions,[diagnostic(id,original,proposed,prefix,suffix,{
+    kind,op:kind === "move" ? "move" : null,group_id:"group",
+    noop_verified:id === "exact",normalized_match:normalized })]);
+  const serialized = JSON.stringify(result);
+  for (const marker of [original,proposed,"SECRET_","original_text","new_text"])
+    assert.equal(serialized.includes(marker),false,marker);
+  assert.equal(rows(core).length,0);
+});
+
+for (const [original,proposed,original_type,new_type,oldLength,newLength,prefix,suffix] of [
+  [null,"SECRET_NULL_NEW","null","string",null,15,null,null],
+  ["SECRET_NULL_OLD",null,"string","null",15,null,null,null],
+  [null,null,"null","null",null,null,null,null],
+  ["","","string","string",0,0,0,0],
+  ["é","éx","string","string",2,3,2,0],
+  [new Uint8Array([65,66]),"SECRET_BLOB_NEW","object","string",null,15,null,null],
+]) test(`dry-run reports stored types and nullable lengths: ${original_type}/${new_type}/${oldLength}`, () => {
+  const core = makeCore(); historic(core);
+  core.sql.exec("UPDATE suggestions SET original_text=?,new_text=?",original,proposed);
+  core.sql.exec("DELETE FROM apply_batches");
+  const result = core.reconcileNoopReview({ actor:"test",dry_run:true });
+  const row = result.suggestions[0];
+  assert.deepEqual([row.original_type,row.new_type,row.original_length,row.new_length,
+    row.common_prefix_bytes,row.common_suffix_bytes],
+    [original_type,new_type,oldLength,newLength,prefix,suffix]);
+  assert.equal(row.batch_phase,null); assert.equal(row.batch_commit_sha,null);
+  assert.equal(row.apply_batch_id,"batch-historic");
+  assert.equal(JSON.stringify(result).includes("SECRET_"),false);
+});
+
+test("dry-run bounds every metadata string in UTF-8 bytes and limits discovery to 100 rows", () => {
+  const core = makeCore();
+  for (let i = 0; i < 101; i++) historic(core,String(i).padStart(3,"0"));
+  const boundary = "é".repeat(128), oversized = "é".repeat(129);
+  core.sql.exec("UPDATE suggestions SET source_ref=?,group_id=?",boundary,oversized);
+  core.sql.exec("UPDATE suggestions SET id=?,kind=?,apply_batch_id=? WHERE id='099'",oversized,oversized,oversized);
+  core.sql.exec("UPDATE apply_batches SET batch_id=?,phase=?,commit_sha=? WHERE batch_id='batch-099'",oversized,oversized,oversized);
+  core.sql.exec("DELETE FROM suggestions WHERE id='100'");
+  let result = core.reconcileNoopReview({ actor:"test",dry_run:true });
+  const last = result.suggestions.at(-1);
+  assert.equal(last.source_ref,boundary);
+  for (const key of ["id","kind","group_id","apply_batch_id","batch_phase","batch_commit_sha"])
+    assert.equal(last[key],null,key);
+  core.sql.exec("UPDATE suggestions SET source_ref=?",oversized);
+  historic(core,"extra1"); historic(core,"extra2");
+  result = core.reconcileNoopReview({ actor:"test",dry_run:true });
+  assert.equal(result.suggestions.length,100);
+  assert.equal(result.suggestions[0].source_ref,null);
+  for (const row of result.suggestions) for (const value of Object.values(row))
+    if (typeof value === "string") assert.ok(Buffer.byteLength(value) <= 256);
 });

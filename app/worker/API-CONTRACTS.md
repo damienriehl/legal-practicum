@@ -791,11 +791,27 @@ and `X-Edit-Request: 1` CSRF check as legacy reconciliation. It reads at most
 closed legacy migration seam.
 
 - `{ "dry_run": true }` (IDs omitted) returns 200 with
-  `{ok:true,dry_run:true,suggestions:[{id,noop_verified,normalized_match}]}` for all uncovered
-  applied suggestions and writes nothing. Verification describes only the stored
-  text/kind predicates: `noop_verified` is exact, `normalized_match` is normalized.
-  Only IDs and booleans appear per suggestion; a write also requires valid
-  completed batch evidence.
+  `{ok:true,dry_run:true,suggestions:[{id,noop_verified,normalized_match,...}]}` for at most
+  100 uncovered applied suggestions, ordered by ID, and writes nothing. Verification
+  describes only the stored text/kind predicates: `noop_verified` is exact,
+  `normalized_match` is normalized. Each entry also includes text-free diagnostics:
+  - `kind`, `op` (the structural kind, otherwise `null`), `source_ref`, `group_id`
+    (or `null`), `apply_batch_id`, `batch_phase`, and `batch_commit_sha`. Missing
+    batch evidence is `null`. Every string field, including `id`, is limited to
+    256 UTF-8 bytes; oversized metadata is suppressed as `null`, never truncated
+    into a different identifier.
+  - `original_type` and `new_type`: `"null"` for null, otherwise JavaScript `typeof`
+    (normally `"string"`). `original_length` and `new_length` are UTF-8 byte lengths
+    for strings, otherwise `null`.
+  - `common_prefix_bytes` and `common_suffix_bytes`: independent shared byte counts
+    for the two UTF-8 strings, or `null` if either value is not a string. Counts
+    may overlap (both equal the full byte length for identical strings), and a
+    shared byte boundary may fall within a multibyte character. Empty strings
+    have zero shared bytes. No original/new text or text fragments are returned.
+
+  A write still requires valid completed batch evidence. A full 100-row response
+  may be incomplete; reconciling eligible entries allows later uncovered IDs to
+  appear on subsequent dry runs.
 - `{ "suggestion_ids": ["id"] }` accepts 1–100 unique, nonblank string IDs, each
   at most 256 UTF-8 bytes. Every ID must be applied, have no revision/legacy
   coverage, belong to a done batch with a nonempty commit SHA, and pass the Worker
