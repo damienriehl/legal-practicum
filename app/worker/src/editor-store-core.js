@@ -3247,7 +3247,9 @@ export class EditorStoreCore {
       oversized_migration_fields:count(
         "SELECT COUNT(*) AS count FROM production_review_migrations WHERE length(CAST(id AS BLOB))>256 OR length(CAST(prod_base AS BLOB))>256"),
       unreconciled_applied_suggestions:count(
-        "WITH covered(id) AS (SELECT suggestion_id FROM production_noop_applications UNION SELECT suggestion_id FROM production_legacy_exclusions UNION SELECT j.value FROM production_review_revisions r JOIN json_each(r.suggestion_ids_json) j) SELECT COUNT(*) AS count FROM suggestions s LEFT JOIN covered c ON c.id=s.id WHERE s.status=? AND c.id IS NULL",STATUS.APPLIED),
+        "WITH covered(id) AS (SELECT n.suggestion_id FROM production_noop_applications n JOIN apply_batches b ON b.batch_id=n.batch_id WHERE b.phase='done' AND b.commit_sha=n.commit_sha UNION SELECT suggestion_id FROM production_legacy_exclusions UNION SELECT j.value FROM production_review_revisions r JOIN json_each(r.suggestion_ids_json) j) SELECT COUNT(*) AS count FROM suggestions s LEFT JOIN covered c ON c.id=s.id WHERE s.status=? AND c.id IS NULL",STATUS.APPLIED),
+      noop_receipts_without_done_batch:count(
+        "SELECT COUNT(*) AS count FROM production_noop_applications n WHERE NOT EXISTS (SELECT 1 FROM apply_batches b WHERE b.batch_id=n.batch_id AND b.phase='done' AND b.commit_sha=n.commit_sha)"),
       noop_application_coverage_overlap:count(
         "SELECT COUNT(*) AS count FROM production_noop_applications n WHERE EXISTS (SELECT 1 FROM production_legacy_exclusions e WHERE e.suggestion_id=n.suggestion_id) OR EXISTS (SELECT 1 FROM production_review_revisions r JOIN json_each(r.suggestion_ids_json) j WHERE j.value=n.suggestion_id)"),
       legacy_exclusion_review_overlap:count(

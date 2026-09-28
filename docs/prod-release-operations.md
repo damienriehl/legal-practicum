@@ -307,7 +307,14 @@ evidence; this endpoint does not waive review for real changes.
 Record only IDs/counts from the receipt in the private operator handoff. Rerun
 `tools/prod_release_readiness.py` and the text-free release audit; require
 `unreconciled_applied_suggestions: 0`,
-`noop_application_coverage_overlap: 0`, and every other invariant zero. Confirm
+`noop_application_coverage_overlap: 0`,
+`noop_receipts_without_done_batch: 0`, and every other invariant zero. The latter
+counts receipts whose apply batch is missing, is not `done`, or has a different
+(including null) commit SHA; any nonzero count is a rollout stop. Such receipts
+remain stored but no longer cover applied suggestions in
+`unreconciled_applied_suggestions` unless another coverage source exists.
+Crash-recovery phase transitions remain allowed; restoring the batch to `done`
+at the receipt's commit restores coverage. Confirm
 `counts.noop_applications` increased by the receipt's inserted count (zero on
 replay). These rows provide attribution only and never create Publisher decisions
 or release authority.

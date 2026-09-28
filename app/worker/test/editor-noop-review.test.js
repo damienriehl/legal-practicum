@@ -207,3 +207,49 @@ test("finalize rejects changed no-op commit evidence and rolls back the batch up
   assert.equal(core._one("SELECT commit_sha FROM apply_batches").commit_sha,"commit");
   assert.deepEqual(rows(core),before);
 });
+
+for (const commit_sha of [null,"commit"]) test(`audit withdraws no-op coverage after rollback with commit ${commit_sha} and restores it when done`, () => {
+  const core = makeCore(); suggestion(core,"same"); finish(core,"same");
+  const receipt = rows(core);
+  assert.equal(core.finalize("batch-same",{ phase:"rolled_back",commit_sha }).ok,true);
+  let audit = core.productionReleaseAudit();
+  assert.equal(audit.invariants.noop_receipts_without_done_batch,1);
+  assert.equal(audit.invariants.unreconciled_applied_suggestions,1);
+  assert.equal(audit.counts.noop_applications,1);
+  assert.deepEqual(rows(core),receipt);
+  assert.equal(core.finalize("batch-same",{ phase:"done",commit_sha }).ok,true);
+  audit = core.productionReleaseAudit();
+  assert.equal(audit.invariants.noop_receipts_without_done_batch,0);
+  assert.equal(audit.invariants.unreconciled_applied_suggestions,0);
+  assert.deepEqual(rows(core),receipt);
+});
+
+for (const [name,sql] of [
+  ["commit mismatch","UPDATE apply_batches SET commit_sha='different' WHERE batch_id='batch-same'"],
+  ["null commit","UPDATE apply_batches SET commit_sha=NULL WHERE batch_id='batch-same'"],
+  ["missing batch","DELETE FROM apply_batches WHERE batch_id='batch-same'"],
+]) test(`audit rejects no-op receipt with ${name}`, () => {
+  const core = makeCore(); suggestion(core,"same"); finish(core,"same");
+  const receipt = rows(core);
+  core.sql.exec(sql);
+  const audit = core.productionReleaseAudit();
+  assert.equal(audit.invariants.noop_receipts_without_done_batch,1);
+  assert.equal(audit.invariants.unreconciled_applied_suggestions,1);
+  assert.deepEqual(rows(core),receipt);
+});
+
+test("replay rejects changed original text that remains an exact no-op without changing receipts", () => {
+  const core = makeCore(); historic(core,"first"); historic(core,"second");
+  assert.equal(reconcile(core,["first"]).ok,true);
+  const receipt = rows(core);
+  core.sql.exec("UPDATE suggestions SET original_text='Different text',new_text='Different text' WHERE id='first'");
+  assert.deepEqual(reconcile(core,["second","first"]),{ ok:false,reason:"idempotency_conflict" });
+  assert.deepEqual(rows(core),receipt);
+});
+
+test("audit counts a no-op receipt overlapping both legacy and revision coverage once", () => {
+  const core = makeCore(); historic(core);
+  assert.equal(reconcile(core,["historic"]).ok,true);
+  cover(core,"historic","legacy"); cover(core,"historic","revision");
+  assert.equal(core.productionReleaseAudit().invariants.noop_application_coverage_overlap,1);
+});

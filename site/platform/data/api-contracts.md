@@ -793,8 +793,16 @@ closed legacy migration seam.
   `idempotency_conflict` (409). Auth/CSRF failures return 403. Responses never
   include suggestion text.
 
-The audit adds `counts.noop_applications` and includes these receipts in the
-`unreconciled_applied_suggestions` coverage CTE. Its zero-expected
+The audit adds `counts.noop_applications` and includes a receipt in the
+`unreconciled_applied_suggestions` coverage CTE only while its apply batch is
+`done` at the receipt's commit SHA. Its zero-expected
+`invariants.noop_receipts_without_done_batch` counts receipts whose batch is
+missing, is not `done`, or has a different (including null) commit SHA. Any
+nonzero count is a rollout stop. Phase transitions remain allowed for crash
+recovery: moving a batch away from `done` retains its immutable receipt but
+withdraws coverage, making the applied suggestion unreconciled unless another
+coverage source exists. Restoring `done` at the same commit restores coverage.
+The zero-expected
 `invariants.noop_application_coverage_overlap` counts each no-op receipt also
 covered by a review revision or legacy exclusion once. Any overlap is a rollout
 stop, even if the uncovered count is zero.
