@@ -1309,6 +1309,29 @@ class StructuralApplyTest(unittest.TestCase):
         self.assertEqual(paras[0], "Revised intake notes.")
         self.assertEqual(paras[1], "Added after the revision.")
 
+    def test_invalid_split_replays_independent_prose_in_same_file(self):
+        anchor = bref(self.root, M03_MD, 0)
+        split_ref = bref(self.root, M03_MD, 1)
+        self._add_op("invalid-split", split_ref, "split",
+                     new_text="Only one paragraph, so this cannot split.")
+        blk = self.index[anchor]
+        self.store.add(id="prose", source_ref=anchor,
+                       new_text="Revised intake notes.",
+                       original_hash=blk["original_hash"],
+                       original_text=blk["original_text"],
+                       kind="prose", json_path=None, status="accepted")
+        before = self._md()
+        pipe = FakePipeline(SPEC)
+        res = self._run("invalid-split", pipe)
+        self.assertEqual({r["id"] for r in res.needs_human}, {"invalid-split"})
+        self.assertEqual([p.suggestion_id for p in res.applied], ["prose"])
+        self.assertTrue(res.committed)
+        self.assertEqual(self.store.rows["invalid-split"]["status"], "needs_human")
+        self.assertEqual(self.store.rows["prose"]["status"], "applied")
+        expected = before.replace(blk["original_text"], "Revised intake notes.")
+        self.assertEqual(pipe.worktree_snapshot[M03_MD], expected)
+        self.assertEqual(self._md(), expected)
+
     def test_noop_move_cannot_borrow_same_file_prose_change(self):
         anchor = bref(self.root, M03_MD, 0)
         mover = bref(self.root, M03_MD, 1)

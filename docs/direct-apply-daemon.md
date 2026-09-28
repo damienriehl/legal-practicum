@@ -277,8 +277,11 @@ its patches to pre-apply source snapshots in an isolated temporary directory,
 using the same file writer and schema context. If every targeted file remains
 byte-identical, the whole group routes to `needs_human`, even when another group
 edits the same file. The combined worktree write retains its separate file-level
-byte check. Both checks run on the bounded replay of retained groups through
-the same helper. Generated build stamps cannot satisfy either check.
+byte check only for files where the writer reported success for every member
+patch. A failed member can atomically abandon the file write; successful members
+of independent groups stay eligible for rollback/replay instead of being
+misclassified as silent writes. Both checks run on the bounded replay of retained
+groups through the same helper. Generated build stamps cannot satisfy either check.
 Reasons remain the bounded `gate_needs_human` (formatting gate) or
 `needs_human` (source-byte guard). Existing exact fresh-text no-ops retain their
 prior behavior.

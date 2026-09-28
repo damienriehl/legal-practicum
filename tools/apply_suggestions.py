@@ -1666,6 +1666,13 @@ def _apply_patch_files(worktree, patches):
     results = {}
     for relpath, members in by_file.items():
         results.update(apply_file_patches(worktree, relpath, members))
+    # A failed member can atomically abandon its file's entire write. Preserve
+    # successful co-tenants for rollback/replay; only all-success files can
+    # represent a genuinely silent successful write.
+    successful_files = {
+        relpath for relpath, members in by_file.items()
+        if all(results.get(p.suggestion_id) is True for p in members)
+    }
     changed = set()
     for relpath in by_file:
         with open(safe_data_path(worktree, relpath), "rb") as fh:
@@ -1674,7 +1681,8 @@ def _apply_patch_files(worktree, patches):
     for group_id, members in by_group.items():
         if (any(p.original_text != p.new_text or p.op for p in members)
                 and (group_id not in changed_groups
-                     or not any(p.relpath in changed for p in members))):
+                     or all(p.relpath in successful_files and p.relpath not in changed
+                            for p in members))):
             for patch in members:
                 if results.get(patch.suggestion_id) is True:
                     results[patch.suggestion_id] = OUT_NEEDS_HUMAN

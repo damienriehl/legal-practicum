@@ -48,7 +48,8 @@ snapshots in a `TemporaryDirectory`, mirroring target paths through
 coercion semantics (for example, a number field currently containing an integer
 must still accept a fractional value). A group whose isolated writes leave all
 target files byte-identical is rejected. The real combined write also retains
-its file-level byte check. Existing whole-group rollback and bounded replay
+its file-level byte check for files whose member patches all reported success.
+Existing whole-group rollback and bounded replay
 handle the refusal; replay uses the same helper. This checks each group's net
 effect, not whether every member of a partially effective group changed.
 Genuine prose edits around preserved formatting still apply. Exact fresh-text
@@ -68,6 +69,17 @@ applied move before the correction and now verifies that only the prose edit
 lands. A second regression confirms two real prose edits in the same file both
 remain applied. The existing silent-writer and real curriculum regressions remain
 required checks.
+
+A further PR #84 review found that the combined-write guard also rejected valid
+independent groups when a failed patch atomically abandoned their shared file's
+write. The guard now considers a file's unchanged bytes only when every member
+patch reported success. If any member failed, successful co-tenants keep their
+results so rollback removes the invalid group and replays the valid one. The
+per-group isolated check still runs, including on replay. A real transaction
+regression pairs a valid prose edit with an invalid split on separate Markdown
+blocks: it failed before this correction because both rows became `needs_human`,
+and now verifies that only the split is rejected and the prose edit lands with
+the rest of the file unchanged.
 
 # Operator remediation
 
