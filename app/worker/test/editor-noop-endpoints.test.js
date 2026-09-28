@@ -6,6 +6,13 @@ import { reviewNoopReconcileEndpoint } from "../src/editor-endpoints.js";
 const origin = "https://editor.example.test";
 const path = "/edit/v1/publisher/review/reconcile-noop";
 const auth = { editor:"service:test",credential_channel:"bearer",scopes:{ admin:{ granted:true } } };
+function diagnostic(id, original, proposed, prefix, suffix, extra = {}) {
+  return { id,noop_verified:original === proposed,normalized_match:true,
+    kind:"prose",op:null,source_ref:"source",group_id:null,
+    apply_batch_id:"batch",batch_phase:"done",batch_commit_sha:"commit",
+    original_type:"string",new_type:"string",original_length:Buffer.byteLength(original),
+    new_length:Buffer.byteLength(proposed),common_prefix_bytes:prefix,common_suffix_bytes:suffix,...extra };
+}
 async function fixture(t) {
   const db = await durableObject(EditorStore); t.after(db.close);
   const env = { EDITOR:{ getByName:() => db.object },EDIT_ORIGIN:origin,
@@ -28,7 +35,7 @@ test("reconcile-noop route runs through real auth, endpoint and Durable Object; 
   db.sql.exec("UPDATE apply_batches SET phase='done',commit_sha='commit'");
   const dry = await call({ dry_run:true });
   assert.equal(dry.status,200);
-  assert.deepEqual(await dry.json(),{ ok:true,dry_run:true,suggestions:[{ id:"historic",noop_verified:true,normalized_match:true }] });
+  assert.deepEqual(await dry.json(),{ ok:true,dry_run:true,suggestions:[diagnostic("historic","Private unchanged wording","Private unchanged wording",25,25)] });
   assert.equal(core.productionReleaseAudit().counts.noop_applications,0);
   const first = await call({ suggestion_ids:["historic"],actor:"forged",noop_verified:true });
   assert.equal(first.status,201);
@@ -81,7 +88,7 @@ test("reconcile-noop HTTP exposes normalized match without text and enforces rec
   db.sql.exec("UPDATE suggestions SET status='applied'");
   db.sql.exec("UPDATE apply_batches SET phase='done',commit_sha='commit'");
   assert.deepEqual(await (await call({ dry_run:true })).json(),{
-    ok:true,dry_run:true,suggestions:[{ id:"norm",noop_verified:false,normalized_match:true }] });
+    ok:true,dry_run:true,suggestions:[diagnostic("norm","‘Private  wording’","'Private wording'",0,0)] });
   const refused = await call({ suggestion_ids:["norm"] });
   assert.equal(refused.status,400);
   assert.deepEqual(await refused.json(),{ ok:false,reason:"not_noop" });
@@ -94,4 +101,30 @@ test("reconcile-noop HTTP exposes normalized match without text and enforces rec
   assert.equal(conflict.status,409);
   assert.deepEqual(await conflict.json(),{ ok:false,reason:"idempotency_conflict" });
   assert.equal((await call({ ...body,match:"invalid" })).status,400);
+});
+
+for (const [id,original,proposed,kind,prefix,suffix,normalized] of [
+  ["exact","HTTP_SECRET_EXACT_é","HTTP_SECRET_EXACT_é","prose",20,20,true],
+  ["normalized","HTTP_SECRET_NORM  é","HTTP_SECRET_NORM é","json_scalar",17,3,true],
+  ["real","HTTP_SECRET_CHANGE_é_tail","HTTP_SECRET_CHANGE_ê_tail","prose",20,5,false],
+  ["structural","HTTP_SECRET_MOVE_é","HTTP_SECRET_MOVE_é","move",19,19,false],
+]) test(`HTTP dry-run exposes ${id} diagnostics without text or fragments`, async t => {
+  const { db,call } = await fixture(t);
+  const core = db.object.core;
+  assert.equal(core.suggest({ id,editor:"slot:test",scope:"edit",origin:"human",kind,
+    source_ref:"source",group_id:"group",original_text:original,original_hash:"hash",
+    new_text:proposed,map_version:"v1" },{}, { directApply:true }).ok,true);
+  db.sql.exec("UPDATE suggestions SET status='accepted' WHERE id=?",id);
+  assert.equal(core.claimBatch("batch",{ ids:[id] }).ok,true);
+  db.sql.exec("UPDATE suggestions SET status='applied'");
+  db.sql.exec("UPDATE apply_batches SET phase='done',commit_sha='commit'");
+  const response = await call({ dry_run:true });
+  assert.equal(response.status,200);
+  const serialized = await response.text();
+  for (const marker of [original,proposed,"HTTP_SECRET_","original_text","new_text"])
+    assert.equal(serialized.includes(marker),false,marker);
+  assert.deepEqual(JSON.parse(serialized),{ ok:true,dry_run:true,suggestions:[
+    diagnostic(id,original,proposed,prefix,suffix,{ kind,op:kind === "move" ? "move" : null,
+      group_id:"group",noop_verified:id === "exact",normalized_match:normalized })] });
+  assert.equal(core.productionReleaseAudit().counts.noop_applications,0);
 });

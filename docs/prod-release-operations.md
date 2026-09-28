@@ -287,13 +287,24 @@ attribution only; they never become operations, decisions, or release members.
 After deploying the Worker fix through the normal release path, use the
 admin-bearer migration channel and `X-Edit-Request: 1` header to POST
 `{"dry_run":true}` to `/edit/v1/publisher/review/reconcile-noop`. The response
-lists uncovered applied IDs and their `noop_verified` (exact) and
-`normalized_match` booleans without exposing suggestion text. Dry run writes
-nothing and does not require reopening the one-time legacy reconciliation receipt.
+lists up to 100 uncovered applied IDs (ordered by ID), their `noop_verified`
+(exact) and `normalized_match` booleans, and text-free diagnostics: `kind`, `op`,
+`source_ref`, `group_id`, `apply_batch_id`, `batch_phase`, `batch_commit_sha`,
+`original_type`, `new_type`, `original_length`, `new_length`,
+`common_prefix_bytes`, and `common_suffix_bytes`. Use the kind/op and stored
+text types to identify structural or non-string rows. Lengths and shared
+prefix/suffix counts measure UTF-8 bytes; counts are independent and may overlap,
+including within multibyte characters. Non-string lengths and comparisons are
+`null`. No suggestion text or fragments are exposed. Missing metadata and
+strings exceeding 256 UTF-8 bytes are returned as `null`; consult the apply
+journal if batch evidence is unavailable. A full 100-row response may omit later
+IDs; repeat discovery after reconciling eligible entries. Dry run writes nothing
+and does not require reopening the one-time legacy reconciliation receipt.
 
 For IDs with `noop_verified:true`, submit `{"suggestion_ids":["ID"]}` (default
 `match: "exact"`). For IDs with `normalized_match:true` but `noop_verified:false`,
-first identify their done batch commit from the apply journal and run
+first check `batch_phase` is `done` and use `batch_commit_sha` (or identify the
+commit from the apply journal), then run
 `git show --stat <commit_sha>`. Confirm that the commit changed **no source file**
 (for example, only `site/platform/data/.build-stamp.json` changed). Only after
 that check submit `{"suggestion_ids":["ID"],"match":"normalized"}`. If any source
