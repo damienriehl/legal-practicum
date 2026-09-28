@@ -311,9 +311,14 @@ Both predicates are limited to prose/JSON scalar edits. Normalized equality uses
 the Worker's Python-parity text normalization for quotes, whitespace, and Unicode.
 Python applies against fresh source text, which can already equal the proposed
 text byte-for-byte even when the stored original differs under normalization.
-With a production frontier, finalize's revision array provides the evidence to
-select normalized matching automatically; absent/null arrays retain exact
-matching. Structural/page-override actions and real content changes remain
+Finalize is always exact-only (`match: "exact"`), regardless of
+`review_revisions`. Array presence, including an empty array, is not
+Worker-verifiable evidence that no source bytes changed: an admin/service caller
+can submit `review_revisions: []` for a whitespace-only real change.
+Normalization-only no-ops fail closed and stay unreconciled until an operator
+performs the commit check above and explicitly reconciles them with
+`match: "normalized"`. Only reconcile-noop permits normalized matching.
+Structural/page-override actions and real content changes remain
 ineligible; this endpoint does not waive review for real changes.
 
 Record only IDs/counts from the receipt in the private operator handoff. Rerun

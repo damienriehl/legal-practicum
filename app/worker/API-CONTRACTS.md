@@ -763,24 +763,22 @@ revision evidence rolls back the entire
 transaction; uncovered real changes retain their existing fail-closed behavior.
 
 Both predicates accept only `prose` and `json_scalar` rows with string-valued
-stored `original_text` and `new_text`. Finalize selects the predicate using
-`Array.isArray(review_revisions)`:
-
-- With an array (including `[]`), an uncovered suggestion qualifies when
-  `normalize(original_text) === normalize(new_text)` using Worker `text-norm.js`
-  (Python `text_norm` parity). The receipt records `match: "normalized"`.
-- With `review_revisions` absent or null, stored strings must be exactly equal;
-  the receipt records `match: "exact"`.
+stored `original_text` and `new_text`. Finalize is always exact-only, regardless
+of `review_revisions`: stored strings must be exactly equal and the receipt
+records `match: "exact"`. Array presence, including `review_revisions: []`, is
+not Worker-verifiable evidence that no source bytes changed. An admin/service
+caller can supply an empty array for a whitespace-only real change.
 
 Supplied revisions are recorded before considering receipts, so a suggestion
-covered by a revision in the same call receives no no-op receipt. The current
-client's production frontier enables review evidence: Python's gate accepts a
-fresh source block by normalized hash and places its fresh text in the Patch.
-Review generation compares those fresh bytes with `new_text`, not the stored
-original. If fresh equals new, no operations or revision are emitted, even when
-the stored original differs in quotes, whitespace, or Unicode normalization.
-A byte-changing patch would emit operations and a covering revision. Without
-that client evidence, normalized equality alone is insufficient.
+covered by a revision in the same call receives no no-op receipt. Python's gate
+accepts a fresh source block by normalized hash and places its fresh text in the
+Patch. Review generation compares those fresh bytes with `new_text`, not the
+stored original. If fresh equals new, no operations or revision are emitted,
+even when the stored original differs in quotes, whitespace, or Unicode
+normalization. Such normalization-only no-ops fail closed and remain
+unreconciled until an operator confirms `git show --stat <commit_sha>` changed
+no source file, then explicitly uses reconcile-noop with `match: "normalized"`.
+Normalized matching is available only through that explicit opt-in.
 
 Real content changes, structural operations, and page overrides remain
 ineligible. The hash stays SHA-256 of `normalize(original_text)`, computed

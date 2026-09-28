@@ -34,13 +34,16 @@ and new can be byte-identical while stored original and new differ only in
 quotes, whitespace, or Unicode normalization. Python production code needs no
 change; a gate-to-revision regression test preserves this mechanism.
 
-Finalize now selects normalized stored equality only when
-`Array.isArray(review_revisions)` is true (including an empty array) and no
-revision covers the suggestion. The current client with a production frontier
-would have emitted operations and a covering revision for changed bytes. With
-absent/null review evidence, keep exact stored equality: Python's tokenizer
-retains whitespace and punctuation, so normalization alone does not prove a
-byte-level no-op. Both predicates exclude structural and page-override actions.
+Finalize is always exact-only (`match: "exact"`), regardless of
+`review_revisions`. Array presence, including an empty array, is not
+Worker-verifiable evidence that source bytes were unchanged: an admin/service
+caller could supply `review_revisions: []` for a whitespace-only real change.
+Python's tokenizer retains whitespace and punctuation, so normalized equality
+alone cannot certify a byte-level no-op. Normalization-only no-ops fail closed
+and stay unreconciled until an operator checks the commit as described below
+and explicitly uses reconcile-noop with `match: "normalized"`. Normalized
+matching is available only through this opt-in. Both predicates exclude
+structural and page-override actions.
 Receipts record `match: "exact" | "normalized"`; the additive schema migration
 marks pre-existing rows `exact`. Hashing remains synchronous SHA-256 of normalized
 stored original text.

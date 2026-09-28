@@ -1006,7 +1006,8 @@ export class EditorStoreCore {
       }
     }
     if (phase === "done") {
-      const match = Array.isArray(review_revisions) ? "normalized" : "exact";
+      // Array presence is not Worker-verifiable evidence of unchanged source bytes.
+      const match = "exact";
       for (const id of applied || []) {
         const evidence = this._noopApplicationEvidence(id,match);
         if (evidence.reason === "idempotency_conflict") throw { reviewFailure:evidence };
@@ -1021,9 +1022,8 @@ export class EditorStoreCore {
     }
   }
 
-  // Current clients compare fresh source bytes with new_text and supply a
-  // revision array. Without covering operations, normalized stored equality
-  // covers drift within text_norm. Older clients still require exact equality.
+  // Finalize always requires exact equality. Normalized matching is available
+  // only through reconcile-noop opt-in after operator verification of the commit.
   // Neither predicate admits structural or page-override actions.
   _verifiedNoop(row,match = "exact") {
     return ["prose","json_scalar"].includes(row.kind) &&

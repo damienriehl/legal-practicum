@@ -259,21 +259,39 @@ test("audit counts a no-op receipt overlapping both legacy and revision coverage
 for (const kind of ["prose","json_scalar"]) {
   for (const [name,original,proposed] of [
     ["quotes","‘Same’","'Same'"], ["whitespace","Same  text","Same text"],
-    ["unicode","é","e\u0301"], ["exact","Same","Same"],
-  ]) test(`finalize records normalized ${kind} ${name} evidence with a revision array`, async () => {
+    ["unicode","é","e\u0301"],
+  ]) test(`finalize leaves normalized-only ${kind} ${name} unreconciled with a revision array`, () => {
     const core = makeCore(); suggestion(core,"norm",original,proposed,kind);
     assert.equal(finish(core,"norm",{ review_revisions:[] }).ok,true);
+    assert.deepEqual(rows(core),[]);
+    assert.equal(core.productionReleaseAudit().counts.noop_applications_normalized,0);
+    assert.equal(core.productionReleaseAudit().invariants.unreconciled_applied_suggestions,1);
+    assert.equal(finish(core,"norm",{ review_revisions:[] }).ok,true);
+    assert.deepEqual(rows(core),[]);
+    assert.equal(core.productionReleaseAudit().invariants.unreconciled_applied_suggestions,1);
+  });
+  test(`finalize records exact ${kind} evidence with a revision array`, async () => {
+    const core = makeCore(); suggestion(core,"same","Same","Same",kind);
+    assert.equal(finish(core,"same",{ review_revisions:[] }).ok,true);
     const receipt = rows(core);
     assert.equal(receipt.length,1);
-    assert.equal(receipt[0].match,"normalized");
+    assert.equal(receipt[0].match,"exact");
     assert.equal(receipt[0].source,"finalize");
-    assert.equal(receipt[0].normalized_hash,await normHash(original));
-    assert.equal(core.productionReleaseAudit().counts.noop_applications_normalized,1);
+    assert.equal(receipt[0].normalized_hash,await normHash("Same"));
+    assert.equal(core.productionReleaseAudit().counts.noop_applications_normalized,0);
     assert.equal(core.productionReleaseAudit().invariants.unreconciled_applied_suggestions,0);
-    assert.equal(finish(core,"norm",{ review_revisions:[] }).ok,true);
+    assert.equal(finish(core,"same",{ review_revisions:[] }).ok,true);
     assert.deepEqual(rows(core),receipt);
   });
 }
+
+test("finalize cannot certify a whitespace-only change from an empty revision array or match opt-in", () => {
+  const core = makeCore(); suggestion(core,"whitespace","Same text","Same  text");
+  assert.equal(finish(core,"whitespace",{ review_revisions:[],match:"normalized" }).ok,true);
+  assert.deepEqual(rows(core),[]);
+  assert.equal(core.productionReleaseAudit().counts.noop_applications,0);
+  assert.equal(core.productionReleaseAudit().invariants.unreconciled_applied_suggestions,1);
+});
 
 for (const review_revisions of [undefined,null,[]]) {
   for (const [kind,original,proposed] of [
@@ -284,10 +302,11 @@ for (const review_revisions of [undefined,null,[]]) {
     assert.equal(finish(core,"change",{ review_revisions }).ok,true);
     assert.equal(rows(core).length,0);
   });
-  test(`finalize selects predicate from array evidence ${JSON.stringify(review_revisions)}`, () => {
+  test(`finalize remains exact-only with revisions ${JSON.stringify(review_revisions)}`, () => {
     const core = makeCore(); suggestion(core,"norm","Same  text","Same text");
     finish(core,"norm",{ review_revisions });
-    assert.equal(rows(core).length,Array.isArray(review_revisions) ? 1 : 0);
+    assert.equal(rows(core).length,0);
+    assert.equal(core.productionReleaseAudit().invariants.unreconciled_applied_suggestions,1);
   });
 }
 
@@ -328,10 +347,11 @@ test("schema migration preserves pre-existing receipts and defaults match to exa
   assert.equal(core.productionReleaseAudit().counts.noop_applications_normalized,0);
 });
 
-test("finalize rejects a changed predicate on replay without modifying the receipt", () => {
+test("finalize replays exact evidence regardless of revision array presence", () => {
   const core = makeCore(); suggestion(core,"same");
   finish(core,"same",{ review_revisions:[] });
   const receipt = rows(core);
-  assert.deepEqual(finish(core,"same"),{ ok:false,reason:"idempotency_conflict" });
+  assert.equal(receipt[0].match,"exact");
+  assert.deepEqual(finish(core,"same"),{ ok:true });
   assert.deepEqual(rows(core),receipt);
 });
