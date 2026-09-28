@@ -42,7 +42,7 @@ for (const hosted of [false, true]) test(`chat ${hosted ? 'hosted' : 'BYOK'} com
   const transport = t.mock.method(globalThis, 'fetch', async (url, options) => {
     assert.match(url, hosted ? /api.anthropic.com/ : /api.openai.com/);
     const request = JSON.parse(options.body);
-    assert.equal(request.max_tokens, 300);
+    assert.equal(hosted ? request.max_tokens : request.max_completion_tokens, 300);
     assert.equal(hosted ? request.messages.at(-1).content[0].text : request.messages.at(-1).content, 'Tell me what happened.');
     assert.equal(request.messages.at(-1).injected, undefined);
     assert.ok(hosted ? request.system : request.messages[0].role === 'system');
@@ -146,12 +146,30 @@ const instrument = bundle.assessment_instrument;
 const headings = instrument.content.dimensions.map(d => d.id);
 const submission = headings.map(id => `Evidence for ${id}.`).join('\n\n');
 function memoCard() { return { schema_version: '1.0.0', instrument_id: instrument.id, instrument_version: instrument.instrument_version, instrument_content_hash: instrument.content_hash, headings: headings.map(heading_id => ({ heading_id, evidence_spans: [`Evidence for ${heading_id}.`], rationale: 'The submission supports this score.', score: 4 })) }; }
-for (const hosted of [false, true]) test(`memo assessment ${hosted ? 'hosted' : 'BYOK'} persists real panel and audit before returning`, async t => {
+for (const provider of ['openai', 'anthropic', 'google', 'hosted']) test(`memo assessment ${provider} sends provider-specific thinking configuration and persists audit`, async t => {
+  const hosted = provider === 'hosted';
   const f = await setup(t, { ANTHROPIC_API_KEY: 'hosted-fixture' });
   const editor = await durableObject(EditorStore); t.after(() => editor.close());
   f.env.EDITOR = { getByName: () => editor.object };
-  const transport = t.mock.method(globalThis, 'fetch', async () => upstream(JSON.stringify(memoCard()), hosted));
-  const response = await f.call('/v1/memo-assessment', { byok: hosted ? null : byok, deliverable_text: submission });
+  const requests = [];
+  const transport = t.mock.method(globalThis, 'fetch', async (_url, options) => {
+    requests.push(JSON.parse(options.body));
+    const text = JSON.stringify(memoCard());
+    if (provider === 'google') return Response.json({ candidates: [{ content: { parts: [{ text }] }, finishReason: 'STOP' }], usageMetadata: {} });
+    return upstream(text, hosted || provider === 'anthropic');
+  });
+  const response = await f.call('/v1/memo-assessment', { byok: hosted ? null : { ...byok, provider }, deliverable_text: submission });
+  assert.equal(requests.length, 1);
+  if (provider === 'google') {
+    assert.deepEqual(requests[0].generationConfig.thinkingConfig, { thinkingBudget: 0 });
+    assert.equal(requests[0].generationConfig.responseMimeType, 'application/json');
+  } else {
+    assert.equal(requests[0].generationConfig, undefined);
+    assert.equal(requests[0].thinkingBudget, undefined);
+    assert.equal(requests[0].thinkingConfig, undefined);
+    assert.equal(requests[0].thinking, undefined);
+    assert.ok((provider === 'openai' ? requests[0].max_completion_tokens : requests[0].max_tokens) > 0);
+  }
   assert.equal(response.status, 200); const result = await response.json();
   assert.equal(result.assessment.assessment_use, 'formative'); assert.equal(result.assessment.summative_eligible, false);
   assert.match(result.assessment_audit_id, /^memo-assessment-/);
@@ -220,7 +238,9 @@ test('legacy chat without turn_id receives generated reservation identity and se
 });
 test('memo multi-provider panel aggregates actual parsed scorecards and persists provider provenance', async t => {
   const f = await setup(t); const editor = await durableObject(EditorStore); t.after(() => editor.close()); f.env.EDITOR = { getByName: () => editor.object };
-  const transport = t.mock.method(globalThis, 'fetch', async url => {
+  const requests = [];
+  const transport = t.mock.method(globalThis, 'fetch', async (url, options) => {
+    requests.push({ url, body: JSON.parse(options.body) });
     const text = JSON.stringify(memoCard());
     if (url.includes('googleapis')) return Response.json({ candidates: [{ content: { parts: [{ text }] }, finishReason: 'STOP' }], usageMetadata: {} });
     return upstream(text, url.includes('anthropic'));
@@ -228,6 +248,7 @@ test('memo multi-provider panel aggregates actual parsed scorecards and persists
   const response = await f.call('/v1/memo-assessment', { byok: null, byok_panel: ['openai', 'anthropic', 'google'].map(provider => ({ provider, api_key: `${provider}-panel-fixture-key` })), deliverable_text: submission });
   assert.equal(response.status, 200); const result = await response.json();
   assert.equal(transport.mock.callCount(), 3); assert.equal(result.assessment.providers.length, 3);
+  assert.deepEqual(requests.find(({ url }) => url.includes('googleapis')).body.generationConfig.thinkingConfig, { thinkingBudget: 0 });
   for (const heading of result.assessment.headings) assert.equal(heading.score, 4);
   const audit = editor.object.readAssessmentAudit({ id: result.assessment_audit_id, scopes: { 'assessment-review': { granted: true, ver: 1 } } });
   assert.equal(audit.ok, true); assert.equal(audit.record.provenance.providers.length, 3);

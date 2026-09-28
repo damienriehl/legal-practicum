@@ -135,7 +135,7 @@ supervised `damienadmin` acts documented in Packet A2.
   | provider  | default            | allowlist                                              |
   |-----------|--------------------|--------------------------------------------------------|
   | anthropic | `claude-haiku-4-5` | `claude-haiku-4-5`, `claude-haiku-4-5-20251001`, `claude-sonnet-4-5` |
-  | openai    | `gpt-4o-mini`      | `gpt-4o-mini`, `gpt-4o`                                |
+  | openai    | `gpt-6-luna`       | `gpt-6-luna`, `gpt-4o-mini`, `gpt-4o`                  |
   | google    | `gemini-2.5-flash` | `gemini-2.5-flash`                                     |
 
 - **When `byok` is present:** the Worker calls that provider with the user's

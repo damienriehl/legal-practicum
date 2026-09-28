@@ -90,13 +90,19 @@ test("the debrief handler maps validation subtypes and logs metadata only", () =
   }
 });
 
-test("only Google debrief and critique calls disable thinking", () => {
+test("only Google structured evaluator calls disable thinking", () => {
   const source = readFileSync(join(HERE, "..", "src", "index.js"), "utf8");
   const callUpstream = source.slice(source.indexOf("function callUpstream"), source.indexOf("// Map an upstream failure"));
   const chat = source.slice(source.indexOf("async function handleChat"), source.indexOf("// ---- POST /v1/debrief"));
   const debrief = source.slice(source.indexOf("async function handleDebrief"), source.indexOf("// ---- POST /v1/memo-assessment"));
   const critique = source.slice(source.indexOf("async function handleCritique"), source.indexOf("// ---- router"));
 
+  const memo = source.slice(source.indexOf("async function handleMemoAssessment"), source.indexOf("// ---- POST /v1/critique"));
+  const memoCalls = [...memo.matchAll(/callUpstream\(grader, \{[\s\S]*?\}\);/g)];
+  assert.equal(memoCalls.length, 2);
+  for (const [call] of memoCalls) {
+    assert.match(call, /thinkingBudget: grader\.provider === "google" \? 0 : undefined/);
+  }
   assert.match(callUpstream, /system, messages, maxTokens, thinkingBudget/);
   assert.doesNotMatch(chat, /thinkingBudget/);
   for (const handler of [debrief, critique]) {

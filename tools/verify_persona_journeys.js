@@ -278,10 +278,13 @@ async function requireElement(page, step, {allowHidden = false, timeout = 0} = {
   stepFailure(step, `control not found (${step.selector || step.name || 'no selector or name'})`);
 }
 
-async function waitForElementVisibility(page, handle, expected = true, timeout = ASSERTION_VISIBILITY_TIMEOUT) {
-  await handle.evaluate((element) => {
-    if (element.isConnected) element.scrollIntoView({block: 'center'});
-  });
+async function waitForElementVisibility(page, handle, expected = true, timeout = ASSERTION_VISIBILITY_TIMEOUT, scrollIfNeeded = false) {
+  if (!scrollIfNeeded || (await handle.evaluate((element) => element.isConnected)
+    && !await handle.isIntersectingViewport({threshold: 1}))) {
+    await handle.evaluate((element) => {
+      if (element.isConnected) element.scrollIntoView({block: 'center'});
+    });
+  }
   try {
     await page.waitForFunction(
       elementIsVisible,
@@ -293,6 +296,41 @@ async function waitForElementVisibility(page, handle, expected = true, timeout =
   } catch (_) {
     return false;
   }
+}
+
+async function waitForControlStability(page, handle, step) {
+  const timeout = step.timeout_ms || ASSERTION_VISIBILITY_TIMEOUT;
+  if (!await waitForElementVisibility(page, handle, true, timeout, true)) {
+    stepFailure(step, `control not visible (${step.selector || step.name})`);
+  }
+  const stable = await handle.evaluate((element, timeoutMs) => new Promise((resolve) => {
+    let previous = null;
+    let frame;
+    const finish = (result) => {
+      clearTimeout(timer);
+      cancelAnimationFrame(frame);
+      resolve(result);
+    };
+    // A timer also bounds the wait when rAF is suspended (e.g. a background tab).
+    const timer = setTimeout(() => finish(false), timeoutMs);
+    const sample = () => {
+      const box = element.getBoundingClientRect();
+      const visible = element.isConnected && box.width > 0 && box.height > 0 && (
+        typeof element.checkVisibility === 'function'
+          ? element.checkVisibility({checkOpacity: true, checkVisibilityCSS: true})
+          : (() => { const style = getComputedStyle(element); return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0'; })()
+      );
+      const current = visible ? [box.x, box.y, box.width, box.height] : null;
+      if (current && previous && current.every((value, index) => Math.abs(value - previous[index]) <= 0.5)) {
+        finish(true);
+        return;
+      }
+      previous = current;
+      frame = requestAnimationFrame(sample);
+    };
+    frame = requestAnimationFrame(sample);
+  }), timeout);
+  if (!stable) stepFailure(step, `control not stable (${step.selector || step.name}) within ${timeout}ms`);
 }
 
 async function waitForVisibleText(page, selector, text, timeout) {
@@ -598,8 +636,12 @@ async function performStep(page, step, state) {
   }
   if (step.op === 'click' || step.op === 'focus') {
     const handle = await requireElement(page, step, {timeout: ASSERTION_VISIBILITY_TIMEOUT});
-    if (step.op === 'click') await handle.click(); else await handle.focus();
-    await handle.dispose();
+    try {
+      await waitForControlStability(page, handle, step);
+      if (step.op === 'click') await handle.click(); else await handle.focus();
+    } finally {
+      await handle.dispose();
+    }
     return;
   }
   if (step.op === 'press') { await page.keyboard.press(step.key); return; }

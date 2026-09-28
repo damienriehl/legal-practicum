@@ -1,6 +1,6 @@
 // providers/openai.js — OpenAI Chat Completions adapter (non-streaming).
 //
-// System prompt -> the leading `system` message; max_tokens maps directly;
+// System prompt -> the leading `system` message; maxTokens maps to max_completion_tokens (current models reject the legacy max_tokens field);
 // jsonMode -> response_format {type:"json_object"} (supported; our evaluator
 // prompts already contain the word "JSON", which json_object mode requires).
 // No prompt-caching request control (OpenAI caches automatically; any
@@ -16,7 +16,7 @@ export function buildRequest({ system, messages, maxTokens, providerCfg }) {
   const msgs = [];
   if (sys) msgs.push({ role: "system", content: sys });
   for (const m of messages) msgs.push({ role: m.role, content: m.content });
-  const body = { model: providerCfg.model, max_tokens: maxTokens, messages: msgs };
+  const body = { model: providerCfg.model, max_completion_tokens: maxTokens, messages: msgs };
   if (providerCfg.jsonMode) body.response_format = { type: "json_object" };
   return {
     url: URL_,

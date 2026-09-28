@@ -194,23 +194,74 @@ test("latest attributed human override becomes the effective visible score", () 
   assert.equal(vm.headings[0].human_override.author, "slot:damienadmin");
 });
 
-test("override control is natively keyboard-operable and labelled for screen readers", async () => {
+for (const [label, medianScore, expectedMedian] of [
+  ["absent", undefined, "4"],
+  ["null", null, "4"],
+  ["present", 5, "5"],
+]) {
+  test(`human override preserves derived Median when median_score is ${label}`, async () => {
+    const overridden = record();
+    if (medianScore !== undefined) overridden.result.headings[0].median_score = medianScore;
+    overridden.overrides = [{
+      id: "assessment-override-median",
+      author: "slot:damienadmin",
+      created_at: Date.UTC(2026, 7, 20, 12),
+      value: { heading_id: "governing_law", score: 2, note: "Signer judgment." },
+    }];
+    const html = await renderAssessmentReviewPage(overridden, "DR").text();
+    const card = html.match(/<article\b[^>]*id="heading-governing_law"[^>]*>([\s\S]*?)<\/article>/)?.[1];
+    assert.ok(card, "governing law heading card is rendered");
+    assert.match(card, /<p class="as-score">Score 2<\/p>/);
+    assert.match(card, /The derived score was 4\./);
+    assert.equal(card.match(/<dt>Median<\/dt><dd>([^<]*)<\/dd>/)?.[1], expectedMedian);
+  });
+}
+
+test("each heading card carries its own in-place override editor, labelled for screen readers", async () => {
   const html = await renderAssessmentReviewPage(record(), "DR").text();
-  assert.match(html, /<form[^>]+id="assessment-override-form"/);
-  assert.match(html, /<label[^>]+for="assessment-heading"/);
-  assert.match(html, /<select[^>]+id="assessment-heading"[^>]+required/);
-  assert.match(html, /<label[^>]+for="assessment-score"/);
-  assert.match(html, /<select[^>]+id="assessment-score"[^>]+required/);
-  assert.match(html, /<label[^>]+for="assessment-note"/);
-  assert.match(html, /aria-describedby="assessment-override-help"/);
-  assert.match(html, /aria-live="polite"/);
-  assert.match(html, /type="submit"/);
+  const vm = assessmentViewModel(record());
+  // One path only: the bottom select-based form is gone.
+  assert.doesNotMatch(html, /id="assessment-override-form"/);
+  assert.doesNotMatch(html, /<select/);
+  assert.match(html, /<section id="assessment-override-log"[^>]*>.*Recorded human overrides/);
+  assert.match(html, /id="assessment-override-status"[^>]+role="status"[^>]+aria-live="polite"/);
+  for (const heading of vm.headings) {
+    const id = heading.heading_id;
+    const card = html.slice(html.indexOf(`<article class="as-heading" id="heading-${id}"`),
+      html.indexOf("</article>", html.indexOf(`id="heading-${id}"`)));
+    assert.ok(card.length > 0, id);
+    // Disclosure button: hidden until the script enhances, wired to the editor.
+    assert.match(card, new RegExp(`<button type="button" class="as-override-toggle" hidden ` +
+      `aria-expanded="false" aria-controls="override-editor-${id}"[^>]*>Override score</button>`));
+    assert.match(card, new RegExp(`<form class="as-inline-override" id="override-editor-${id}" ` +
+      `data-heading-id="${id}"[^>]* hidden novalidate>`));
+    assert.match(card, new RegExp(`<legend>Replacement score for ${heading.label}</legend>`));
+    const radios = [...card.matchAll(/<input type="radio" name="score" value="(\d)">/g)].map((m) => m[1]);
+    assert.deepEqual(radios, ["1", "2", "3", "4", "5", "6", "7"]);
+    assert.match(card, new RegExp(`<span class="as-scale-num">${heading.score}</span><span class="as-scale-cur">now</span>` +
+      "<span class=\"as-sr\"> \\(current score\\)</span>"));
+    assert.match(card, new RegExp(`<label class="as-reason-label" for="override-note-${id}">Reason</label>`));
+    assert.match(card, new RegExp(`<textarea id="override-note-${id}" name="note" maxlength="4000" required`));
+    assert.match(card, /<button type="submit" class="as-record">Record override<\/button>/);
+    assert.match(card, /<button type="button" class="as-cancel">Cancel<\/button>/);
+  }
+  // The editor marks the effective (overridden) score as current.
+  const overridden = record();
+  overridden.overrides = [{ id: "o-1", author: "slot:damienadmin", created_at: Date.UTC(2026, 8, 1),
+    value: { heading_id: "governing_law", score: 2, note: "Signer judgment." } }];
+  const oHtml = await renderAssessmentReviewPage(overridden, "DR").text();
+  const gl = oHtml.slice(oHtml.indexOf('id="heading-governing_law"'), oHtml.indexOf("</article>", oHtml.indexOf('id="heading-governing_law"')));
+  assert.match(gl, /<p class="as-score">Score 2<\/p>/);
+  assert.match(gl, /<span class="as-scale-num">2<\/span><span class="as-scale-cur">now/);
+  assert.match(gl, /Human override by/);
 
   const js = readFileSync(join(HERE, "..", "..", "editor", "assessment-review.js"), "utf8");
   const css = readFileSync(join(HERE, "..", "..", "editor", "assessment-review.css"), "utf8");
   assert.match(js, /X-Edit-Request/);
   assert.match(js, /crypto\.randomUUID/);
   assert.match(js, /\.focus\(\)/);
+  assert.match(js, /\/edit\/v1\/assessment-override/);
+  assert.match(js, /aria-expanded/);
   assert.doesNotMatch(js, /innerHTML/);
   assert.match(css, /:focus-visible/);
   assert.match(css, /min-height:\s*44px/);
@@ -226,7 +277,7 @@ test("Worker asset server exposes the built review CSS and JavaScript", async ()
   assert.match(css.headers.get("content-type"), /text\/css/);
   const servedJs = await js.text();
   const servedCss = await css.text();
-  assert.match(servedJs, /assessment-override-form/);
+  assert.match(servedJs, /as-inline-override/);
   assert.match(servedCss, /\.as-review/);
   assert.equal(servedJs, readFileSync(
     join(HERE, "..", "..", "editor", "assessment-review.js"), "utf8"
@@ -234,6 +285,22 @@ test("Worker asset server exposes the built review CSS and JavaScript", async ()
   assert.equal(servedCss, readFileSync(
     join(HERE, "..", "..", "editor", "assessment-review.css"), "utf8"
   ));
+});
+
+test("review CSS defines every custom property it uses (served editor.css does not)", async () => {
+  // Packet A2 UAT regression: the real editor.css replaced the stub that defined
+  // --pp-*, so var(--pp-accent) went invalid and the submit button rendered
+  // white text on a transparent background inside a white card (invisible).
+  const css = await serveAsset("assessment-review.css").text();
+  const used = new Set([...css.matchAll(/var\((--[\w-]+)\s*\)/g)].map((m) => m[1]));
+  const defined = new Set([...css.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));
+  assert.ok(used.size > 0);
+  for (const name of used) {
+    assert.ok(defined.has(name), `${name} is used by assessment-review.css but not defined there`);
+  }
+  assert.match(css, /\.as-inline-actions \.as-record\{[^}]*background:var\(--pp-accent\)[^}]*color:#fff/);
+  assert.match(css, /prefers-reduced-motion:reduce/);
+  assert.match(css, /box-sizing:border-box/);
 });
 
 test("only the deliberate Access reviewer maps to the store review scope", () => {
