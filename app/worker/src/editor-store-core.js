@@ -261,6 +261,7 @@ export const SCHEMA_SQL = `
     batch_id TEXT NOT NULL,
     commit_sha TEXT NOT NULL,
     normalized_hash TEXT NOT NULL,
+    match TEXT NOT NULL DEFAULT 'exact',
     actor TEXT NOT NULL,
     source TEXT NOT NULL,
     created_at INTEGER NOT NULL
@@ -487,6 +488,7 @@ export class EditorStoreCore {
     this._ensureColumn("production_release_operation_members", "affected_source_refs_json", "TEXT NOT NULL DEFAULT '[]'");
     this._ensureColumn("suggestions", "production_release_id", "TEXT");
     this._ensureColumn("suggestions", "production_published_at", "INTEGER");
+    this._ensureColumn("production_noop_applications", "match", "TEXT NOT NULL DEFAULT 'exact'");
     this._ensureColumn("production_review_revisions", "source_original_text", "TEXT");
     this._ensureColumn("production_review_revisions", "source_proposed_text", "TEXT");
     this._backfillReviewOperations();
@@ -994,8 +996,8 @@ export class EditorStoreCore {
     move(needs_human, STATUS.NEEDS_HUMAN, { lease_expires_at: null });
     move(drift, STATUS.DRIFT, { lease_expires_at: null });
     // New apply clients may attach already-derived U2 operation evidence. Older
-    // clients remain valid; uncovered real changes still fail closed. Exact
-    // no-op text applications receive separate Worker-verified coverage below.
+    // clients remain valid; uncovered real changes still fail closed.
+    // No-op text applications receive separate Worker-verified coverage below.
     if (phase === "done" && Array.isArray(review_revisions)) {
       for (const revision of review_revisions) {
         if (revision.commit_sha !== commit_sha) throw { reviewFailure:{ ok:false,reason:"revision_mismatch" } };
@@ -1004,11 +1006,13 @@ export class EditorStoreCore {
       }
     }
     if (phase === "done") {
+      // Array presence is not Worker-verifiable evidence of unchanged source bytes.
+      const match = "exact";
       for (const id of applied || []) {
-        const evidence = this._noopApplicationEvidence(id);
+        const evidence = this._noopApplicationEvidence(id,match);
         if (evidence.reason === "idempotency_conflict") throw { reviewFailure:evidence };
         if (evidence.ok && evidence.row.apply_batch_id === batchId && !evidence.existing)
-          this._insertNoopApplication(evidence.row,"service:apply","finalize");
+          this._insertNoopApplication(evidence.row,"service:apply","finalize",match);
       }
     }
     return { ok: true };
@@ -1018,36 +1022,37 @@ export class EditorStoreCore {
     }
   }
 
-  // Python's _review_tokens preserves whitespace and punctuation. Normalized
-  // equality alone is too loose. Exact strings imply identical tokens, and its
-  // whole-span fallback also returns no operations for exact equality. Limit
-  // this seam to ordinary text replacements, never structural/override actions.
-  _verifiedNoop(row) {
+  // Finalize always requires exact equality. Normalized matching is available
+  // only through reconcile-noop opt-in after operator verification of the commit.
+  // Neither predicate admits structural or page-override actions.
+  _verifiedNoop(row,match = "exact") {
     return ["prose","json_scalar"].includes(row.kind) &&
       typeof row.original_text === "string" && typeof row.new_text === "string" &&
-      row.original_text === row.new_text;
+      (match === "normalized" ? normalize(row.original_text) === normalize(row.new_text) :
+        row.original_text === row.new_text);
   }
 
-  _noopApplicationEvidence(id) {
+  _noopApplicationEvidence(id,match = "exact") {
     const row = this._one(
       "SELECT s.*,b.phase,b.commit_sha FROM suggestions s LEFT JOIN apply_batches b ON b.batch_id=s.apply_batch_id WHERE s.id=?",id);
     if (!row || row.status !== STATUS.APPLIED) return { ok:false,reason:"suggestion_not_applied" };
-    if (!this._verifiedNoop(row)) return { ok:false,reason:"not_noop" };
+    const existing = this._one("SELECT * FROM production_noop_applications WHERE suggestion_id=?",id);
+    if (existing && existing.match !== match) return { ok:false,reason:"idempotency_conflict" };
+    if (!this._verifiedNoop(row,match)) return { ok:false,reason:"not_noop" };
     if (this._one("SELECT suggestion_id FROM production_legacy_exclusions WHERE suggestion_id=?",id) ||
         this._one("SELECT r.id FROM production_review_revisions r JOIN json_each(r.suggestion_ids_json) j WHERE j.value=? LIMIT 1",id))
       return { ok:false,reason:"already_covered" };
     if (row.phase !== "done" || typeof row.commit_sha !== "string" || !row.commit_sha.trim())
       return { ok:false,reason:"batch_not_done" };
-    const existing = this._one("SELECT * FROM production_noop_applications WHERE suggestion_id=?",id);
     if (existing && (existing.batch_id !== row.apply_batch_id || existing.commit_sha !== row.commit_sha ||
         existing.normalized_hash !== sha256HexSync(normalize(row.original_text))))
       return { ok:false,reason:"idempotency_conflict" };
     return { ok:true,row,existing };
   }
 
-  _insertNoopApplication(row,actor,source) {
-    this.sql.exec("INSERT INTO production_noop_applications (suggestion_id,batch_id,commit_sha,normalized_hash,actor,source,created_at) VALUES (?,?,?,?,?,?,?)",
-      row.id,row.apply_batch_id,row.commit_sha,sha256HexSync(normalize(row.original_text)),actor,source,this.now());
+  _insertNoopApplication(row,actor,source,match) {
+    this.sql.exec("INSERT INTO production_noop_applications (suggestion_id,batch_id,commit_sha,normalized_hash,actor,source,created_at,match) VALUES (?,?,?,?,?,?,?,?)",
+      row.id,row.apply_batch_id,row.commit_sha,sha256HexSync(normalize(row.original_text)),actor,source,this.now(),match);
   }
 
   reconcileNoopReview(input = {}) {
@@ -1055,11 +1060,14 @@ export class EditorStoreCore {
       new TextEncoder().encode(value).byteLength <= 256;
     if (!input || typeof input !== "object" || Array.isArray(input) || !bounded(input.actor))
       return { ok:false,reason:"validation_error" };
+    const match = input.match === undefined ? "exact" : input.match;
+    if (!["exact","normalized"].includes(match)) return { ok:false,reason:"validation_error" };
     if (input.dry_run === true) {
       if (input.suggestion_ids !== undefined) return { ok:false,reason:"validation_error" };
       const rows = this._all(
         "SELECT s.id,s.kind,s.original_text,s.new_text FROM suggestions s WHERE s.status=? AND NOT EXISTS (SELECT 1 FROM production_noop_applications n WHERE n.suggestion_id=s.id) AND NOT EXISTS (SELECT 1 FROM production_legacy_exclusions e WHERE e.suggestion_id=s.id) AND NOT EXISTS (SELECT 1 FROM production_review_revisions r JOIN json_each(r.suggestion_ids_json) j WHERE j.value=s.id) ORDER BY s.id",STATUS.APPLIED);
-      return { ok:true,dry_run:true,suggestions:rows.map((row) => ({ id:row.id,noop_verified:this._verifiedNoop(row) })) };
+      return { ok:true,dry_run:true,suggestions:rows.map((row) => ({ id:row.id,noop_verified:this._verifiedNoop(row),
+        normalized_match:this._verifiedNoop(row,"normalized") })) };
     }
     const ids = input.suggestion_ids;
     if ((input.dry_run !== undefined && input.dry_run !== false) || !Array.isArray(ids) ||
@@ -1068,11 +1076,11 @@ export class EditorStoreCore {
     return this.transactionSync(() => {
       const pending = [];
       for (const id of ids) {
-        const evidence = this._noopApplicationEvidence(id);
+        const evidence = this._noopApplicationEvidence(id,match);
         if (!evidence.ok) return { ok:false,reason:evidence.reason };
         if (!evidence.existing) pending.push(evidence.row);
       }
-      for (const row of pending) this._insertNoopApplication(row,input.actor,"reconcile-noop");
+      for (const row of pending) this._insertNoopApplication(row,input.actor,"reconcile-noop",match);
       return { ok:true,replay:pending.length === 0,inserted:pending.length,suggestion_ids:ids };
     });
   }
@@ -3224,6 +3232,7 @@ export class EditorStoreCore {
       canonical_mutations:count("SELECT COUNT(*) AS count FROM canonical_mutations"),
       review_migrations:count("SELECT COUNT(*) AS count FROM production_review_migrations"),
       noop_applications:count("SELECT COUNT(*) AS count FROM production_noop_applications"),
+      noop_applications_normalized:count("SELECT COUNT(*) AS count FROM production_noop_applications WHERE match='normalized'"),
       legacy_exclusions:count("SELECT COUNT(*) AS count FROM production_legacy_exclusions"),
       review_revisions:count("SELECT COUNT(*) AS count FROM production_review_revisions"),
       review_operations:count("SELECT COUNT(*) AS count FROM production_review_operations"),
