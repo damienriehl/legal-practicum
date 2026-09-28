@@ -21,6 +21,8 @@ test("finalize covers exact no-op text atomically and replay preserves its recei
   assert.equal(core.productionReleaseAudit().counts.noop_applications,1);
   assert.equal(core.productionReleaseAudit().invariants.unreconciled_applied_suggestions,0);
   const before = rows(core);
+  assert.equal(before[0].match,"exact");
+  assert.equal(core.productionReleaseAudit().counts.noop_applications_normalized,0);
   assert.equal(finish(core,"same").ok,true);
   assert.deepEqual(rows(core),before);
 });
@@ -56,7 +58,7 @@ test("dry run discovers only uncovered applied IDs without text or writes; remed
   const core = makeCore();
   historic(core); historic(core,"real","Old","New"); historic(core,"covered"); cover(core,"covered","legacy");
   assert.deepEqual(core.reconcileNoopReview({ actor:"service:test",dry_run:true }),{
-    ok:true,dry_run:true,suggestions:[{ id:"historic",noop_verified:true },{ id:"real",noop_verified:false }] });
+    ok:true,dry_run:true,suggestions:[{ id:"historic",noop_verified:true,normalized_match:true },{ id:"real",noop_verified:false,normalized_match:false }] });
   assert.equal(rows(core).length,0);
   assert.deepEqual(reconcile(core,["historic"]),{ ok:true,replay:false,inserted:1,suggestion_ids:["historic"] });
   const receipt = rows(core);
@@ -176,7 +178,7 @@ print(json.dumps([not _atomic_review_operations(SimpleNamespace(source_ref='sour
 });
 
 test("finalize records supplied revision coverage before considering a no-op receipt", () => {
-  const core = makeCore(); suggestion(core,"same");
+  const core = makeCore(); suggestion(core,"same","‘Same’","'Same'");
   const review = { id:"revision",source_ref:"data/copy/home.json#lead",source_revision:"commit",
     prod_base:"base",commit_sha:"commit",original_hash:"old",proposed_hash:"new",
     original_text:"Old",proposed_text:"New",suggestion_ids:["same"],
@@ -252,4 +254,84 @@ test("audit counts a no-op receipt overlapping both legacy and revision coverage
   assert.equal(reconcile(core,["historic"]).ok,true);
   cover(core,"historic","legacy"); cover(core,"historic","revision");
   assert.equal(core.productionReleaseAudit().invariants.noop_application_coverage_overlap,1);
+});
+
+for (const kind of ["prose","json_scalar"]) {
+  for (const [name,original,proposed] of [
+    ["quotes","‘Same’","'Same'"], ["whitespace","Same  text","Same text"],
+    ["unicode","é","e\u0301"], ["exact","Same","Same"],
+  ]) test(`finalize records normalized ${kind} ${name} evidence with a revision array`, async () => {
+    const core = makeCore(); suggestion(core,"norm",original,proposed,kind);
+    assert.equal(finish(core,"norm",{ review_revisions:[] }).ok,true);
+    const receipt = rows(core);
+    assert.equal(receipt.length,1);
+    assert.equal(receipt[0].match,"normalized");
+    assert.equal(receipt[0].source,"finalize");
+    assert.equal(receipt[0].normalized_hash,await normHash(original));
+    assert.equal(core.productionReleaseAudit().counts.noop_applications_normalized,1);
+    assert.equal(core.productionReleaseAudit().invariants.unreconciled_applied_suggestions,0);
+    assert.equal(finish(core,"norm",{ review_revisions:[] }).ok,true);
+    assert.deepEqual(rows(core),receipt);
+  });
+}
+
+for (const review_revisions of [undefined,null,[]]) {
+  for (const [kind,original,proposed] of [
+    ["prose","Old","New"], ["json_scalar","Old","New"],
+    ["move","Same","Same"], ["page_override_revert","Same","Same"],
+  ]) test(`finalize keeps ${kind} real/structural change uncovered with revisions ${JSON.stringify(review_revisions)}`, () => {
+    const core = makeCore(); suggestion(core,"change",original,proposed,kind);
+    assert.equal(finish(core,"change",{ review_revisions }).ok,true);
+    assert.equal(rows(core).length,0);
+  });
+  test(`finalize selects predicate from array evidence ${JSON.stringify(review_revisions)}`, () => {
+    const core = makeCore(); suggestion(core,"norm","Same  text","Same text");
+    finish(core,"norm",{ review_revisions });
+    assert.equal(rows(core).length,Array.isArray(review_revisions) ? 1 : 0);
+  });
+}
+
+test("normalized reconciliation requires explicit match and replays only the same match", async () => {
+  const core = makeCore(); historic(core,"norm","‘Same  text’","'Same text'"); historic(core,"other");
+  const dry = core.reconcileNoopReview({ actor:"service:test",dry_run:true });
+  assert.deepEqual(dry.suggestions[0],{ id:"norm",noop_verified:false,normalized_match:true });
+  assert.deepEqual(reconcile(core,["norm"]),{ ok:false,reason:"not_noop" });
+  assert.equal(reconcile(core,["norm"],{ match:"normalized" }).inserted,1);
+  const receipt = rows(core);
+  assert.equal(receipt[0].match,"normalized");
+  assert.equal(receipt[0].source,"reconcile-noop");
+  assert.equal(receipt[0].normalized_hash,await normHash("‘Same  text’"));
+  assert.equal(reconcile(core,["norm"],{ match:"normalized" }).replay,true);
+  assert.deepEqual(reconcile(core,["other","norm"]),{ ok:false,reason:"idempotency_conflict" });
+  assert.deepEqual(rows(core),receipt);
+  assert.equal(reconcile(core,["other"]).inserted,1);
+  assert.equal(reconcile(core,["other"],{ match:"normalized" }).reason,"idempotency_conflict");
+});
+
+for (const match of [null,"",true,"loose",1]) test(`reconcile rejects invalid match ${match}`, () => {
+  assert.equal(reconcile(makeCore(),["id"],{ match }).reason,"validation_error");
+});
+
+test("normalized reconciliation rejects real content changes atomically", () => {
+  const core = makeCore(); historic(core,"norm","‘Same’","'Same'"); historic(core,"real","Old","New");
+  assert.equal(reconcile(core,["norm","real"],{ match:"normalized" }).reason,"not_noop");
+  assert.equal(rows(core).length,0);
+});
+
+test("schema migration preserves pre-existing receipts and defaults match to exact", () => {
+  const core = makeCore(); historic(core); reconcile(core,["historic"]);
+  core.sql.exec("ALTER TABLE production_noop_applications DROP COLUMN match");
+  const before = rows(core)[0];
+  core.initSchema(); core.initSchema();
+  assert.deepEqual({ ...rows(core)[0] },{ ...before,match:"exact" });
+  assert.equal(reconcile(core,["historic"]).replay,true);
+  assert.equal(core.productionReleaseAudit().counts.noop_applications_normalized,0);
+});
+
+test("finalize rejects a changed predicate on replay without modifying the receipt", () => {
+  const core = makeCore(); suggestion(core,"same");
+  finish(core,"same",{ review_revisions:[] });
+  const receipt = rows(core);
+  assert.deepEqual(finish(core,"same"),{ ok:false,reason:"idempotency_conflict" });
+  assert.deepEqual(rows(core),receipt);
 });

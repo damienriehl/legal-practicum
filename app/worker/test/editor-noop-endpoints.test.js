@@ -28,7 +28,7 @@ test("reconcile-noop route runs through real auth, endpoint and Durable Object; 
   db.sql.exec("UPDATE apply_batches SET phase='done',commit_sha='commit'");
   const dry = await call({ dry_run:true });
   assert.equal(dry.status,200);
-  assert.deepEqual(await dry.json(),{ ok:true,dry_run:true,suggestions:[{ id:"historic",noop_verified:true }] });
+  assert.deepEqual(await dry.json(),{ ok:true,dry_run:true,suggestions:[{ id:"historic",noop_verified:true,normalized_match:true }] });
   assert.equal(core.productionReleaseAudit().counts.noop_applications,0);
   const first = await call({ suggestion_ids:["historic"],actor:"forged",noop_verified:true });
   assert.equal(first.status,201);
@@ -69,4 +69,29 @@ test("reconcile-noop enforces actual byte limit despite a misleading content-len
   const response = await reviewNoopReconcileEndpoint(request(JSON.stringify({ padding:"x".repeat(1024 * 1024) }),{
     "content-length":"1" }),env,auth);
   assert.equal(response.status,413);
+});
+
+test("reconcile-noop HTTP exposes normalized match without text and enforces receipt match on replay", async t => {
+  const { db,call } = await fixture(t);
+  const core = db.object.core;
+  core.suggest({ id:"norm",editor:"slot:test",scope:"edit",origin:"human",kind:"prose",
+    source_ref:"source",original_text:"‘Private  wording’",original_hash:"hash",
+    new_text:"'Private wording'",map_version:"v1" },{}, { directApply:true });
+  core.claimBatch("batch",{ ids:["norm"] });
+  db.sql.exec("UPDATE suggestions SET status='applied'");
+  db.sql.exec("UPDATE apply_batches SET phase='done',commit_sha='commit'");
+  assert.deepEqual(await (await call({ dry_run:true })).json(),{
+    ok:true,dry_run:true,suggestions:[{ id:"norm",noop_verified:false,normalized_match:true }] });
+  const refused = await call({ suggestion_ids:["norm"] });
+  assert.equal(refused.status,400);
+  assert.deepEqual(await refused.json(),{ ok:false,reason:"not_noop" });
+  const body = { suggestion_ids:["norm"],match:"normalized" };
+  const first = await call(body);
+  assert.equal(first.status,201);
+  assert.deepEqual(await first.json(),{ ok:true,replay:false,inserted:1,suggestion_ids:["norm"] });
+  assert.equal((await call(body)).status,200);
+  const conflict = await call({ suggestion_ids:["norm"],match:"exact" });
+  assert.equal(conflict.status,409);
+  assert.deepEqual(await conflict.json(),{ ok:false,reason:"idempotency_conflict" });
+  assert.equal((await call({ ...body,match:"invalid" })).status,400);
 });

@@ -42,6 +42,27 @@ import stamp_block_ids as sb  # noqa: E402
 BID_RE = sb.BID_RE
 
 
+class NormalizedFreshNoopTest(unittest.TestCase):
+    def test_gate_uses_fresh_text_and_omits_noop_review_operations(self):
+        stored = "‘Same  text’"
+        fresh = "'Same text'"
+        source_ref = "data/copy/home.json#lead"
+        self.assertNotEqual(stored, fresh)
+        self.assertEqual(text_norm.norm_hash(stored), text_norm.norm_hash(fresh))
+        row = {"id": "noop", "kind": "json_scalar", "source_ref": source_ref,
+               "json_path": "lead", "original_text": stored,
+               "original_hash": text_norm.norm_hash(stored), "new_text": fresh}
+        block = {"kind": "json_scalar", "json_path": "lead",
+                 "original_text": fresh, "original_hash": text_norm.norm_hash(fresh)}
+        status, patches = ap._gate_group([row], {source_ref: block}, ".")
+        self.assertEqual(status, "")
+        self.assertEqual(len(patches), 1)
+        self.assertEqual(patches[0].original_text, fresh)
+        self.assertEqual(patches[0].new_text, fresh)
+        self.assertEqual(ap._atomic_review_operations(patches[0], "commit", "base"), [])
+        self.assertEqual(ap.build_review_revisions(patches, "commit", "base"), [])
+
+
 class GeneratorIdentityTest(unittest.TestCase):
     def setUp(self):
         self.root = tempfile.mkdtemp(prefix="generator-identity-")

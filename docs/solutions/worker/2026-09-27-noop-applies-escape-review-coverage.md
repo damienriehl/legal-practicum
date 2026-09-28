@@ -23,13 +23,34 @@ idempotent receipts. Audit counts include these receipts, and overlap with revie
 revisions or legacy exclusions remains a zero-expected invariant. No-op coverage
 never becomes an operation, decision, or release member.
 
-Normalization parity alone is insufficient evidence: Python's review tokenizer
-retains whitespace and punctuation. Require exact stored string equality for
-prose and JSON scalar edits, which implies normalized equality and identical
-Python token sequences. Python's oversized-input fallback also returns no
-operations for exact equality. Exclude structural and page-override actions;
-structural operations can carry intent even with identical text. Hash normalized
-text synchronously for attribution, without awaiting inside the transaction.
+The follow-up finding in batch `batch-20260927T202056Z`, commit `7009a81`,
+exposed a distinction between stored and fresh originals: the commit changed
+only `.build-stamp.json`, yet exact stored equality reported `noop_verified:false`.
+`_gate_group` accepts a fresh source block when its normalized hash agrees with
+the stored original hash, then puts the fresh block text into `Patch.original_text`.
+`_atomic_review_operations` compares that fresh text to `new_text`;
+`build_review_revisions` omits the source when no operations result. Thus fresh
+and new can be byte-identical while stored original and new differ only in
+quotes, whitespace, or Unicode normalization. Python production code needs no
+change; a gate-to-revision regression test preserves this mechanism.
+
+Finalize now selects normalized stored equality only when
+`Array.isArray(review_revisions)` is true (including an empty array) and no
+revision covers the suggestion. The current client with a production frontier
+would have emitted operations and a covering revision for changed bytes. With
+absent/null review evidence, keep exact stored equality: Python's tokenizer
+retains whitespace and punctuation, so normalization alone does not prove a
+byte-level no-op. Both predicates exclude structural and page-override actions.
+Receipts record `match: "exact" | "normalized"`; the additive schema migration
+marks pre-existing rows `exact`. Hashing remains synchronous SHA-256 of normalized
+stored original text.
+
+Historical dry-run returns only IDs and the exact `noop_verified` and
+`normalized_match` booleans. Before opting into `match: "normalized"`, the operator
+must confirm with `git show --stat <commit_sha>` that the done batch changed no
+source file. Write mode defaults to exact and validates all IDs atomically.
+Replay must use the same match; differing match values conflict. Audit exposes
+`noop_applications_normalized` while keeping all coverage invariants unchanged.
 
 Tests connect the Worker predicate to actual Python operation generation, test
 atomic rejection/rollback and replay, and exercise the real route and Durable

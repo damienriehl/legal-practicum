@@ -287,22 +287,34 @@ attribution only; they never become operations, decisions, or release members.
 After deploying the Worker fix through the normal release path, use the
 admin-bearer migration channel and `X-Edit-Request: 1` header to POST
 `{"dry_run":true}` to `/edit/v1/publisher/review/reconcile-noop`. The response
-lists uncovered applied IDs and their `noop_verified` booleans without exposing
-suggestion text. Dry run writes nothing and does not require reopening the
-one-time legacy reconciliation receipt.
+lists uncovered applied IDs and their `noop_verified` (exact) and
+`normalized_match` booleans without exposing suggestion text. Dry run writes
+nothing and does not require reopening the one-time legacy reconciliation receipt.
 
-Submit only IDs with `noop_verified:true` using `{"suggestion_ids":["ID"]}`,
-with 1–100 unique IDs per call (at most 256 UTF-8 bytes each). The Worker rechecks
+For IDs with `noop_verified:true`, submit `{"suggestion_ids":["ID"]}` (default
+`match: "exact"`). For IDs with `normalized_match:true` but `noop_verified:false`,
+first identify their done batch commit from the apply journal and run
+`git show --stat <commit_sha>`. Confirm that the commit changed **no source file**
+(for example, only `site/platform/data/.build-stamp.json` changed). Only after
+that check submit `{"suggestion_ids":["ID"],"match":"normalized"}`. If any source
+file changed or commit evidence is uncertain, leave the suggestion uncovered
+and investigate its review evidence.
+
+Use 1–100 unique IDs per call (at most 256 UTF-8 bytes each). The Worker rechecks
 stored values and requires a done apply batch with a commit SHA. One ineligible
 ID rejects the whole request; investigate the bounded reason before retrying.
-Exact replay is safe and preserves the original receipt. Never supply text or
-client no-op classifications as evidence.
+Repeat the same `match` on replay: a different value returns
+`idempotency_conflict`. Replay preserves the original receipt. Never supply text
+or client no-op classifications as evidence.
 
-Verification requires exact stored string equality for prose/JSON scalar edits.
-Whitespace-only, quote-folding, and Unicode-normalization differences are not
-eligible even if normalized hashes agree. Structural and page-override actions
-also remain ineligible. Leave such uncovered work fail-closed for proper review
-evidence; this endpoint does not waive review for real changes.
+Both predicates are limited to prose/JSON scalar edits. Normalized equality uses
+the Worker's Python-parity text normalization for quotes, whitespace, and Unicode.
+Python applies against fresh source text, which can already equal the proposed
+text byte-for-byte even when the stored original differs under normalization.
+With a production frontier, finalize's revision array provides the evidence to
+select normalized matching automatically; absent/null arrays retain exact
+matching. Structural/page-override actions and real content changes remain
+ineligible; this endpoint does not waive review for real changes.
 
 Record only IDs/counts from the receipt in the private operator handoff. Rerun
 `tools/prod_release_readiness.py` and the text-free release audit; require
@@ -316,7 +328,8 @@ remain stored but no longer cover applied suggestions in
 Crash-recovery phase transitions remain allowed; restoring the batch to `done`
 at the receipt's commit restores coverage. Confirm
 `counts.noop_applications` increased by the receipt's inserted count (zero on
-replay). These rows provide attribution only and never create Publisher decisions
+replay), and `counts.noop_applications_normalized` increased by the inserted
+normalized receipts. These rows provide attribution only and never create Publisher decisions
 or release authority.
 
 ## Preparation, authorization, execution

@@ -749,26 +749,43 @@ operations remain unreviewed until a human Publisher submits a review.
 ### Worker-verified no-op application coverage
 
 `production_noop_applications` is append-only attribution: `suggestion_id` (primary
-key), `batch_id`, `commit_sha`, `normalized_hash`, `actor`, `source`, `created_at`.
+key), `batch_id`, `commit_sha`, `normalized_hash`, `match`, `actor`, `source`,
+`created_at`. `match` is `exact` or `normalized`; the schema migration defaults
+pre-existing rows to `exact`.
 It creates no operation, decision, or release member. On `finalize` with
 `phase: "done"`, each applied ID without revision or legacy coverage is checked
 inside the same transaction as the status changes and revision writes. Only an
 applied row bound to that done batch with a nonempty commit SHA and verified as a
 no-op receives a receipt (`source: "finalize"`, `actor: "service:apply"`). Replays
-preserve the original receipt; conflicting no-op batch/commit/hash evidence is
+preserve the original receipt; conflicting no-op batch/commit/hash/match evidence is
 rejected with `idempotency_conflict` and rolls back the batch update. Invalid
 revision evidence rolls back the entire
 transaction; uncovered real changes retain their existing fail-closed behavior.
 
-The predicate accepts only `prose` and `json_scalar` rows whose stored
-`original_text` and `new_text` are both strings and exactly equal. This implies
-Worker `text-norm.js` normalized equality but is deliberately stricter: Python's
-`_atomic_review_operations` compares raw tokens, including whitespace and
-punctuation. Whitespace-only, smart-quote, and Unicode-normalization differences
-therefore remain uncovered, as do structural operations and page overrides.
-The stored hash is SHA-256 of `normalize(original_text)`, computed synchronously
-to keep the transaction atomic. Client-supplied flags or text cannot establish
-coverage.
+Both predicates accept only `prose` and `json_scalar` rows with string-valued
+stored `original_text` and `new_text`. Finalize selects the predicate using
+`Array.isArray(review_revisions)`:
+
+- With an array (including `[]`), an uncovered suggestion qualifies when
+  `normalize(original_text) === normalize(new_text)` using Worker `text-norm.js`
+  (Python `text_norm` parity). The receipt records `match: "normalized"`.
+- With `review_revisions` absent or null, stored strings must be exactly equal;
+  the receipt records `match: "exact"`.
+
+Supplied revisions are recorded before considering receipts, so a suggestion
+covered by a revision in the same call receives no no-op receipt. The current
+client's production frontier enables review evidence: Python's gate accepts a
+fresh source block by normalized hash and places its fresh text in the Patch.
+Review generation compares those fresh bytes with `new_text`, not the stored
+original. If fresh equals new, no operations or revision are emitted, even when
+the stored original differs in quotes, whitespace, or Unicode normalization.
+A byte-changing patch would emit operations and a covering revision. Without
+that client evidence, normalized equality alone is insufficient.
+
+Real content changes, structural operations, and page overrides remain
+ineligible. The hash stays SHA-256 of `normalize(original_text)`, computed
+synchronously to keep the transaction atomic. Client-supplied flags or text
+cannot establish coverage.
 
 `POST /edit/v1/publisher/review/reconcile-noop` requires the same admin bearer
 and `X-Edit-Request: 1` CSRF check as legacy reconciliation. It reads at most
@@ -776,16 +793,24 @@ and `X-Edit-Request: 1` CSRF check as legacy reconciliation. It reads at most
 closed legacy migration seam.
 
 - `{ "dry_run": true }` (IDs omitted) returns 200 with
-  `{ok:true,dry_run:true,suggestions:[{id,noop_verified}]}` for all uncovered
+  `{ok:true,dry_run:true,suggestions:[{id,noop_verified,normalized_match}]}` for all uncovered
   applied suggestions and writes nothing. Verification describes only the stored
-  text/kind predicate; a write also requires valid completed batch evidence.
+  text/kind predicates: `noop_verified` is exact, `normalized_match` is normalized.
+  Only IDs and booleans appear per suggestion; a write also requires valid
+  completed batch evidence.
 - `{ "suggestion_ids": ["id"] }` accepts 1–100 unique, nonblank string IDs, each
   at most 256 UTF-8 bytes. Every ID must be applied, have no revision/legacy
   coverage, belong to a done batch with a nonempty commit SHA, and pass the Worker
-  predicate. All IDs are validated before any insert, in one transaction.
+  predicate. Optional `match: "normalized"` selects normalized equality; omission
+  defaults to `"exact"`. Other match values are `validation_error`. For historical
+  normalized remediation, operators first run dry-run and confirm with
+  `git show --stat <commit_sha>` that the batch changed no source file. All IDs
+  are validated before any insert, in one transaction.
 - Success returns 201 with `{ok:true,replay:false,inserted,suggestion_ids}`;
   fully covered exact replays return 200 with `replay:true,inserted:0`.
-  Existing no-op receipts must still match batch, commit, and normalized hash;
+  Existing no-op receipts must still match batch, commit, normalized hash, and
+  `match` (a different match yields `idempotency_conflict`, even when the requested
+  predicate would fail). A normalized receipt replays with `match: "normalized"`;
   mixed existing/new requests insert only the new rows. Actor comes from auth;
   receipt source is `reconcile-noop`.
 - Failures return bounded reasons: `validation_error`, `suggestion_not_applied`,
@@ -793,7 +818,9 @@ closed legacy migration seam.
   `idempotency_conflict` (409). Auth/CSRF failures return 403. Responses never
   include suggestion text.
 
-The audit adds `counts.noop_applications` and includes a receipt in the
+The audit reports `counts.noop_applications` and
+`counts.noop_applications_normalized` (receipts with `match: "normalized"`) and
+includes a receipt in the
 `unreconciled_applied_suggestions` coverage CTE only while its apply batch is
 `done` at the receipt's commit SHA. Its zero-expected
 `invariants.noop_receipts_without_done_batch` counts receipts whose batch is
