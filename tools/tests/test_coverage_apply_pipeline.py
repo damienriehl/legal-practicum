@@ -70,3 +70,71 @@ def test_rpc_http_error_decodes_invalid_utf8_without_echoing_token(monkeypatch):
         ap.HttpRpcClient('https://example.invalid', 'synthetic-token').reconcile()
     assert 'synthetic-token' not in str(result.value)
     assert 'bad � response' in str(result.value)
+
+
+@pytest.fixture(scope="module")
+def curriculum_map(tmp_path_factory):
+    """Exercise the production map builder on tracked source in a scratch tree."""
+    import shutil
+    import subprocess
+    from pathlib import Path
+
+    root = Path(ap.REPO_ROOT)
+    scratch = tmp_path_factory.mktemp("curriculum-map")
+    tracked = subprocess.check_output(
+        ["git", "ls-files", "-z", "tools", "data", "app", "site"], cwd=root
+    ).decode().split("\0")
+    for rel in filter(None, tracked):
+        if Path(rel).suffix in (".pem", ".key"):
+            continue
+        target = scratch / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(root / rel, target)
+    index = ap.SubprocessPipeline().regenerate_map(str(scratch))
+    import build_site
+    walker = build_site._BlockWalker()
+    walker.feed((scratch / "site/platform/modules/m1.html").read_text())
+    ref = "data/curriculum/m1.md#bd3a87cb4"
+    rendered = "".join(walker.candidates[index[ref]["index"]]["text"])
+    return scratch, index, ref, rendered
+
+
+def test_curriculum_formatting_only_edit_cannot_report_applied(curriculum_map):
+    scratch, index, ref, rendered = curriculum_map
+    block = index[ref]
+    raw = block["original_text"]
+    assert len(raw.encode()) == 653
+    assert len(rendered.encode()) == 651
+    # These are the production incident's exact length/prefix/suffix facts.
+    assert raw.encode()[:223] == rendered.encode()[:223]
+    assert raw.encode()[-383:] == rendered.encode()[-383:]
+    assert raw[223:] != rendered[223:]
+    assert ap.strip_inline_formatting(raw) == rendered
+    row = dict(id="format-only", kind="prose", source_ref=ref,
+               original_text=raw, original_hash=block["original_hash"],
+               new_text=rendered)
+    members, = ap._group_outcomes([row], index).values()
+    status, patches = ap._gate_group(members, index, str(scratch))
+    assert status == ap.OUT_NEEDS_HUMAN
+    assert patches == []
+
+
+def test_curriculum_real_plain_edit_reaches_source(curriculum_map, tmp_path):
+    import shutil
+    scratch, index, ref, rendered = curriculum_map
+    rel = ref.split("#")[0]
+    target = tmp_path / rel
+    target.parent.mkdir(parents=True)
+    shutil.copyfile(scratch / rel, target)
+    before = target.read_bytes()
+    new = rendered.replace("deceptively modest:", "deceptively modest;")
+    row = dict(id="real-edit", kind="prose", source_ref=ref,
+               original_hash=index[ref]["original_hash"], new_text=new)
+    members, = ap._group_outcomes([row], index).values()
+    status, patches = ap._gate_group(members, index, str(tmp_path))
+    assert status == ""
+    assert ap._apply_patch_files(str(tmp_path), patches) == {"real-edit": True}
+    assert target.read_bytes() != before
+    assert target.read_text() == before.decode().replace(
+        "deceptively modest:", "deceptively modest;")
+    assert "*think, read, and carry themselves as a lawyer*" in target.read_text()

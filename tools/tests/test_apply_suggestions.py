@@ -624,6 +624,54 @@ class ApplyEngineTest(unittest.TestCase):
                             worktree_parent=None, deploy_plan_only=deploy_plan_only,
                             branch="test", canonical_root=self.root, logger=lambda *a: None)
 
+    def test_silent_writer_rejects_whole_group_and_keeps_independent_edit(self):
+        ref = bref(self.root, M03_EX, 0, "sections.intro.body_md")
+        self._add_edit("silent", ref, "A real edit.", group_id="lost")
+        self._add_edit("mate", M03_BUS + "#engagement.rate", "275", group_id="lost")
+        independent = bref(self.root, M03_FMT, 0)
+        self._add_edit("kept", independent,
+                       "This paragraph has bold emphasis that plain text simply cannot round-trip.")
+        real_apply = ap.apply_file_patches
+
+        def silent_writer(worktree, relpath, patches):
+            if any(p.group_id == "lost" for p in patches):
+                return {p.suggestion_id: True for p in patches}
+            return real_apply(worktree, relpath, patches)
+
+        before = snapshot_data(self.root)
+        with mock.patch.object(ap, "apply_file_patches", side_effect=silent_writer):
+            res = self._run("silent", FakePipeline(SPEC))
+        self.assertEqual({r["id"] for r in res.needs_human}, {"silent", "mate"})
+        self.assertEqual([p.suggestion_id for p in res.applied], ["kept"])
+        self.assertEqual(self.store.rows["silent"]["status"], "needs_human")
+        self.assertEqual(before, snapshot_data(self.root))
+
+    def test_exact_fresh_text_noop_remains_exempt_from_byte_guards(self):
+        ref = bref(self.root, M03_MD, 0)
+        row = self._add_edit("noop", ref, self.index[ref]["original_text"])
+        status, patches = ap._gate_group([row], self.index, self.root)
+        self.assertEqual(status, "")
+        before = snapshot_data(self.root)
+        self.assertEqual(ap._apply_patch_files(self.root, patches), {"noop": True})
+        self.assertEqual(before, snapshot_data(self.root))
+
+    def test_combined_write_must_change_bytes_even_when_isolated_probe_does(self):
+        ref = bref(self.root, M03_MD, 0)
+        self._add_edit("silent", ref, "Revised intake notes.")
+        real_apply = ap.apply_file_patches
+
+        def silent_combined_writer(worktree, relpath, patches):
+            if os.path.exists(os.path.join(worktree, ".git")):
+                return {p.suggestion_id: True for p in patches}
+            return real_apply(worktree, relpath, patches)
+
+        before = snapshot_data(self.root)
+        with mock.patch.object(ap, "apply_file_patches", side_effect=silent_combined_writer):
+            res = self._run("silent-combined", FakePipeline(SPEC))
+        self.assertEqual([r["id"] for r in res.needs_human], ["silent"])
+        self.assertEqual(res.applied, [])
+        self.assertEqual(before, snapshot_data(self.root))
+
     # 1) Clean prose edit -> validator green -> parity holds -> STOPS pre-deploy.
     def test_clean_prose_build_only_stops_before_deploy(self):
         ref = bref(self.root, M03_EX, 0, "sections.intro.body_md")
@@ -1260,6 +1308,68 @@ class StructuralApplyTest(unittest.TestCase):
         paras = [_strip_markers(p) for p in _paragraphs(self._md())]
         self.assertEqual(paras[0], "Revised intake notes.")
         self.assertEqual(paras[1], "Added after the revision.")
+
+    def test_invalid_split_replays_independent_prose_in_same_file(self):
+        anchor = bref(self.root, M03_MD, 0)
+        split_ref = bref(self.root, M03_MD, 1)
+        self._add_op("invalid-split", split_ref, "split",
+                     new_text="Only one paragraph, so this cannot split.")
+        blk = self.index[anchor]
+        self.store.add(id="prose", source_ref=anchor,
+                       new_text="Revised intake notes.",
+                       original_hash=blk["original_hash"],
+                       original_text=blk["original_text"],
+                       kind="prose", json_path=None, status="accepted")
+        before = self._md()
+        pipe = FakePipeline(SPEC)
+        res = self._run("invalid-split", pipe)
+        self.assertEqual({r["id"] for r in res.needs_human}, {"invalid-split"})
+        self.assertEqual([p.suggestion_id for p in res.applied], ["prose"])
+        self.assertTrue(res.committed)
+        self.assertEqual(self.store.rows["invalid-split"]["status"], "needs_human")
+        self.assertEqual(self.store.rows["prose"]["status"], "applied")
+        expected = before.replace(blk["original_text"], "Revised intake notes.")
+        self.assertEqual(pipe.worktree_snapshot[M03_MD], expected)
+        self.assertEqual(self._md(), expected)
+
+    def test_noop_move_cannot_borrow_same_file_prose_change(self):
+        anchor = bref(self.root, M03_MD, 0)
+        mover = bref(self.root, M03_MD, 1)
+        self._add_op("noop-move", mover, "move", op_arg=anchor)
+        blk = self.index[anchor]
+        self.store.add(id="prose", source_ref=anchor,
+                       new_text="Revised intake notes.",
+                       original_hash=blk["original_hash"],
+                       original_text=blk["original_text"],
+                       kind="prose", json_path=None, status="accepted")
+        before = self._md()
+        res = self._run("noop-move", FakePipeline(SPEC))
+        self.assertTrue(res.committed)
+        self.assertEqual({r["id"] for r in res.needs_human}, {"noop-move"})
+        self.assertEqual([p.suggestion_id for p in res.applied], ["prose"])
+        self.assertEqual(self.store.rows["noop-move"]["status"], "needs_human")
+        self.assertEqual(self.store.rows["prose"]["status"], "applied")
+        self.assertEqual(self._md(), before.replace(
+            blk["original_text"], "Revised intake notes."))
+
+    def test_two_real_prose_groups_in_one_file_both_apply(self):
+        before = self._md()
+        expected = before
+        for i, new_text in enumerate(("Revised intake notes.", "Revised payment terms.")):
+            ref = bref(self.root, M03_MD, i)
+            blk = self.index[ref]
+            self.store.add(id="prose-%d" % i, source_ref=ref, new_text=new_text,
+                           original_hash=blk["original_hash"],
+                           original_text=blk["original_text"],
+                           kind="prose", json_path=None, status="accepted")
+            expected = expected.replace(blk["original_text"], new_text)
+        res = self._run("two-prose", FakePipeline(SPEC))
+        self.assertTrue(res.committed)
+        self.assertEqual(res.needs_human, [])
+        self.assertEqual({p.suggestion_id for p in res.applied}, {"prose-0", "prose-1"})
+        for sid in ("prose-0", "prose-1"):
+            self.assertEqual(self.store.rows[sid]["status"], "applied")
+        self.assertEqual(self._md(), expected)
 
     def test_structural_rows_never_propose_companions(self):
         anchor = bref(self.root, M03_MD, 0)

@@ -1620,6 +1620,75 @@ def _group_outcomes(rows, source_index):
     return groups
 
 
+def _apply_patch_files(worktree, patches):
+    """Patch files, then fail closed for groups with no source-byte change."""
+    by_file, by_group = {}, {}
+    for patch in patches:
+        by_file.setdefault(patch.relpath, []).append(patch)
+        by_group.setdefault(patch.group_id, []).append(patch)
+    before = {}
+    for relpath in by_file:
+        with open(safe_data_path(worktree, relpath), "rb") as fh:
+            before[relpath] = fh.read()
+    # Scalar coercion uses schemas, not just the current value's Python type
+    # (an integer-looking value may belong to a number field).
+    schemas = {}
+    for relpath in by_file:
+        schema_name = SCHEMA_BY_BASENAME.get(os.path.basename(relpath))
+        if schema_name:
+            schema_relpath = "data/schemas/" + schema_name
+            path = safe_data_path(worktree, schema_relpath)
+            if os.path.isfile(path):
+                with open(path, "rb") as fh:
+                    schemas[schema_relpath] = fh.read()
+    changed_groups = set()
+    for group_id, members in by_group.items():
+        if not any(p.original_text != p.new_text or p.op for p in members):
+            continue  # Preserve exact fresh-text no-op behavior.
+        group_files = {}
+        for patch in members:
+            group_files.setdefault(patch.relpath, []).append(patch)
+        # Measure this group's own effect against the original snapshot. A
+        # co-tenant's edit to the same file must not legitimize a no-op group.
+        with tempfile.TemporaryDirectory(prefix="apply-group-") as scratch:
+            scratch_files = {**schemas, **{p: before[p] for p in group_files}}
+            for relpath, content in scratch_files.items():
+                path = safe_data_path(scratch, relpath)
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, "wb") as fh:
+                    fh.write(content)
+            for relpath, file_members in group_files.items():
+                apply_file_patches(scratch, relpath, file_members)
+            for relpath in group_files:
+                with open(safe_data_path(scratch, relpath), "rb") as fh:
+                    if fh.read() != before[relpath]:
+                        changed_groups.add(group_id)
+    results = {}
+    for relpath, members in by_file.items():
+        results.update(apply_file_patches(worktree, relpath, members))
+    # A failed member can atomically abandon its file's entire write. Preserve
+    # successful co-tenants for rollback/replay; only all-success files can
+    # represent a genuinely silent successful write.
+    successful_files = {
+        relpath for relpath, members in by_file.items()
+        if all(results.get(p.suggestion_id) is True for p in members)
+    }
+    changed = set()
+    for relpath in by_file:
+        with open(safe_data_path(worktree, relpath), "rb") as fh:
+            if fh.read() != before[relpath]:
+                changed.add(relpath)
+    for group_id, members in by_group.items():
+        if (any(p.original_text != p.new_text or p.op for p in members)
+                and (group_id not in changed_groups
+                     or all(p.relpath in successful_files and p.relpath not in changed
+                            for p in members))):
+            for patch in members:
+                if results.get(patch.suggestion_id) is True:
+                    results[patch.suggestion_id] = OUT_NEEDS_HUMAN
+    return results
+
+
 def run_apply(client, pipeline, batch_id, *, worktree_parent=None, deploy_plan_only=True,
               branch="feat/editor-experience", canonical_root=REPO_ROOT, logger=print):
     """Execute the whole apply transaction. Returns ApplyResult. Canonical tree is
@@ -1657,7 +1726,7 @@ def run_apply(client, pipeline, batch_id, *, worktree_parent=None, deploy_plan_o
 
         # 5) Gate + classify each group atomically.
         groups = _group_outcomes(rows, source_index)
-        drift, needs_human, patch_by_file = [], [], {}
+        drift, needs_human = [], []
         candidate_patches = []  # groups that passed all pre-patch gates
         for key, members in groups.items():
             group_status, group_patches = _gate_group(members, source_index, wt)
@@ -1671,12 +1740,7 @@ def run_apply(client, pipeline, batch_id, *, worktree_parent=None, deploy_plan_o
                 candidate_patches.extend(group_patches)
 
         # 6) Patch (file-grouped, position DESCENDING within file).
-        for p in candidate_patches:
-            patch_by_file.setdefault(p.relpath, []).append(p)
-
-        file_results = {}
-        for relpath, patches in patch_by_file.items():
-            file_results.update(apply_file_patches(wt, relpath, patches))
+        file_results = _apply_patch_files(wt, candidate_patches)
 
         # Failures discovered at splice time -> whole group -> needs_human.
         rollout_failures = {
@@ -1713,12 +1777,7 @@ def run_apply(client, pipeline, batch_id, *, worktree_parent=None, deploy_plan_o
             # Re-derive the worktree from scratch to drop all partial group writes.
             git(["checkout", "--", "."], wt)
             candidate_patches = []
-            patch_by_file = {}
-            for p in kept:
-                patch_by_file.setdefault(p.relpath, []).append(p)
-            replay_results = {}
-            for relpath, patches in patch_by_file.items():
-                replay_results.update(apply_file_patches(wt, relpath, patches))
+            replay_results = _apply_patch_files(wt, kept)
             replay_failures = {
                 sid for sid, outcome in replay_results.items()
                 if outcome in (OUT_NEEDS_HUMAN, OUT_VALIDATION_ERROR)
@@ -1978,7 +2037,9 @@ def _gate_group(members, source_index, worktree):
                     strip_inline_formatting(original_text)) != bhash:
                 return OUT_NEEDS_HUMAN, []
             spliced = span_splice(original_text, new_text)
-            if spliced is None:
+            # A plain-text submission can differ from raw Markdown only by
+            # its formatting markers. Restoring those markers is not an edit.
+            if spliced is None or spliced == original_text:
                 return OUT_NEEDS_HUMAN, []
             new_text = spliced
         kind, json_path = classify(source_ref, block)
