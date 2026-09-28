@@ -282,6 +282,36 @@ the expected exclusion/revision counts and
 `unreconciled_applied_suggestions: 0`. Exclusions remain immutable historical
 attribution only; they never become operations, decisions, or release members.
 
+### Reconcile historical no-op applications
+
+After deploying the Worker fix through the normal release path, use the
+admin-bearer migration channel and `X-Edit-Request: 1` header to POST
+`{"dry_run":true}` to `/edit/v1/publisher/review/reconcile-noop`. The response
+lists uncovered applied IDs and their `noop_verified` booleans without exposing
+suggestion text. Dry run writes nothing and does not require reopening the
+one-time legacy reconciliation receipt.
+
+Submit only IDs with `noop_verified:true` using `{"suggestion_ids":["ID"]}`,
+with 1–100 unique IDs per call (at most 256 UTF-8 bytes each). The Worker rechecks
+stored values and requires a done apply batch with a commit SHA. One ineligible
+ID rejects the whole request; investigate the bounded reason before retrying.
+Exact replay is safe and preserves the original receipt. Never supply text or
+client no-op classifications as evidence.
+
+Verification requires exact stored string equality for prose/JSON scalar edits.
+Whitespace-only, quote-folding, and Unicode-normalization differences are not
+eligible even if normalized hashes agree. Structural and page-override actions
+also remain ineligible. Leave such uncovered work fail-closed for proper review
+evidence; this endpoint does not waive review for real changes.
+
+Record only IDs/counts from the receipt in the private operator handoff. Rerun
+`tools/prod_release_readiness.py` and the text-free release audit; require
+`unreconciled_applied_suggestions: 0`,
+`noop_application_coverage_overlap: 0`, and every other invariant zero. Confirm
+`counts.noop_applications` increased by the receipt's inserted count (zero on
+replay). These rows provide attribution only and never create Publisher decisions
+or release authority.
+
 ## Preparation, authorization, execution
 
 The Publisher page may show eligible submitted-accepted operations, but its “Prepare immutable preview”

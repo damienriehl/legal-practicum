@@ -746,6 +746,59 @@ after the first receipt. That receipt also closes the earlier contiguous-backfil
 endpoint, and excluded suggestion IDs are rejected there defensively. It creates no decisions or release authority; effective
 operations remain unreviewed until a human Publisher submits a review.
 
+### Worker-verified no-op application coverage
+
+`production_noop_applications` is append-only attribution: `suggestion_id` (primary
+key), `batch_id`, `commit_sha`, `normalized_hash`, `actor`, `source`, `created_at`.
+It creates no operation, decision, or release member. On `finalize` with
+`phase: "done"`, each applied ID without revision or legacy coverage is checked
+inside the same transaction as the status changes and revision writes. Only an
+applied row bound to that done batch with a nonempty commit SHA and verified as a
+no-op receives a receipt (`source: "finalize"`, `actor: "service:apply"`). Replays
+preserve the original receipt; conflicting no-op batch/commit/hash evidence is
+rejected with `idempotency_conflict` and rolls back the batch update. Invalid
+revision evidence rolls back the entire
+transaction; uncovered real changes retain their existing fail-closed behavior.
+
+The predicate accepts only `prose` and `json_scalar` rows whose stored
+`original_text` and `new_text` are both strings and exactly equal. This implies
+Worker `text-norm.js` normalized equality but is deliberately stricter: Python's
+`_atomic_review_operations` compares raw tokens, including whitespace and
+punctuation. Whitespace-only, smart-quote, and Unicode-normalization differences
+therefore remain uncovered, as do structural operations and page overrides.
+The stored hash is SHA-256 of `normalize(original_text)`, computed synchronously
+to keep the transaction atomic. Client-supplied flags or text cannot establish
+coverage.
+
+`POST /edit/v1/publisher/review/reconcile-noop` requires the same admin bearer
+and `X-Edit-Request: 1` CSRF check as legacy reconciliation. It reads at most
+1 MiB of actual body bytes (413 on overflow). It is independent of the permanently
+closed legacy migration seam.
+
+- `{ "dry_run": true }` (IDs omitted) returns 200 with
+  `{ok:true,dry_run:true,suggestions:[{id,noop_verified}]}` for all uncovered
+  applied suggestions and writes nothing. Verification describes only the stored
+  text/kind predicate; a write also requires valid completed batch evidence.
+- `{ "suggestion_ids": ["id"] }` accepts 1–100 unique, nonblank string IDs, each
+  at most 256 UTF-8 bytes. Every ID must be applied, have no revision/legacy
+  coverage, belong to a done batch with a nonempty commit SHA, and pass the Worker
+  predicate. All IDs are validated before any insert, in one transaction.
+- Success returns 201 with `{ok:true,replay:false,inserted,suggestion_ids}`;
+  fully covered exact replays return 200 with `replay:true,inserted:0`.
+  Existing no-op receipts must still match batch, commit, and normalized hash;
+  mixed existing/new requests insert only the new rows. Actor comes from auth;
+  receipt source is `reconcile-noop`.
+- Failures return bounded reasons: `validation_error`, `suggestion_not_applied`,
+  `already_covered`, `batch_not_done`, or `not_noop` (400), and
+  `idempotency_conflict` (409). Auth/CSRF failures return 403. Responses never
+  include suggestion text.
+
+The audit adds `counts.noop_applications` and includes these receipts in the
+`unreconciled_applied_suggestions` coverage CTE. Its zero-expected
+`invariants.noop_application_coverage_overlap` counts each no-op receipt also
+covered by a review revision or legacy exclusion once. Any overlap is a rollout
+stop, even if the uncovered count is zero.
+
 `GET /edit/v1/prod/releases/audit` is a text-free, read-only rollout audit. It
 is available only when `PROD_RELEASE_LEDGER=true` and only to a bearer holding
 `release_service`; Access/Publisher sessions and other bearer scopes receive

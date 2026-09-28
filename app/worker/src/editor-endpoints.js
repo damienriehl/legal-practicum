@@ -917,6 +917,22 @@ export async function reviewLegacyReconcileEndpoint(request, env, auth) {
     ["idempotency_conflict","migration_closed"].includes(result.reason) ? 409 : 400);
 }
 
+export async function reviewNoopReconcileEndpoint(request, env, auth) {
+  if (!csrfOk(request, env)) return editError("csrf_failed", "Bad request.", 403);
+  if (auth?.credential_channel !== "bearer" || !auth?.scopes?.admin?.granted)
+    return editError("forbidden", "Trusted migration service required.", 403);
+  const parsed = await readBoundedJson(request,1024 * 1024);
+  if (!parsed.ok && parsed.reason === "too_large")
+    return editError("validation_error", "Reconciliation payload is too large.", 413);
+  const body = parsed.ok ? parsed.value : null;
+  if (!body || typeof body !== "object" || Array.isArray(body))
+    return editError("validation_error", "Malformed JSON body.", 400);
+  const result = await editorStub(env).reconcileNoopReview({ ...body,
+    actor:auth.editor || "service:migration" });
+  return json(result,result.ok ? (result.dry_run || result.replay ? 200 : 201) :
+    result.reason === "idempotency_conflict" ? 409 : 400);
+}
+
 export async function reconcileEndpoint(request, env, auth) {
   if (!csrfOk(request, env)) return editError("csrf_failed", "Bad request.", 403);
   if (!auth.scopes.admin.granted) return editError("forbidden", "Admin/service scope required.", 403);

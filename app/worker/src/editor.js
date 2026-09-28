@@ -25,7 +25,7 @@ import {
   scopeEndpoint, scopedRequestEndpoint, scopedRequestsEndpoint,
   scopedClaimEndpoint, scopedResolveEndpoint, groupStatusEndpoint,
   decideEndpoint, digestEndpoint, claimEndpoint, finalizeEndpoint, reviewBackfillEndpoint,
-  reviewBackfillEvidenceEndpoint, reviewLegacyReconcileEndpoint, reconcileEndpoint,
+  reviewBackfillEvidenceEndpoint, reviewLegacyReconcileEndpoint, reviewNoopReconcileEndpoint, reconcileEndpoint,
   heartbeatEndpoint, revertRequestEndpoint, revertRequestsEndpoint, revertResolveEndpoint,
   revertRecordEndpoint,
   publisherReviewEndpoint, publisherReviewDraftEndpoint, publisherReviewSubmitEndpoint,
@@ -212,6 +212,8 @@ export async function editorFetch(request, env, ctx) {
     return wrap(await reviewBackfillEvidenceEndpoint(request, env, auth));
   if (path === "/edit/v1/publisher/review/reconcile-legacy" && request.method === "POST")
     return wrap(await reviewLegacyReconcileEndpoint(request, env, auth));
+  if (path === "/edit/v1/publisher/review/reconcile-noop" && request.method === "POST")
+    return wrap(await reviewNoopReconcileEndpoint(request, env, auth));
   if (path === "/edit/v1/reconcile" && request.method === "POST")
     return wrap(await reconcileEndpoint(request, env, auth));
   if (path === "/edit/v1/heartbeat" && request.method === "POST")

@@ -14,7 +14,7 @@ class NodeSql {
       return { toArray: () => [] };
     }
     const st = this.db.prepare(query);
-    if (/^\s*select/i.test(query)) {
+    if (st.columns().length) {
       return { toArray: () => st.all(...binds) };
     }
     st.run(...binds);
