@@ -263,3 +263,22 @@ deploy→heartbeat ordering, failure→`ok:false`+alert (IDs only), crash-idempo
 reasoning, session-end windowing math + dispatch, heartbeat-404 tolerance, flag
 parsing (envelope/bare/embedded/malformed), flag payload shape, filing best-effort,
 graceful degradation, dry-run. Run `python3 -m pytest tools/tests/ -q`.
+
+## Source-unchanged apply protection
+
+A formatted prose submission that becomes identical to the current raw Markdown
+when the apply engine restores inline markup is `needs_human`, not `applied`.
+The editor map stores raw Markdown while the editor submits rendered plain text;
+removing visible formatting markers from that representation is not evidence of
+a canonical edit.
+
+After patching, the engine compares source-file bytes before and after. A group
+requesting a change whose targeted files all remain byte-identical is routed to
+`needs_human` through the existing whole-group rollback. The same check runs on
+the bounded replay of retained groups. Generated build stamps cannot satisfy
+this check. Reasons remain the bounded `gate_needs_human` (formatting gate) or
+`needs_human` (source-byte guard). Existing exact fresh-text no-ops retain their
+prior behavior.
+
+For the 2026-09-27 incident and operator remediation guidance, see
+[the source-unchanged apply learning](solutions/worker/2026-09-27-apply-reported-applied-without-source-change.md).

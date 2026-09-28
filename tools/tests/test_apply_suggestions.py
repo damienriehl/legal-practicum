@@ -624,6 +624,28 @@ class ApplyEngineTest(unittest.TestCase):
                             worktree_parent=None, deploy_plan_only=deploy_plan_only,
                             branch="test", canonical_root=self.root, logger=lambda *a: None)
 
+    def test_silent_writer_rejects_whole_group_and_keeps_independent_edit(self):
+        ref = bref(self.root, M03_EX, 0, "sections.intro.body_md")
+        self._add_edit("silent", ref, "A real edit.", group_id="lost")
+        self._add_edit("mate", M03_BUS + "#engagement.rate", "275", group_id="lost")
+        independent = bref(self.root, M03_FMT, 0)
+        self._add_edit("kept", independent,
+                       "This paragraph has bold emphasis that plain text simply cannot round-trip.")
+        real_apply = ap.apply_file_patches
+
+        def silent_writer(worktree, relpath, patches):
+            if any(p.group_id == "lost" for p in patches):
+                return {p.suggestion_id: True for p in patches}
+            return real_apply(worktree, relpath, patches)
+
+        before = snapshot_data(self.root)
+        with mock.patch.object(ap, "apply_file_patches", side_effect=silent_writer):
+            res = self._run("silent", FakePipeline(SPEC))
+        self.assertEqual({r["id"] for r in res.needs_human}, {"silent", "mate"})
+        self.assertEqual([p.suggestion_id for p in res.applied], ["kept"])
+        self.assertEqual(self.store.rows["silent"]["status"], "needs_human")
+        self.assertEqual(before, snapshot_data(self.root))
+
     # 1) Clean prose edit -> validator green -> parity holds -> STOPS pre-deploy.
     def test_clean_prose_build_only_stops_before_deploy(self):
         ref = bref(self.root, M03_EX, 0, "sections.intro.body_md")
