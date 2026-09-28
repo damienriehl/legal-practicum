@@ -288,7 +288,7 @@ After deploying the Worker fix through the normal release path, use the
 admin-bearer migration channel and `X-Edit-Request: 1` header to POST
 `{"dry_run":true}` to `/edit/v1/publisher/review/reconcile-noop`. The response
 lists up to 100 uncovered applied IDs (ordered by ID), their `noop_verified`
-(exact) and `normalized_match` booleans, and text-free diagnostics: `kind`, `op`,
+(exact), `normalized_match`, and `rendered_match` booleans, and text-free diagnostics: `kind`, `op`,
 `source_ref`, `group_id`, `apply_batch_id`, `batch_phase`, `batch_commit_sha`,
 `original_type`, `new_type`, `original_length`, `new_length`,
 `common_prefix_bytes`, and `common_suffix_bytes`. Use the kind/op and stored
@@ -311,6 +311,17 @@ that check submit `{"suggestion_ids":["ID"],"match":"normalized"}`. If any sourc
 file changed or commit evidence is uncertain, leave the suggestion uncovered
 and investigate its review evidence.
 
+For IDs with `rendered_match:true` whose raw Markdown original differs from the
+plain submitted rendering, perform the same done-batch and **no source file**
+commit check above, then submit `{"suggestion_ids":["ID"],"match":"rendered"}`.
+The Worker hashes stored `new_text` with synchronous SHA-256 of text-norm
+normalization (`normHash` parity), then checks every bundled public editor-map
+block for the stored `source_ref`. All `original_hash` values must equal that
+hash. Missing entries, disagreeing hashes, or text differing from the normalized
+rendering are refused. A client assertion cannot make an entry eligible.
+If the bundled map is stale, investigate and deploy the correct bundle through
+the normal release path before retrying; do not supply a replacement hash.
+
 Use 1–100 unique IDs per call (at most 256 UTF-8 bytes each). The Worker rechecks
 stored values and requires a done apply batch with a commit SHA. One ineligible
 ID rejects the whole request; investigate the bounded reason before retrying.
@@ -318,7 +329,7 @@ Repeat the same `match` on replay: a different value returns
 `idempotency_conflict`. Replay preserves the original receipt. Never supply text
 or client no-op classifications as evidence.
 
-Both predicates are limited to prose/JSON scalar edits. Normalized equality uses
+All three predicates are limited to prose/JSON scalar edits. Normalized equality uses
 the Worker's Python-parity text normalization for quotes, whitespace, and Unicode.
 Python applies against fresh source text, which can already equal the proposed
 text byte-for-byte even when the stored original differs under normalization.
@@ -328,7 +339,7 @@ Worker-verifiable evidence that no source bytes changed: an admin/service caller
 can submit `review_revisions: []` for a whitespace-only real change.
 Normalization-only no-ops fail closed and stay unreconciled until an operator
 performs the commit check above and explicitly reconciles them with
-`match: "normalized"`. Only reconcile-noop permits normalized matching.
+`match: "normalized"`. Only reconcile-noop permits normalized or rendered matching.
 Structural/page-override actions and real content changes remain
 ineligible; this endpoint does not waive review for real changes.
 
@@ -345,7 +356,8 @@ Crash-recovery phase transitions remain allowed; restoring the batch to `done`
 at the receipt's commit restores coverage. Confirm
 `counts.noop_applications` increased by the receipt's inserted count (zero on
 replay), and `counts.noop_applications_normalized` increased by the inserted
-normalized receipts. These rows provide attribution only and never create Publisher decisions
+normalized receipts; `counts.noop_applications_rendered` similarly counts inserted
+rendered receipts. These rows provide attribution only and never create Publisher decisions
 or release authority.
 
 ## Preparation, authorization, execution

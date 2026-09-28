@@ -7,7 +7,7 @@ const origin = "https://editor.example.test";
 const path = "/edit/v1/publisher/review/reconcile-noop";
 const auth = { editor:"service:test",credential_channel:"bearer",scopes:{ admin:{ granted:true } } };
 function diagnostic(id, original, proposed, prefix, suffix, extra = {}) {
-  return { id,noop_verified:original === proposed,normalized_match:true,
+  return { id,noop_verified:original === proposed,normalized_match:true,rendered_match:false,
     kind:"prose",op:null,source_ref:"source",group_id:null,
     apply_batch_id:"batch",batch_phase:"done",batch_commit_sha:"commit",
     original_type:"string",new_type:"string",original_length:Buffer.byteLength(original),
@@ -127,4 +127,48 @@ for (const [id,original,proposed,kind,prefix,suffix,normalized] of [
     diagnostic(id,original,proposed,prefix,suffix,{ kind,op:kind === "move" ? "move" : null,
       group_id:"group",noop_verified:id === "exact",normalized_match:normalized })] });
   assert.equal(core.productionReleaseAudit().counts.noop_applications,0);
+});
+
+import { lookupBlocks } from "../src/editor-map.js";
+
+test("HTTP rendered opt-in uses bundled evidence, rejects forged verification, and replays without text", async t => {
+  const { db,call } = await fixture(t);
+  const core = db.object.core;
+  const source_ref = "data/curriculum/m1.md#bd3a87cb4";
+  const block = lookupBlocks(source_ref)[0];
+  for (const [id,ref,proposed] of [["rendered",source_ref,block.original_text.replaceAll("*","")],
+    ["real",source_ref,"HTTP_RENDERED_SECRET_EDIT"],["missing","missing",block.original_text.replaceAll("*","")]]) {
+    assert.equal(core.suggest({ id,editor:"slot:test",scope:"edit",origin:"human",kind:"prose",
+      source_ref:ref,original_text:block.original_text,original_hash:block.original_hash,
+      new_text:proposed,map_version:"v1" },{}, { directApply:true }).ok,true);
+  }
+  db.sql.exec("UPDATE suggestions SET status='accepted'");
+  assert.equal(core.claimBatch("batch",{ ids:["rendered","real","missing"] }).ok,true);
+  db.sql.exec("UPDATE suggestions SET status='applied'");
+  db.sql.exec("UPDATE apply_batches SET phase='done',commit_sha='commit'");
+  async function response(body, status) {
+    const result = await call(body); assert.equal(result.status,status);
+    const serialized = await result.text();
+    for (const marker of [block.original_text,"HTTP_RENDERED_SECRET_EDIT","original_text","new_text"])
+      assert.equal(serialized.includes(marker),false);
+    return JSON.parse(serialized);
+  }
+  const dry = await response({ dry_run:true },200);
+  for (const row of dry.suggestions) {
+    assert.equal(row.rendered_match,row.id === "rendered");
+    assert.equal(row.noop_verified,false); assert.equal(row.normalized_match,false);
+  }
+  for (const match of ["exact","normalized"])
+    assert.equal((await response({ suggestion_ids:["rendered"],match },400)).reason,"not_noop");
+  for (const id of ["real","missing"])
+    assert.equal((await response({ suggestion_ids:["rendered",id],match:"rendered",
+      rendered_match:true,original_hash:block.original_hash },400)).reason,"not_noop");
+  assert.equal(core.productionReleaseAudit().counts.noop_applications,0);
+  const body = { suggestion_ids:["rendered"],match:"rendered" };
+  assert.equal((await response(body,201)).inserted,1);
+  assert.equal((await response(body,200)).replay,true);
+  for (const match of ["exact","normalized"])
+    assert.equal((await response({ ...body,match },409)).reason,"idempotency_conflict");
+  assert.equal(core._one("SELECT match FROM production_noop_applications").match,"rendered");
+  assert.equal(core.productionReleaseAudit().counts.noop_applications_rendered,1);
 });

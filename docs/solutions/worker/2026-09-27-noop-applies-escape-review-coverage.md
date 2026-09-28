@@ -60,3 +60,29 @@ atomic rejection/rollback and replay, and exercise the real route and Durable
 Object. The SQL test adapter must return rows for CTE queries: treating only
 queries beginning with SELECT as row-producing silently made the audit's WITH
 query appear to report zero violations.
+
+
+## Raw Markdown versus rendered text
+
+Suggestion `cb8e1ee2-87ce-4fcb-8bbb-e518bda37b33` for
+`data/curriculum/m1.md#bd3a87cb4` exposed another no-op: stored original text
+contains italic Markdown, while submitted plain text equals the canonical
+rendering. Apply restores the formatting and reproduces the original bytes.
+Neither exact nor normalized stored-original comparison detects this case.
+
+Explicit `match: "rendered"` reconciliation now checks Worker-owned bundled map
+evidence: only prose/JSON scalar rows with string `new_text` qualify, and its
+synchronous SHA-256 of text-norm normalization must equal every matching public
+map block's `original_hash`. Missing or disagreeing map entries fail closed.
+The real bundled entry's `original_text` itself is raw Markdown; its
+`original_hash` hashes rendered text. Tests use that distinction directly and
+prove synchronous hashing parity with `normHash`.
+
+Finalize stays exact-only. Operators still verify a done batch with a commit
+that changed no source file before this opt-in. Dry runs add `rendered_match`
+without returning text. Receipts record `match: "rendered"`, retain the existing
+normalized stored-original receipt hash, and preserve atomic validation and
+same-match replay; different modes conflict. Audit adds
+`noop_applications_rendered`. Tests cover real edits, missing/ambiguous map
+entries, kind exclusions, coverage/batch prerequisites, HTTP client assertions,
+replay, and text-free responses.

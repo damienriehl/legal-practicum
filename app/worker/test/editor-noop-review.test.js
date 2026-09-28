@@ -13,7 +13,7 @@ function finish(core, id, extra = {}) {
   return core.finalize(`batch-${id}`,{ phase:"done",applied:[id],commit_sha:"commit",...extra });
 }
 function diagnostic(id, original, proposed, prefix, suffix, extra = {}) {
-  return { id,noop_verified:original === proposed,normalized_match:true,
+  return { id,noop_verified:original === proposed,normalized_match:true,rendered_match:false,
     kind:"prose",op:null,source_ref:"data/copy/home.json#lead",group_id:null,
     apply_batch_id:`batch-${id}`,batch_phase:"done",batch_commit_sha:"commit",
     original_type:"string",new_type:"string",original_length:Buffer.byteLength(original),
@@ -422,4 +422,80 @@ test("dry-run bounds every metadata string in UTF-8 bytes and limits discovery t
   assert.equal(result.suggestions[0].source_ref,null);
   for (const row of result.suggestions) for (const value of Object.values(row))
     if (typeof value === "string") assert.ok(Buffer.byteLength(value) <= 256);
+});
+
+import { lookupBlocks } from "../src/editor-map.js";
+import { normalize } from "../src/text-norm.js";
+import { sha256HexSync } from "../src/integrity-digest.js";
+const renderedRef = "data/curriculum/m1.md#bd3a87cb4";
+function renderedSuggestion(core, id = "rendered") {
+  const block = lookupBlocks(renderedRef)[0];
+  suggestion(core,id,block.original_text,block.original_text.replaceAll("*",""));
+  core.sql.exec("UPDATE suggestions SET source_ref=? WHERE id=?",renderedRef,id);
+  assert.equal(finish(core,id,{ review_revisions:[],match:"rendered" }).ok,true);
+  return block;
+}
+
+test("rendered hash is synchronous normHash parity, including the real bundled curriculum block", async () => {
+  const block = lookupBlocks(renderedRef)[0];
+  for (const text of [block.original_text,"‘Café’\r\n—  e\u0301\u00a0…", "", "🙂".repeat(100)])
+    assert.equal(sha256HexSync(normalize(text)),await normHash(text));
+  assert.equal(sha256HexSync(normalize(block.original_text.replaceAll("*",""))),block.original_hash);
+});
+
+test("raw Markdown versus bundled rendering requires rendered opt-in and preserves receipt on replay", async () => {
+  const core = makeCore(); const block = renderedSuggestion(core);
+  assert.equal(rows(core).length,0); // Even an explicit finalize match cannot loosen it.
+  const dry = core.reconcileNoopReview({ actor:"test",dry_run:true });
+  assert.equal(dry.suggestions[0].noop_verified,false);
+  assert.equal(dry.suggestions[0].normalized_match,false);
+  assert.equal(dry.suggestions[0].rendered_match,true);
+  for (const match of ["exact","normalized"])
+    assert.deepEqual(reconcile(core,["rendered"],{ match }),{ ok:false,reason:"not_noop" });
+  const first = reconcile(core,["rendered"],{ match:"rendered" });
+  assert.equal(first.inserted,1);
+  const receipt = rows(core);
+  assert.equal(receipt[0].match,"rendered");
+  assert.equal(receipt[0].normalized_hash,await normHash(block.original_text));
+  assert.equal(reconcile(core,["rendered"],{ match:"rendered" }).replay,true);
+  for (const match of ["exact","normalized"])
+    assert.equal(reconcile(core,["rendered"],{ match }).reason,"idempotency_conflict");
+  assert.deepEqual(rows(core),receipt);
+  const audit = core.productionReleaseAudit();
+  assert.equal(audit.counts.noop_applications_rendered,1);
+  assert.equal(audit.counts.noop_applications_normalized,0);
+  assert.equal(audit.invariants.unreconciled_applied_suggestions,0);
+  for (const result of [dry,first]) for (const marker of [block.original_text,"original_text","new_text"])
+    assert.equal(JSON.stringify(result).includes(marker),false);
+});
+
+for (const [name,reason,mutate] of [
+  ["real edit","not_noop",c => c.sql.exec("UPDATE suggestions SET new_text='Real changed wording' WHERE id='bad'")],
+  ["missing map","not_noop",c => c.sql.exec("UPDATE suggestions SET source_ref='missing' WHERE id='bad'")],
+  ["structural","not_noop",c => c.sql.exec("UPDATE suggestions SET kind='move' WHERE id='bad'")],
+  ["override","not_noop",c => c.sql.exec("UPDATE suggestions SET kind='page_override' WHERE id='bad'")],
+  ["pending","suggestion_not_applied",c => c.sql.exec("UPDATE suggestions SET status='pending' WHERE id='bad'")],
+  ["unfinished","batch_not_done",c => c.sql.exec("UPDATE apply_batches SET phase='merged' WHERE batch_id='batch-bad'")],
+  ["missing commit","batch_not_done",c => c.sql.exec("UPDATE apply_batches SET commit_sha=NULL WHERE batch_id='batch-bad'")],
+  ["legacy","already_covered",c => cover(c,"bad","legacy")],
+  ["revision","already_covered",c => cover(c,"bad","revision")],
+]) test(`rendered reconciliation rejects ${name} atomically`, () => {
+  const core = makeCore(); renderedSuggestion(core,"good"); renderedSuggestion(core,"bad"); mutate(core);
+  assert.deepEqual(reconcile(core,["good","bad"],{ match:"rendered",rendered_match:true }),{ ok:false,reason });
+  assert.equal(rows(core).length,0);
+});
+
+test("rendered verification accepts scalar and repeated equal hashes but refuses ambiguous render sites", () => {
+  const core = makeCore(); renderedSuggestion(core);
+  core.sql.exec("UPDATE suggestions SET kind='json_scalar'");
+  const blocks = lookupBlocks(renderedRef);
+  const count = blocks.length;
+  try {
+    blocks.push({ ...blocks[0] });
+    assert.equal(core.reconcileNoopReview({ actor:"test",dry_run:true }).suggestions[0].rendered_match,true);
+    blocks.push({ ...blocks[0],original_hash:"different" });
+    assert.equal(core.reconcileNoopReview({ actor:"test",dry_run:true }).suggestions[0].rendered_match,false);
+    assert.equal(reconcile(core,["rendered"],{ match:"rendered" }).reason,"not_noop");
+  } finally { blocks.splice(count); }
+  assert.equal(reconcile(core,["rendered"],{ match:"rendered" }).inserted,1);
 });

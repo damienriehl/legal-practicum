@@ -17,6 +17,7 @@
 
 import { STATUS, TERMINAL, ALLOWED_TRANSITIONS, canTransition } from "./editor-status.js";
 import { normalize } from "./text-norm.js";
+import { lookupBlocks } from "./editor-map.js";
 import { sha256HexSync,integrityDigest,MAX_DIGEST_DEPTH } from "./integrity-digest.js";
 
 // Kind vocabularies (U4, KTD3). Structural operations are ordinary suggestion
@@ -1022,14 +1023,20 @@ export class EditorStoreCore {
     }
   }
 
-  // Finalize always requires exact equality. Normalized matching is available
-  // only through reconcile-noop opt-in after operator verification of the commit.
-  // Neither predicate admits structural or page-override actions.
+  // Finalize always requires exact equality. Other modes require reconcile-noop
+  // opt-in after operator verification of the commit. Only text kinds qualify.
   _verifiedNoop(row,match = "exact") {
-    return ["prose","json_scalar"].includes(row.kind) &&
-      typeof row.original_text === "string" && typeof row.new_text === "string" &&
-      (match === "normalized" ? normalize(row.original_text) === normalize(row.new_text) :
-        row.original_text === row.new_text);
+    if (!["prose","json_scalar"].includes(row.kind) || typeof row.new_text !== "string") return false;
+    if (match === "rendered") {
+      const blocks = lookupBlocks(row.source_ref);
+      if (!blocks?.length) return false;
+      const hash = sha256HexSync(normalize(row.new_text));
+      // Every render site must agree; never trust caller-supplied hashes or flags.
+      return blocks.every((block) => block.original_hash === hash);
+    }
+    if (typeof row.original_text !== "string") return false;
+    return match === "normalized" ? normalize(row.original_text) === normalize(row.new_text) :
+      match === "exact" && row.original_text === row.new_text;
   }
 
   _noopApplicationEvidence(id,match = "exact") {
@@ -1061,7 +1068,7 @@ export class EditorStoreCore {
     if (!input || typeof input !== "object" || Array.isArray(input) || !bounded(input.actor))
       return { ok:false,reason:"validation_error" };
     const match = input.match === undefined ? "exact" : input.match;
-    if (!["exact","normalized"].includes(match)) return { ok:false,reason:"validation_error" };
+    if (!["exact","normalized","rendered"].includes(match)) return { ok:false,reason:"validation_error" };
     if (input.dry_run === true) {
       if (input.suggestion_ids !== undefined) return { ok:false,reason:"validation_error" };
       const rows = this._all(
@@ -1083,7 +1090,8 @@ export class EditorStoreCore {
         }
         // Explicit allowlist: no source text or text fragments may leave this method.
         return { id:metadata(row.id),noop_verified:this._verifiedNoop(row),
-          normalized_match:this._verifiedNoop(row,"normalized"),kind:metadata(row.kind),
+          normalized_match:this._verifiedNoop(row,"normalized"),
+          rendered_match:this._verifiedNoop(row,"rendered"),kind:metadata(row.kind),
           op:STRUCTURAL_KINDS.has(row.kind) ? metadata(row.kind) : null,
           source_ref:metadata(row.source_ref),group_id:metadata(row.group_id),
           apply_batch_id:metadata(row.apply_batch_id),batch_phase:metadata(row.phase),batch_commit_sha:metadata(row.commit_sha),
@@ -3256,6 +3264,7 @@ export class EditorStoreCore {
       canonical_mutations:count("SELECT COUNT(*) AS count FROM canonical_mutations"),
       review_migrations:count("SELECT COUNT(*) AS count FROM production_review_migrations"),
       noop_applications:count("SELECT COUNT(*) AS count FROM production_noop_applications"),
+      noop_applications_rendered:count("SELECT COUNT(*) AS count FROM production_noop_applications WHERE match='rendered'"),
       noop_applications_normalized:count("SELECT COUNT(*) AS count FROM production_noop_applications WHERE match='normalized'"),
       legacy_exclusions:count("SELECT COUNT(*) AS count FROM production_legacy_exclusions"),
       review_revisions:count("SELECT COUNT(*) AS count FROM production_review_revisions"),
