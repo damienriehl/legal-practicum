@@ -750,7 +750,7 @@ operations remain unreviewed until a human Publisher submits a review.
 
 `production_noop_applications` is append-only attribution: `suggestion_id` (primary
 key), `batch_id`, `commit_sha`, `normalized_hash`, `match`, `actor`, `source`,
-`created_at`. `match` is `exact` or `normalized`; the schema migration defaults
+`created_at`. `match` is `exact`, `normalized`, or `rendered`; the schema migration defaults
 pre-existing rows to `exact`.
 It creates no operation, decision, or release member. On `finalize` with
 `phase: "done"`, each applied ID without revision or legacy coverage is checked
@@ -762,7 +762,7 @@ rejected with `idempotency_conflict` and rolls back the batch update. Invalid
 revision evidence rolls back the entire
 transaction; uncovered real changes retain their existing fail-closed behavior.
 
-Both predicates accept only `prose` and `json_scalar` rows with string-valued
+Exact and normalized predicates accept only `prose` and `json_scalar` rows with string-valued
 stored `original_text` and `new_text`. Finalize is always exact-only, regardless
 of `review_revisions`: stored strings must be exactly equal and the receipt
 records `match: "exact"`. Array presence, including `review_revisions: []`, is
@@ -780,8 +780,19 @@ unreconciled until an operator confirms `git show --stat <commit_sha>` changed
 no source file, then explicitly uses reconcile-noop with `match: "normalized"`.
 Normalized matching is available only through that explicit opt-in.
 
+The third mode, `match: "rendered"`, also requires explicit reconcile-noop opt-in.
+The Worker requires kind `prose` or `json_scalar`, a string stored `new_text`,
+and at least one public bundled `EDITOR_MAP` block for the stored `source_ref`.
+It synchronously computes SHA-256 of `normalize(new_text)` (the same value as
+`normHash`) and requires every matching block's `original_hash` to equal it.
+Missing entries or multiple entries with different hashes fail closed. This
+covers raw Markdown originals whose plain submitted text equals the current
+rendering, including preserved italic formatting. No client flag, hash, or text
+can establish this match. Finalize remains exact-only. Operators must confirm
+that the done batch changed no source file before using this mode.
+
 Real content changes, structural operations, and page overrides remain
-ineligible. The hash stays SHA-256 of `normalize(original_text)`, computed
+ineligible. The receipt hash stays SHA-256 of `normalize(original_text)`, computed
 synchronously to keep the transaction atomic. Client-supplied flags or text
 cannot establish coverage.
 
@@ -791,10 +802,10 @@ and `X-Edit-Request: 1` CSRF check as legacy reconciliation. It reads at most
 closed legacy migration seam.
 
 - `{ "dry_run": true }` (IDs omitted) returns 200 with
-  `{ok:true,dry_run:true,suggestions:[{id,noop_verified,normalized_match,...}]}` for at most
+  `{ok:true,dry_run:true,suggestions:[{id,noop_verified,normalized_match,rendered_match,...}]}` for at most
   100 uncovered applied suggestions, ordered by ID, and writes nothing. Verification
-  describes only the stored text/kind predicates: `noop_verified` is exact,
-  `normalized_match` is normalized. Each entry also includes text-free diagnostics:
+  describes only the text/kind/map predicates: `noop_verified` is exact,
+  `normalized_match` is normalized, and `rendered_match` checks bundled rendering. Each entry also includes text-free diagnostics:
   - `kind`, `op` (the structural kind, otherwise `null`), `source_ref`, `group_id`
     (or `null`), `apply_batch_id`, `batch_phase`, and `batch_commit_sha`. Missing
     batch evidence is `null`. Every string field, including `id`, is limited to
@@ -815,16 +826,17 @@ closed legacy migration seam.
 - `{ "suggestion_ids": ["id"] }` accepts 1–100 unique, nonblank string IDs, each
   at most 256 UTF-8 bytes. Every ID must be applied, have no revision/legacy
   coverage, belong to a done batch with a nonempty commit SHA, and pass the Worker
-  predicate. Optional `match: "normalized"` selects normalized equality; omission
+  predicate. Optional `match: "normalized"` selects normalized equality;
+  `match: "rendered"` selects the bundled-rendering hash predicate above. Omission
   defaults to `"exact"`. Other match values are `validation_error`. For historical
-  normalized remediation, operators first run dry-run and confirm with
+  normalized or rendered remediation, operators first run dry-run and confirm with
   `git show --stat <commit_sha>` that the batch changed no source file. All IDs
   are validated before any insert, in one transaction.
 - Success returns 201 with `{ok:true,replay:false,inserted,suggestion_ids}`;
-  fully covered exact replays return 200 with `replay:true,inserted:0`.
+  fully covered same-match replays return 200 with `replay:true,inserted:0`.
   Existing no-op receipts must still match batch, commit, normalized hash, and
   `match` (a different match yields `idempotency_conflict`, even when the requested
-  predicate would fail). A normalized receipt replays with `match: "normalized"`;
+  predicate would fail). A normalized or rendered receipt replays only with its recorded `match`;
   mixed existing/new requests insert only the new rows. Actor comes from auth;
   receipt source is `reconcile-noop`.
 - Failures return bounded reasons: `validation_error`, `suggestion_not_applied`,
@@ -832,8 +844,9 @@ closed legacy migration seam.
   `idempotency_conflict` (409). Auth/CSRF failures return 403. Responses never
   include suggestion text.
 
-The audit reports `counts.noop_applications` and
-`counts.noop_applications_normalized` (receipts with `match: "normalized"`) and
+The audit reports `counts.noop_applications`,
+`counts.noop_applications_normalized` (receipts with `match: "normalized"`), and
+`counts.noop_applications_rendered` (receipts with `match: "rendered"`). It
 includes a receipt in the
 `unreconciled_applied_suggestions` coverage CTE only while its apply batch is
 `done` at the receipt's commit SHA. Its zero-expected
