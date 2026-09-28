@@ -128,10 +128,14 @@ the status, frontier, and audit GETs; it cannot prepare, claim, authorize, trans
 
 ```bash
 python3 tools/prod_release_readiness.py \
-  --ledger-url https://edit.legalpracticum.org \
+  --ledger-url https://sonsteng-chat.damienriehl.workers.dev \
   --observer-env-file <owned-mode-0600-observer-env> \
   --prod-env-file <owned-mode-0600-production-env>
 ```
+
+Use the editor Worker's own host, as `docs/prod-release-operations.md` does. The Access-protected
+`edit.legalpracticum.org` answers a bearer-only request with a `302` to the Access login, which the
+readiness tool reports as `observer request unavailable` (corrected 2026-09-27).
 
 1. Open `https://edit.legalpracticum.org/edit/publish` as the Access-authenticated
    `damienadmin` Publisher. The page title is **Production Publisher**. It is also linked from
