@@ -80,7 +80,7 @@ this file is what those decisions oblige us to *do*.
 
 ## Title, home, and rights
 
-- [ ] **T06 — Adopt "Legal Practicum" throughout** `@agent` `origin:call-2026-08-06`
+- [x] **T06 — Adopt "Legal Practicum" throughout** `@agent` `origin:call-2026-08-06`
       Repo, site, docs, platform. Locked with a noted reservation — John: *"it
       doesn't say enough, but… let's just put legal practicum and stick with it."*
       Revisiting later is explicitly allowed; shipping under it is not blocked.
@@ -95,6 +95,10 @@ this file is what those decisions oblige us to *do*.
       enforcement, committed-tree verification/compensation, GET-only pair inspection,
       and a read-only rename inventory are implemented. Recompute the exact inventory
       at the freeze boundary instead of reusing a historical file count.
+      **Done 2026-09-27.** The supervised Day Zero window (Packet D, window w6)
+      materialized the dates and `legalpracticum.org` identifiers in `daea1e1`, and
+      the repository rename to `damienriehl/legal-practicum` landed in PR #73
+      (Packet F).
 - [x] **T07 — We host it; drop any Mitchell hosting claim** `@agent` `origin:call-2026-08-06`
       Damien hosts. Mitchell Hamline may adopt it and is welcome to help craft it,
       but gets no hosting byline. John: *"I don't think they're interested… I don't
@@ -112,10 +116,14 @@ this file is what those decisions oblige us to *do*.
       `site/index.html` prose, with the separately-licensed Sonsteng-originals
       carve-out. Note the 2026-08-12 record (C2) since retired the
       `data/midstate/` exclusion; U4 of the Legal Practicum plan owns that edit.
-- [ ] **T09 — Record the chain of title** `@john` `origin:call-2026-08-06`
+- [x] **T09 — Record the chain of title** `@john` `origin:call-2026-08-06`
       John bought the Midstate materials **from Anita** — not from Mitchell, which
       he corrected himself mid-sentence. Worth one written line confirming it, since
       the whole CC-BY grant rests on his ownership.
+      **Done 2026-09-27** — John confirmed in writing, by email to Damien, that he
+      bought the Midstate materials from Anita (Cockpit ask
+      `sonsteng-magnum-opus-2026-09-27-1903-packet-e-status`, `e1-chain-of-title`).
+      The email itself stays out of the repository.
 - [ ] **T10 — Clear the CD's other lawyers** `@john` `origin:call-2026-08-06`
       The short narrow-topic briefings on the disc were recorded by other lawyers.
       Their copyrights until cleared for publication.
@@ -128,6 +136,9 @@ this file is what those decisions oblige us to *do*.
       **Blocked on Damien**, not on an agent: the disc contents must be digitised
       or handed off before anything can be ingested. `data/midstate/` does not
       exist. Blocks T13, T14 and T15 in turn.
+      **Status 2026-09-27:** the originals are still on CDs and DVDs; Damien plans to
+      move them to a staging location (Packet E, `e2-materials`). Ingestion starts
+      when he supplies a protected local path, which never goes into Git.
       The old pointer to `decisions/2026-07-18-midstate-deferred.md` is retired —
       that record self-marked SUPERSEDED on 2026-08-12. Current authority is
       `decisions/2026-08-12-john-pitch-docket-outcomes.md` (C2): Midstate joins
