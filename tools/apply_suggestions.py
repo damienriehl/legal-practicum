@@ -1630,6 +1630,39 @@ def _apply_patch_files(worktree, patches):
     for relpath in by_file:
         with open(safe_data_path(worktree, relpath), "rb") as fh:
             before[relpath] = fh.read()
+    # Scalar coercion uses schemas, not just the current value's Python type
+    # (an integer-looking value may belong to a number field).
+    schemas = {}
+    for relpath in by_file:
+        schema_name = SCHEMA_BY_BASENAME.get(os.path.basename(relpath))
+        if schema_name:
+            schema_relpath = "data/schemas/" + schema_name
+            path = safe_data_path(worktree, schema_relpath)
+            if os.path.isfile(path):
+                with open(path, "rb") as fh:
+                    schemas[schema_relpath] = fh.read()
+    changed_groups = set()
+    for group_id, members in by_group.items():
+        if not any(p.original_text != p.new_text or p.op for p in members):
+            continue  # Preserve exact fresh-text no-op behavior.
+        group_files = {}
+        for patch in members:
+            group_files.setdefault(patch.relpath, []).append(patch)
+        # Measure this group's own effect against the original snapshot. A
+        # co-tenant's edit to the same file must not legitimize a no-op group.
+        with tempfile.TemporaryDirectory(prefix="apply-group-") as scratch:
+            scratch_files = {**schemas, **{p: before[p] for p in group_files}}
+            for relpath, content in scratch_files.items():
+                path = safe_data_path(scratch, relpath)
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, "wb") as fh:
+                    fh.write(content)
+            for relpath, file_members in group_files.items():
+                apply_file_patches(scratch, relpath, file_members)
+            for relpath in group_files:
+                with open(safe_data_path(scratch, relpath), "rb") as fh:
+                    if fh.read() != before[relpath]:
+                        changed_groups.add(group_id)
     results = {}
     for relpath, members in by_file.items():
         results.update(apply_file_patches(worktree, relpath, members))
@@ -1638,9 +1671,10 @@ def _apply_patch_files(worktree, patches):
         with open(safe_data_path(worktree, relpath), "rb") as fh:
             if fh.read() != before[relpath]:
                 changed.add(relpath)
-    for members in by_group.values():
+    for group_id, members in by_group.items():
         if (any(p.original_text != p.new_text or p.op for p in members)
-                and not any(p.relpath in changed for p in members)):
+                and (group_id not in changed_groups
+                     or not any(p.relpath in changed for p in members))):
             for patch in members:
                 if results.get(patch.suggestion_id) is True:
                     results[patch.suggestion_id] = OUT_NEEDS_HUMAN

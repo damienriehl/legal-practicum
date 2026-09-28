@@ -42,10 +42,15 @@ applied. Existing tests covered real edits around formatting and unsafe span
 edits, but did not assert that a formatting-only submission cannot be applied.
 
 The formatting gate now rejects an identical reconstructed span. An independent
-post-write guard compares source bytes and rejects a change-requesting group if
-none of its targeted files changed. Existing whole-group rollback and bounded
-replay handle the refusal; replay uses the same guard. This is a group/file
-check, not proof that every member of a partially effective group changed.
+source-byte guard applies each change-requesting group alone to pre-apply
+snapshots in a `TemporaryDirectory`, mirroring target paths through
+`safe_data_path` and using `apply_file_patches`. Schema snapshots preserve scalar
+coercion semantics (for example, a number field currently containing an integer
+must still accept a fractional value). A group whose isolated writes leave all
+target files byte-identical is rejected. The real combined write also retains
+its file-level byte check. Existing whole-group rollback and bounded replay
+handle the refusal; replay uses the same helper. This checks each group's net
+effect, not whether every member of a partially effective group changed.
 Genuine prose edits around preserved formatting still apply. Exact fresh-text
 no-op semantics outside this formatting defect remain unchanged.
 
@@ -53,6 +58,16 @@ Regression coverage lives in `test_coverage_apply_pipeline.py` (real builder,
 real curriculum block, actual writer) and `test_apply_suggestions.py` (a writer
 that returns success without writing, whole-group rejection, independent edit
 retention). Both refusal tests were run red before their fixes.
+
+PR #84 review exposed a gap in the original file-level guard: an already-adjacent
+structural move returns success without changing bytes, but an independent prose
+edit in the same file put that path in the shared `changed` set. Both groups then
+appeared effective and finalized as applied. The per-group isolated application
+closes that attribution gap. A real transaction regression reproduced the false
+applied move before the correction and now verifies that only the prose edit
+lands. A second regression confirms two real prose edits in the same file both
+remain applied. The existing silent-writer and real curriculum regressions remain
+required checks.
 
 # Operator remediation
 

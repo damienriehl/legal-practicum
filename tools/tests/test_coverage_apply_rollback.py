@@ -138,6 +138,9 @@ def test_replay_invalid_source_rolls_back_other_retained_edits_without_third_att
     counts = {}
 
     def concurrent_change_during_replay(worktree, relpath, patches):
+        if not Path(worktree, '.git').exists():
+            # Isolated group probes are not transaction writes or replays.
+            return real_apply(worktree, relpath, patches)
         for patch in patches:
             counts[patch.suggestion_id] = counts.get(patch.suggestion_id, 0) + 1
         if relpath == fixtures.M03_EX and counts.get('retained-a') == 2:
