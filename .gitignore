@@ -16,3 +16,8 @@ node_modules/
 .wrangler/
 .dev.vars
 .dev.vars.*
+# Machine-local agent state (per-machine settings, private resume notes, Cockpit hook wiring).
+.claude/settings.local.json
+.claude/RESUME.md
+.claude/worktrees/
+.codex/
