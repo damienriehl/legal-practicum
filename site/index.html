@@ -1,3 +1,4 @@
+<!doctype html>
 <!-- Legal Practicum — walkthrough site. Self-contained; embedded fonts (no external requests). -->
 <html lang="en">
 <meta charset="utf-8">
@@ -583,14 +584,14 @@ details.proof>.wrap{padding-left:0;padding-right:0;margin-top:28px}
 </div><details class="proof"><summary>THE PROOF · 8 decision prompts captured in one place</summary><div class="wrap reveal">
   <p class="muted" style="max-width:64ch;margin-bottom:24px">Two ways to give feedback as we walk through: tap a <b>✎ pencil</b> beside any section or card to leave a comment tied to that spot, and/or set an overall reaction per pillar below. Everything gathers in <b>✎ Comments</b> (bottom-right) → <b>Copy all for Damien</b> to paste back into the chat.</p>
   <div class="fb" id="fb">
-    <div class="fbrow" data-k="Vision &amp; why-now"><h3>Vision &amp; why-now</h3><div class="opts"></div><textarea placeholder="John / Roger's notes on the vision…"></textarea></div>
-    <div class="fbrow" data-k="The evidence (17+9 skills survey)"><h3>The evidence — the skills survey</h3><div class="opts"></div><textarea placeholder="Do the 17+9 skills &amp; the gap chart land right? Any numbers to refine?"></textarea></div>
-    <div class="fbrow" data-k="The Magnum Opus (book + curriculum + platform)"><h3>The layered Opus</h3><div class="opts"></div><textarea placeholder="Is the book+curriculum+platform framing right? What's missing?"></textarea></div>
-    <div class="fbrow" data-k="The Practicum structure"><h3>The Practicum structure</h3><div class="opts"></div><textarea placeholder="Skills, exercises, the firm-simulation model…"></textarea></div>
-    <div class="fbrow" data-k="Skills coverage (approach + improvements + AI)"><h3>The skills-coverage matrix</h3><div class="opts"></div><textarea placeholder="Does the all-26-skills map hold? Any skill mis-anchored, any improvement or AI amplification to change?"></textarea></div>
-    <div class="fbrow" data-k="The Centaur (human + AI) model"><h3>The Centaur model</h3><div class="opts"></div><textarea placeholder="Does the human-anchored AI model feel right?"></textarea></div>
-    <div class="fbrow" data-k="Open / MIT &amp; where it lives"><h3>Open / MIT &amp; where it lives</h3><div class="opts"></div><textarea placeholder="Institutional home, licensing, names on the door…"></textarea></div>
-    <div class="fbrow" data-k="The flagship first build"><h3>The flagship — build first</h3><div class="opts"></div><textarea placeholder="Which single skill / Midstate exercise do we prove first?"></textarea></div>
+    <div class="fbrow" data-k="Vision &amp; why-now"><h3 id="fb-vision">Vision &amp; why-now</h3><div class="opts" role="group" aria-labelledby="fb-vision"></div><textarea name="vision-notes" aria-labelledby="fb-vision" placeholder="John / Roger's notes on the vision…"></textarea></div>
+    <div class="fbrow" data-k="The evidence (17+9 skills survey)"><h3 id="fb-evidence">The evidence — the skills survey</h3><div class="opts" role="group" aria-labelledby="fb-evidence"></div><textarea name="evidence-notes" aria-labelledby="fb-evidence" placeholder="Do the 17+9 skills &amp; the gap chart land right? Any numbers to refine?"></textarea></div>
+    <div class="fbrow" data-k="The Magnum Opus (book + curriculum + platform)"><h3 id="fb-opus">The layered Opus</h3><div class="opts" role="group" aria-labelledby="fb-opus"></div><textarea name="opus-notes" aria-labelledby="fb-opus" placeholder="Is the book+curriculum+platform framing right? What's missing?"></textarea></div>
+    <div class="fbrow" data-k="The Practicum structure"><h3 id="fb-practicum">The Practicum structure</h3><div class="opts" role="group" aria-labelledby="fb-practicum"></div><textarea name="practicum-notes" aria-labelledby="fb-practicum" placeholder="Skills, exercises, the firm-simulation model…"></textarea></div>
+    <div class="fbrow" data-k="Skills coverage (approach + improvements + AI)"><h3 id="fb-skills">The skills-coverage matrix</h3><div class="opts" role="group" aria-labelledby="fb-skills"></div><textarea name="skills-notes" aria-labelledby="fb-skills" placeholder="Does the all-26-skills map hold? Any skill mis-anchored, any improvement or AI amplification to change?"></textarea></div>
+    <div class="fbrow" data-k="The Centaur (human + AI) model"><h3 id="fb-centaur">The Centaur model</h3><div class="opts" role="group" aria-labelledby="fb-centaur"></div><textarea name="centaur-notes" aria-labelledby="fb-centaur" placeholder="Does the human-anchored AI model feel right?"></textarea></div>
+    <div class="fbrow" data-k="Open / MIT &amp; where it lives"><h3 id="fb-open">Open / MIT &amp; where it lives</h3><div class="opts" role="group" aria-labelledby="fb-open"></div><textarea name="open-notes" aria-labelledby="fb-open" placeholder="Institutional home, licensing, names on the door…"></textarea></div>
+    <div class="fbrow" data-k="The flagship first build"><h3 id="fb-flagship">The flagship — build first</h3><div class="opts" role="group" aria-labelledby="fb-flagship"></div><textarea name="flagship-notes" aria-labelledby="fb-flagship" placeholder="Which single skill / Midstate exercise do we prove first?"></textarea></div>
     <div class="fbactions">
       <span class="muted" style="font-size:.92rem">Your picks + every ✎ comment are copied together from <b>✎ Comments</b> (bottom-right).</span>
     </div>
@@ -699,8 +700,8 @@ details.proof>.wrap{padding-left:0;padding-right:0;margin-top:28px}
   document.querySelectorAll('#fb .fbrow').forEach(function(row){
     var opts=row.querySelector('.opts');
     CHOICES.forEach(function(c){
-      var b=document.createElement('button');b.className='opt';b.type='button';b.textContent=c;
-      b.onclick=function(){opts.querySelectorAll('.opt').forEach(function(o){o.classList.remove('on')});b.classList.add('on');row.dataset.choice=c;updateCount();};
+      var b=document.createElement('button');b.className='opt';b.type='button';b.textContent=c;b.setAttribute('aria-pressed','false');
+      b.onclick=function(){opts.querySelectorAll('.opt').forEach(function(o){o.classList.remove('on');o.setAttribute('aria-pressed','false')});b.classList.add('on');b.setAttribute('aria-pressed','true');row.dataset.choice=c;updateCount();};
       opts.appendChild(b);
     });
     row.querySelector('textarea').addEventListener('input',updateCount);

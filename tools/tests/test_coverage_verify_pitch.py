@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import verify_pitch as pitch
 
 
-SHELL = '<html lang="EN"><meta name="VIEWPORT" content="width=device-width, initial-scale=1">{body}</html>'
+SHELL = '<!doctype html><html lang="EN"><meta name="VIEWPORT" content="width=device-width, initial-scale=1">{body}</html>'
 
 
 def write_page(tmp_path, body='', name='page.html'):

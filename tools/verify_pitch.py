@@ -642,6 +642,8 @@ def verify_page(path: str | Path) -> list[str]:
         return errors
 
     source = page.read_text(encoding="utf-8")
+    if not re.match(r"\A<!doctype\s+html\s*>", source, re.IGNORECASE):
+        errors.append("page must start with an HTML5 doctype: <!doctype html>")
     errors.extend(_document_language_errors(parser))
     errors.extend(_viewport_errors(parser))
     errors.extend(_link_errors(page, parser))

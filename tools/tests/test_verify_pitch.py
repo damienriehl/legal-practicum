@@ -581,3 +581,90 @@ def test_preflight_runs_the_pitch_content_contract():
     assert gate in preflight
     assert "python3 tools/verify_pitch.py" in preflight
     assert preflight.index('run "Midstate naming/remedy contract"') < preflight.index(gate)
+
+
+@pytest.mark.parametrize("doctype", ["", "<!doctype HTML PUBLIC 'legacy'>"])
+def test_missing_or_legacy_doctype_fails(page: Path, doctype: str):
+    page.write_text(VALID_PAGE.replace("<!doctype html>", doctype), encoding="utf-8")
+    assert "doctype" in messages(page)
+
+
+def test_pitch_starts_with_html5_doctype_before_comment():
+    source = (ROOT / "site/index.html").read_text(encoding="utf-8")
+    assert source.startswith("<!doctype html>\n<!--")
+
+
+def test_pitch_reaction_notes_and_groups_are_named_by_unique_headings():
+    parser = verify_pitch._parse(ROOT / "site/index.html")
+    rows = [element for element in parser.elements
+            if "fbrow" in element.attrs.get("class", "").split()]
+    assert len(rows) == 8
+    heading_ids = []
+    names = []
+    for row in rows:
+        children = [element for element in parser.elements
+                    if element.parent is row]
+        heading = next(element for element in children if element.tag == "h3")
+        note = next(element for element in children if element.tag == "textarea")
+        group = next(element for element in children
+                     if "opts" in element.attrs.get("class", "").split())
+        heading_id = heading.attrs.get("id")
+        assert heading_id
+        assert sum(element.attrs.get("id") == heading_id
+                   for element in parser.elements) == 1
+        assert note.attrs.get("aria-labelledby") == heading_id
+        assert note.attrs.get("name")
+        assert group.attrs.get("role") == "group"
+        assert group.attrs.get("aria-labelledby") == heading_id
+        heading_ids.append(heading_id)
+        names.append(note.attrs["name"])
+    assert len(set(heading_ids)) == len(set(names)) == 8
+
+
+def test_pitch_reaction_pressed_state_tracks_selection_and_isolated_rows():
+    source = (ROOT / "site/index.html").read_text(encoding="utf-8")
+    script = source.split("// ---- VII pillar quick-reactions ----", 1)[1].split(
+        "// ---- commentable targets:", 1
+    )[0]
+    harness = r"""
+const assert = require('node:assert/strict');
+let updates = 0;
+function updateCount(){updates++;}
+function button(){
+  const classes = new Set();
+  return {attrs:{}, setAttribute(k,v){this.attrs[k]=String(v);},
+    classList:{add(c){classes.add(c);},remove(c){classes.delete(c);},
+      contains(c){return classes.has(c);}}};
+}
+const rows = Array.from({length:8},()=>{
+  const buttons=[];
+  const opts={appendChild(b){buttons.push(b);},querySelectorAll(){return buttons;}};
+  const textarea={addEventListener(){}};
+  return {buttons,dataset:{},querySelector(s){return s==='.opts'?opts:textarea;}};
+});
+const document={querySelectorAll(){return rows;},createElement:button};
+"""
+    assertions = r"""
+function check(row, selected){
+  assert.equal(row.buttons.length,3);
+  row.buttons.forEach((b,i)=>{
+    assert.equal(b.attrs['aria-pressed'],String(i===selected));
+    assert.equal(b.classList.contains('on'),i===selected);
+    assert.equal(b.type,'button');
+  });
+}
+rows.forEach(row=>check(row,-1));
+rows.forEach((row,index)=>{
+  for(const selected of [0,2,1,1]){
+    row.buttons[selected].onclick();
+    check(row,selected);
+    assert.equal(row.dataset.choice,row.buttons[selected].textContent);
+    rows.slice(index+1).forEach(other=>check(other,-1));
+    rows.slice(0,index).forEach(other=>check(other,1));
+  }
+});
+assert.equal(updates,32);
+"""
+    result = subprocess.run(["node", "-e", harness + script + assertions],
+                            capture_output=True, text=True, check=False)
+    assert result.returncode == 0, result.stderr
