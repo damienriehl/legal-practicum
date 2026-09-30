@@ -3,17 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; font-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; font-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>Weekly hours log — Legal Practicum</title>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../platform.css">
 <link rel="stylesheet" href="hours.css">
 <script src="../assets/type-preference.js"></script>
+<script src="../platform.js" defer></script>
 <script src="hours-core.js" defer></script>
 <script src="hours.js" defer></script>
 </head>
 <body>
-<a class="skip" href="#main">Skip to hours log</a>
-<header><a href="../index.html">LEGAL PRACTICUM</a><span>WEEKLY HOURS</span></header>
-<main id="main">
+<a class="skip-link" href="#main">Skip to hours log</a>
+<header class="masthead">
+  <div class="masthead__inner">
+    <a class="masthead__brand" href="../index.html">LEGAL PRACTICUM</a>
+    <span class="masthead__docket mono">WEEKLY HOURS</span>
+    <button type="button" class="type-toggle mono" id="type-toggle" aria-pressed="false" title="Toggle large type">A+ LARGE TYPE</button>
+  </div>
+</header>
+<nav class="breadcrumb" aria-label="Breadcrumb"><a href="../index.html">Home</a><span class="sep" aria-hidden="true">/</span><span>Hours</span></nav>
+<main id="main" class="wrap hours-app" tabindex="-1">
   <h1>Weekly hours log</h1>
   <p class="lede">Record the time you worked and the time you could bill. The gap is part of the lesson.</p>
   <section id="disclosure" class="notice" aria-labelledby="privacy-title">

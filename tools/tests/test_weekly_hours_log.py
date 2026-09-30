@@ -154,3 +154,14 @@ def test_build_site_copies_hours_client_and_links_it():
     assert "APP_HOURS" in source
     assert "copy_hours_app()" in source
     assert "hours/index.html" in source
+
+
+def test_hours_validation_waits_for_edit_or_export_and_recovers():
+    subprocess.run(["node", str(ROOT / "tools/tests/hours_validation.test.js")],
+                   cwd=ROOT, check=True, capture_output=True, text=True)
+
+
+def test_hours_csp_allows_embedded_shared_fonts_but_blocks_connections():
+    html = (ROOT / "app/hours/index.html").read_text()
+    assert "font-src 'self' data:;" in html
+    assert "connect-src 'none';" in html
