@@ -68,6 +68,26 @@
   var DELAY = parseInt(P.get('delay') || '500', 10);
   var CAP_AT = parseInt(P.get('capAt') || (SCEN === 'cap3' ? '3' : '0'), 10);
   var MAXT = 20;
+  var mintCount = 0;
+  window.__MINT_COUNT__ = function () { return mintCount; };
+  if (SCEN.indexOf('turnstile_') === 0) {
+    var meta = document.createElement('meta');
+    meta.name = 'turnstile-sitekey'; meta.content = 'mock-sitekey'; document.head.appendChild(meta);
+    window.turnstile = {
+      render: function (container, options) {
+        window.__TURNSTILE__ = options;
+        var check = document.createElement('button');
+        check.textContent = 'Verify you are human'; check.type = 'button';
+        check.onclick = function () { options['after-interactive-callback'](); options.callback('mock-verification-token'); };
+        container.appendChild(check);
+        if (SCEN === 'turnstile_interactive') options['before-interactive-callback']();
+        // Let boot register its token waiter before simulating a widget error.
+        if (SCEN === 'turnstile_late') setTimeout(function () { options['error-callback'](); }, 0);
+        return 'mock-widget';
+      },
+      reset: function () { window.__TURNSTILE__['before-interactive-callback'](); }
+    };
+  }
   var srvTurn = 0;              // server-authoritative turn count
   var attempts = {};           // turn_id -> attempt count (for upstream_once dedupe test)
   var log = function (m) { var l = document.getElementById('hlog'); l.textContent = '[' + new Date().toLocaleTimeString() + '] ' + m + '\n' + l.textContent; };
@@ -87,11 +107,16 @@
 
   window.__SONSTENG_MOCK__ = function (req) {
     var path = req.path, body = req.body || {};
-    log('→ ' + req.method + ' ' + path + (body.turn_id ? ' tid=' + body.turn_id.slice(0, 8) : ''));
+    log('→ ' + req.method + ' ' + path.split('?')[0] + (body.turn_id ? ' tid=' + body.turn_id.slice(0, 8) : ''));
+    if (path.indexOf('/v1/session') === 0) mintCount++;
     var d = path.indexOf('/v1/session') === 0 ? 120 : DELAY;
     return wait(d).then(function () {
 
       if (path.indexOf('/v1/session') === 0) {
+        if (SCEN.indexOf('turnstile_') === 0 && path.indexOf('cf_ts=') < 0 && path.indexOf('bypass=') < 0)
+          return { ok: false, status: 403, data: { error: { code: 'turnstile_failed' } } };
+        if (SCEN === 'mint_retry' && mintCount === 1)
+          return { ok: false, status: 503, data: { error: { code: 'unavailable' } } };
         return { ok: true, status: 200, data: { session_token: 'mock-token-' + Math.random().toString(16).slice(2, 8), sid: 'mock-sid', pool: 'public', max_turns: MAXT } };
       }
 
