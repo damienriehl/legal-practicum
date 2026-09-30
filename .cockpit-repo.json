@@ -1,0 +1,7 @@
+{
+  "kind": "app",
+  "prod": {"url": "https://legalpracticum.org/"},
+  "deploy": "Publisher-authorized release lane: tools/prod_release_daemon.py releases an authorized batch to Cloudflare Pages and the production Worker (docs/prod-release-operations.md)",
+  "uat": {"status": "in_progress", "date": "2026-09-30", "open_failures": []},
+  "dev": {"url": "https://sonsteng-dev.damienriehl.com/", "deploy": "bash deploy/deploy-dev.sh; DEV Worker via the direct-apply daemon"}
+}
