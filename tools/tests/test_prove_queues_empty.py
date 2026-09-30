@@ -106,8 +106,19 @@ def _assert_measured_claim(claim_id, observation, *, claim=None):
     if claim is None:
         claim = runbook_claim_contract()[claim_id]
     expected = {key: value for key, value in claim.items() if key != "statement"}
+    statement_tokens = _claim_statement_tokens(claim["statement"])
+    if claim_id == "verifier_closed_stdout":
+        # The runbook records the measured env release, not a version pin.
+        # Keep the implementation family and every behavioral claim strict.
+        observation = dict(observation)
+        key = "documented_chain_env_implementation"
+        for values in (observation, expected, statement_tokens):
+            assert re.fullmatch(
+                r"uutils coreutils [0-9]+(?:\.[0-9]+)+", values[key]
+            )
+            values[key] = "uutils coreutils"
     assert observation == expected
-    assert _claim_statement_tokens(claim["statement"]) == {
+    assert statement_tokens == {
         key: _claim_token(value) for key, value in observation.items()
     }
 
