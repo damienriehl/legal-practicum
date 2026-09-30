@@ -976,6 +976,7 @@ main[tabindex]:focus{outline:none}
 .eyebrow{font-family:var(--font-mono);font-size:var(--fs-editorial-label);font-weight:700;
   text-transform:uppercase;letter-spacing:.075em;color:var(--claret-strong);margin:0 0 var(--sp-3)}
 .chips{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
+.chip{max-width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.4}
 .card h3{margin-bottom:var(--sp-2)}
 .card__meta{font-family:var(--font-mono);font-size:var(--fs-mono-xs);text-transform:uppercase;
   letter-spacing:.08em;color:var(--ink-faint-text)}
@@ -1050,14 +1051,15 @@ main[tabindex]:focus{outline:none}
   letter-spacing:.08em;color:var(--ink-faint-text)}
 
 /* ---- matter library ---- */
-.lib-toolbar{display:flex;flex-wrap:wrap;gap:var(--sp-6);align-items:center;
-  justify-content:space-between;margin:var(--sp-6) 0}
+.lib-toolbar{display:flex;flex-wrap:wrap;gap:var(--sp-6);align-items:end;
+  margin:var(--sp-6) 0}
+.lib-field{display:grid;gap:var(--sp-2);flex:1 1 12rem;min-width:0;max-width:100%}
 .lib-toolbar label{display:grid;gap:var(--sp-2);font-family:var(--font-mono);
   font-size:var(--fs-mono-xs);letter-spacing:.04em;color:var(--ink-soft)}
 .lib-toolbar input,.lib-toolbar select,.lib-toolbar button{box-sizing:border-box;min-height:44px;
   max-width:100%;border:var(--rule) solid var(--line);border-radius:var(--radius);
   background:var(--paper);color:var(--ink);font:inherit;padding:.55rem .7rem}
-.lib-toolbar input{min-width:min(18rem,100%)}
+.lib-toolbar input,.lib-toolbar select{width:100%;min-width:0}
 .lib-toolbar button{cursor:pointer;background:var(--ink);color:var(--ink-invert)}
 .shape-row{display:grid;grid-template-columns:1fr;gap:var(--sp-6);margin:var(--sp-6) 0;
   padding-top:var(--sp-6);border-top:var(--rule) solid var(--line)}
@@ -1141,7 +1143,9 @@ details.side-conf summary{cursor:pointer;font-family:var(--font-mono);font-size:
   font-family:var(--font-mono);font-size:var(--fs-mono-xs);text-transform:uppercase;letter-spacing:.06em}
 .legend span{display:inline-flex;align-items:center;gap:.4em;color:var(--ink-soft)}
 .legend i{width:.85em;height:.85em;border-radius:2px;display:inline-block}
-.kpi-hero .kpi-tile__value{font-size:var(--fs-display)}
+.kpi-tile{min-width:0;container-type:inline-size}
+.kpi-tile__value{white-space:nowrap;font-size:clamp(1.5rem,17cqi,var(--fs-2xl))}
+.kpi-hero .kpi-tile__value{font-size:clamp(1.5rem,20cqi,var(--fs-display))}
 @media(min-width:64rem){.wrap .kpi-row{grid-template-columns:repeat(3,1fr)}}
 .kpi-tile__spark{margin-top:var(--sp-3)}
 .kpi-tile__chip{font-family:var(--font-mono);font-size:var(--fs-mono-xs);letter-spacing:.06em;
@@ -1868,11 +1872,6 @@ def build_skills(corpus):
   skills, decomposed into the tasks most lawyers most often perform — each mapped into the FOLIO
   ontology where a sound mapping exists, and cross-linked to the matters that exercise it.</p>
 </section>
-<section aria-label="Taxonomy source descriptions">
-  <p{skills_desc_eb}>{skills_desc}</p>
-  <p{tasks_desc_eb}>{tasks_desc}</p>
-  <p{cross_desc_eb}>{cross_desc}</p>
-</section>
 <div class="brass-rule" role="presentation"></div>
 
 <section aria-labelledby="lp-h">
@@ -1896,6 +1895,12 @@ def build_skills(corpus):
   </div>
   {ext}
 </section>
+<details class="data-notes">
+  <summary>About this data</summary>
+  <p{skills_desc_eb}>{skills_desc}</p>
+  <p{tasks_desc_eb}>{tasks_desc}</p>
+  <p{cross_desc_eb}>{cross_desc}</p>
+</details>
 """.format(n=len(lp) + len(pm), title_render=_eb_render_attr(title_ref, rel),
            skills_desc=esc(corpus["skills"]["description"]),
            skills_desc_eb=scalar(skills_rel, "description", corpus["skills"]["description"], "Taxonomy"),
@@ -2058,10 +2063,10 @@ def build_matter_library(corpus):
             rendered_cards.append(card(item, annotate_shape=first_shape))
         body = """<section><p class="eyebrow"{eyebrow_attr}>{eyebrow}</p><h1{heading_attr}>{heading}</h1><p class="lede"{lede_attr}>{lede}</p>
 <p><a class="arrow-link" href="{repo}">View complete public source repository (includes instructor materials and answer keys)</a></p></section>
-<form class="lib-toolbar" data-catalog-form role="search"><label for="catalog-search">Search matters</label><input id="catalog-search" name="q" type="search" aria-label="Search matters">
-<label for="catalog-shape">Practice shape</label><select id="catalog-shape" name="shape"><option value="">All shapes</option>{shapes}</select>
-<label for="catalog-tier">Tier</label><select id="catalog-tier" name="tier"><option value="">Both tiers</option><option value="meridian">Meridian</option><option value="real">Real states</option></select>
-<label for="catalog-fee">Fee type</label><select id="catalog-fee" name="fee"><option value="">All fee types</option>{fees}</select><button type="submit">Apply filters</button></form>
+<form class="lib-toolbar" data-catalog-form role="search"><div class="lib-field"><label for="catalog-search">Search matters</label><input id="catalog-search" name="q" type="search" aria-label="Search matters"></div>
+<div class="lib-field"><label for="catalog-shape">Practice shape</label><select id="catalog-shape" name="shape"><option value="">All shapes</option>{shapes}</select></div>
+<div class="lib-field"><label for="catalog-tier">Tier</label><select id="catalog-tier" name="tier"><option value="">Both tiers</option><option value="meridian">Meridian</option><option value="real">Real states</option></select></div>
+<div class="lib-field"><label for="catalog-fee">Fee type</label><select id="catalog-fee" name="fee"><option value="">All fee types</option>{fees}</select></div><button type="submit">Apply filters</button></form>
 <p class="card__meta" aria-live="polite" data-catalog-status>{total} matters · page {page} of {pages}</p>
 <h2 id="catalog-results" tabindex="-1">Catalog results</h2><div data-catalog-results>{cards}</div>
 <p data-catalog-empty hidden>No matters match your search and filters.</p><nav class="pagination" aria-label="Catalog pages">{nav}</nav>
