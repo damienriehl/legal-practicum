@@ -1,7 +1,19 @@
 {
   "kind": "app",
-  "prod": {"url": "https://legalpracticum.org/"},
+  "prod": {
+    "url": "https://legalpracticum.org/"
+  },
   "deploy": "Publisher-authorized release lane: tools/prod_release_daemon.py releases an authorized batch to Cloudflare Pages and the production Worker (docs/prod-release-operations.md)",
-  "uat": {"status": "in_progress", "date": "2026-09-30", "open_failures": []},
-  "dev": {"url": "https://sonsteng-dev.damienriehl.com/", "deploy": "bash deploy/deploy-dev.sh; DEV Worker via the direct-apply daemon"}
+  "uat": {
+    "status": "in_progress",
+    "date": "2026-09-30",
+    "open_failures": [
+      "Fixes F1-F14, F18-F19 merged; PROD awaits the next Publisher release (F8 interview verification is P1 on PROD until then)",
+      "P3 open: pitch lede repeats headline; phone header height; templates phrase; pitch Comments button crowding"
+    ]
+  },
+  "dev": {
+    "url": "https://sonsteng-dev.damienriehl.com/",
+    "deploy": "bash deploy/deploy-dev.sh; DEV Worker via the direct-apply daemon"
+  }
 }
