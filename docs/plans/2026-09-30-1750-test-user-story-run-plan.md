@@ -36,7 +36,7 @@ execution: code
 - R2. A row is PASS only with a recorded artifact (harness exit and run file, or a screenshot read by the orchestrator). A skipped live step is NOT RUN, never PASS.
 - R3. Every error and every UX defect found is listed with path, surface, severity (P0-P3), and disposition: fixed-and-reproved, OPEN with reason, or NOT RUN with prerequisite.
 - R4. Bounded defects are fixed on the branch, verified locally and through preflight, and shipped to DEV when they touch `site/` or `app/worker/`.
-- R5. The run's summary is appended to `docs/uat/persona-uat-record.md`, and `.cockpit-repo.json` `uat` is set: `done` when no open failures remain in walked paths, otherwise `in_progress`, with `open_failures` as short public-safe strings.
+- R5. The run's summary is recorded in `docs/uat/2026-09-30-user-story-run.md` (amended during execution: `docs/uat/persona-uat-record.md` is generated from run files by `tools/render_persona_uat_record.py` and must not be hand-edited, and this worktree lacks the earlier run files needed to regenerate it), and `.cockpit-repo.json` `uat` is set: `done` when no open failures remain in walked paths, otherwise `in_progress`, with `open_failures` as short public-safe strings.
 
 ### Scope
 
