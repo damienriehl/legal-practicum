@@ -8,7 +8,9 @@
     "status": "in_progress",
     "date": "2026-09-30",
     "open_failures": [
-      "Fixes F1-F14, F18-F19 merged; PROD awaits the next Publisher release (F8 interview verification is P1 on PROD until then)",
+      "F1-F14, F18-F19 fixes merged; PROD awaits next Publisher release (F8 interview verification P1 live on PROD until then)",
+      "Review P2s open: queued SEND dropped in one late-token ordering; critique back link lacks packet param",
+      "Adopter worker-tests journey hangs (F20)",
       "P3 open: pitch lede repeats headline; phone header height; templates phrase; pitch Comments button crowding"
     ]
   },

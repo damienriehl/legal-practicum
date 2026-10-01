@@ -42,6 +42,19 @@ Severity: P0 blocks a common path or leaks data; P1 misleads or strands a user o
 | F17 | P3 | Pitch, phone | The Comments button crowds "Expand all sections" | OPEN: minor |
 | F18 | P2 | Hours log | Cramped vertical rhythm: buttons touching inputs and the next heading; card heading at display size | Fixed |
 | F19 | P3 | Hours log | An untouched week showed "3 issue(s) must be corrected" in error styling | Fixed: issues appear after the first edit or an export attempt |
+| F20 | P3 | Adopter path | The Worker test suite hangs in the adopter journey: a browser test added on 2026-09-27 cannot launch Chrome in the stripped environment and keeps the process alive after its timeout | OPEN: `docs/plans/2026-09-30-2000-fix-review-p2-followups-plan.md` (R5) |
+
+## Adopter path (README quickstart)
+
+`tools/verify_persona_journeys.js --bindings` against the pushed branch commit, local leg:
+
+| Journey | Result |
+| --- | --- |
+| adopter-clone-serve | PASS |
+| adopter-byok-boundary | PASS |
+| adopter-worker-dry-run | PASS |
+| adopter-validate-build | PASS |
+| adopter-worker-tests | FAIL: hangs (F20); pre-existing on `main` since 2026-09-27 |
 
 ## Verification of fixes
 
@@ -52,4 +65,4 @@ Severity: P0 blocks a common path or leaks data; P1 misleads or strands a user o
 
 ## What reaches PROD, and when
 
-DEV and PROD serve the same content build. PROD is released only through the Publisher lane (`docs/prod-release-operations.md`), so these fixes reach `legalpracticum.org` with the next Publisher-authorized release; until then F8 remains live on PROD. The fixes are on `main` and, for the Worker-independent static pages, deployable to DEV with `deploy/deploy-dev.sh`.
+DEV and PROD serve the same content build. PROD is released only through the Publisher lane (`docs/prod-release-operations.md`), so these fixes reach `legalpracticum.org` with the next Publisher-authorized release; until then F8 remains live on PROD. Code review of the fix branch (verdict: Ready with fixes, no P0/P1) found two P2 defects in the new code (a queued SEND dropped in one late-token ordering; the critique back link never receives its packet parameter). They are specified in `docs/plans/2026-09-30-2000-fix-review-p2-followups-plan.md` and wait for the Codex worker fleet, which was unavailable that evening. The fixes are on `main` and, for the Worker-independent static pages, deployable to DEV with `deploy/deploy-dev.sh`.
