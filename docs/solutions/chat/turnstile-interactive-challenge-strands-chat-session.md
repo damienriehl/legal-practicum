@@ -119,7 +119,7 @@ if (!session) { stageDirection('The line isn’t connected yet — one moment.')
    }
    ```
 
-7. **The checkbox is accessible.** The container dropped `aria-hidden` and now has `role="region"` and `aria-label="Connection verification"` (`app/chat/chat.js:1099-1101`).
+7. **The checkbox is accessible.** The container dropped `aria-hidden` and now has `role="region"` and `aria-label="Connection verification"` (`app/chat/chat.js:1100-1101`).
 
 **Still open:** if a SEND is queued while a tokenless mint is in flight, and a late token then rescues the session through the callback path, the queued SEND is dropped. `submit()`'s `.then` runs after the failed tokenless mint, while the session is still missing, and nothing sends the draft after the callback's recovery mint succeeds. A validator confirmed this as a P2. The fix is pending in `docs/plans/2026-09-30-2000-fix-review-p2-followups-plan.md` (R1), which requires the queued submission to be sent exactly once after recovery.
 
