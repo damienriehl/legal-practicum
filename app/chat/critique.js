@@ -21,6 +21,7 @@
   function meta(n) { var m = document.querySelector('meta[name="' + n + '"]'); return m ? m.content : ''; }
   var cfg = {
     matter_id: Q.get('matter') || '',
+    packet: Q.get('packet') || '',
     title: Q.get('title') || 'Deliverable Critique',
     apiParam: Q.get('api') || '',
     bypass: Q.get('bypass') || ''
@@ -132,6 +133,8 @@
 
     /* Shared editorial header placement: BYOK and accessibility controls. */
     var topRow = el('div', 'crit-topbar');
+    var home = el('a', 'label', 'LEGAL PRACTICUM · HOME'); home.href = '../index.html';
+    topRow.appendChild(home);
     var actions = el('div', 'crit-topbar__actions');
     var chipMount = el('span'); chipMount.style.display = 'inline-flex';
     actions.appendChild(chipMount);
@@ -142,6 +145,9 @@
     var bLg = el('button', null, 'LARGE TYPE'); bLg.type = 'button'; bLg.setAttribute('aria-pressed', 'false');
     tg.appendChild(bStd); tg.appendChild(bLg); actions.appendChild(tg); topRow.appendChild(actions);
     wrap.appendChild(topRow);
+    var back = el('a', 'label', '← Back to the matter');
+    back.href = /^\.\.\/matters\/[a-z0-9-]+\/$/.test(cfg.packet) ? cfg.packet : '../matters/index.html';
+    wrap.appendChild(back);
     refs.typeStd = bStd; refs.typeLg = bLg;
 
     var rh = el('div', 'running-head');
@@ -220,7 +226,12 @@
     if (busy) return;
     var text = refs.ta.value;
     refs.mount.textContent = '';
-    if (!text.trim()) { oversizeOrNotice('Nothing to critique yet', 'Paste a draft deliverable above, then submit.'); return; }
+    if (!text.trim()) {
+      var notice = oversizeOrNotice('Nothing to critique yet', 'Paste a draft deliverable above, then submit.');
+      refs.ta.focus({ preventScroll: true });
+      notice.scrollIntoView({ block: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      return;
+    }
     if (text.length > CAP) {
       oversizeOrNotice('That draft is a little long for a first pass',
         'This tool is sized for a memo of roughly four pages (' + CAP.toLocaleString() + ' characters). Trim it to your core argument and submit again — the point of the first pass is the shape, not every footnote.');
@@ -282,6 +293,7 @@
     d.appendChild(el('span', 'label', head));
     d.appendChild(el('p', null, msg));
     refs.mount.appendChild(d);
+    return d;
   }
 
   function renderCritique(memoText, sc, labels) {

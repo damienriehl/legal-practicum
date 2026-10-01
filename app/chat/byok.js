@@ -65,7 +65,7 @@
     notify();
   }
   function notify() { var c = get(); listeners.forEach(function (cb) { try { cb(c); } catch (e) {} }); }
-  function mask(key) { return '••••' + String(key).slice(-4); }
+  function mask(key) { return '••••' + (String(key).length > 4 ? String(key).slice(-4) : ''); }
   function providerLabel(id) {
     for (var i = 0; i < PROVIDERS.length; i++) if (PROVIDERS[i].id === id) return PROVIDERS[i].label;
     return id;
@@ -226,7 +226,9 @@
       if (!k) { status.textContent = 'Paste a key before saving.'; key.focus(); return; }
       set({ provider: sel.value, api_key: k, model: model.value });
       key.value = '';                          // never keep the raw key in the field
-      status.textContent = 'Key saved to this browser.';
+      var prefix = { anthropic: 'sk-ant-', openai: 'sk-', google: 'AIza' }[sel.value];
+      status.textContent = 'Key saved to this browser.' + (prefix && k.indexOf(prefix) !== 0
+        ? ' Warning: this key does not look like the expected format for ' + providerLabel(sel.value) + '. Check the provider and key if requests fail.' : '');
     });
     clr.addEventListener('click', function () {
       clear();

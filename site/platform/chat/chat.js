@@ -319,7 +319,8 @@
 
     /* top bar: brand + large-type toggle */
     var top = el('div', 'chat-topbar');
-    top.appendChild(el('span', 'brand', 'SONSTENG · CONSULTATION'));
+    var home = el('a', 'brand', 'LEGAL PRACTICUM · CONSULTATION'); home.href = '../index.html';
+    top.appendChild(home);
 
     /* BYOK: persistent header chip + drawer (byok.js loads before this file) */
     var chipMount = el('span'); chipMount.style.display = 'inline-flex';
@@ -334,6 +335,10 @@
     top.appendChild(tg);
     wrap.appendChild(top);
     refs.typeStd = bStd; refs.typeLg = bLg;
+    if (/^\.\.\/matters\/[a-z0-9-]+\/$/.test(cfg.packet)) {
+      var back = el('a', 'label', '← Back to the matter'); back.href = cfg.packet;
+      wrap.appendChild(back);
+    }
 
     /* case header: running head with turn counter IN the rule */
     var head = el('div', 'chat-head');
@@ -490,6 +495,14 @@
     return d;
   }
 
+  function connectionNotice(text) {
+    if (!refs.connection) {
+      refs.connection = stageDirection('');
+      refs.connection.setAttribute('role', 'status');
+    }
+    refs.connection.textContent = text;
+  }
+
   function showConsidering() {
     if (refs.considering) return;
     var row = el('div', 'considering-row');
@@ -593,7 +606,12 @@
     if (state !== S.IDLE) return;                 // a turn may only begin from IDLE
     var text = (refs.input.value || '').trim();
     if (!text) return;
-    if (!session) { stageDirection('The line isn’t connected yet — one moment.'); return; }
+    if (!session) {
+      mintSession().then(function () {
+        if (session && state === S.IDLE && refs.input.value.trim() === text) send(text);
+      });
+      return;
+    }
     send(text);
   }
 
@@ -1059,21 +1077,28 @@
      (never mints) and ?bypass (the server skips the gate for a valid demo
      token). If the widget can't load (blocked/slow/no sitekey), we mint with an
      EMPTY token — the server answers a retryable `turnstile_failed`, which
-     mintSession renders as a reload prompt. Never a hard brick. */
+     mintSession renders as a retry prompt. Interactive checks suspend that timer. */
   var turnstile = (function () {
-    var widgetId = null, token = '', settled = false, waiters = [];
+    var widgetId = null, token = '', settled = false, waiters = [], timer = null, interactive = false;
+    function armTimer() {
+      clearTimeout(timer);
+      if (!settled && !interactive) timer = setTimeout(function () { settle(''); }, 8000);
+    }
     function sitekey() { return meta('turnstile-sitekey'); }
     function settle(t) {
+      clearTimeout(timer);
       token = t || ''; settled = true;
       var w = waiters; waiters = [];
-      w.forEach(function (fn) { try { fn(token); } catch (e) {} });
+      if (w.length) token = '';
+      w.forEach(function (fn) { try { fn(t || ''); } catch (e) {} });
     }
     function container() {
       var c = document.getElementById('cf-turnstile');
       if (c) return c;
       c = document.createElement('div');
       c.id = 'cf-turnstile'; c.className = 'cf-turnstile';
-      c.setAttribute('aria-hidden', 'true');
+      c.setAttribute('role', 'region');
+      c.setAttribute('aria-label', 'Connection verification');
       // Parked off in a corner; a managed challenge (rare) surfaces here.
       c.style.cssText = 'position:fixed;bottom:12px;right:12px;z-index:2147483647';
       document.body.appendChild(c);
@@ -1094,9 +1119,21 @@
           sitekey: sk,
           action: 'session-mint',
           'data-action': 'turnstile-spin-v1',
-          callback: function (t) { settle(t); },
+          callback: function (t) {
+            interactive = false;
+            settle(t);
+            if (!session) {
+              // A token can arrive while an earlier tokenless mint is in flight.
+              Promise.resolve(minting).then(function () { if (!session && token) mintSession(); });
+            }
+          },
+          'before-interactive-callback': function () {
+            interactive = true; settled = false; token = ''; clearTimeout(timer);
+            connectionNotice('Complete the verification check (bottom right) to connect.');
+          },
+          'after-interactive-callback': function () { interactive = false; armTimer(); },
           'error-callback': function () { settle(''); return true; },
-          'expired-callback': function () { settled = false; token = ''; try { window.turnstile.reset(widgetId); } catch (e) {} }
+          'expired-callback': function () { settled = false; token = ''; armTimer(); try { window.turnstile.reset(widgetId); } catch (e) {} }
         });
       } catch (e) { settle(''); }
     }
@@ -1111,21 +1148,31 @@
         // Fail-open-to-retryable: if no token within the grace window, release
         // waiters so mint proceeds tokenless (server -> retryable 403), rather
         // than hanging the consultation room on a blocked widget.
-        setTimeout(function () { if (!settled) settle(''); }, 8000);
+        armTimer();
       },
       // Promise for the current token (or '' when unavailable / carved out).
       get: function () {
         return new Promise(function (resolve) {
           if (cfg.sample || cfg.bypass) return resolve('');
-          if (settled) return resolve(token);
+          if (settled && !token && widgetId !== null) {
+            settled = false;
+            waiters.push(resolve);
+            armTimer();
+            try { window.turnstile.reset(widgetId); } catch (e) { settle(''); }
+            return;
+          }
+          if (settled) { var t = token; token = ''; return resolve(t); }
           waiters.push(resolve);
         });
       }
     };
   })();
 
+  var minting = null;
   function mintSession() {
-    return turnstile.get().then(function (ts) {
+    if (cfg.sample || session) return Promise.resolve();
+    if (minting) return minting;
+    minting = turnstile.get().then(function (ts) {
       var params = [];
       // bypass token forwarded here ONLY, and only via query — never stored, logged, or rendered
       if (cfg.bypass) params.push('bypass=' + encodeURIComponent(cfg.bypass));
@@ -1135,17 +1182,21 @@
       return api(path, { method: 'GET' }).then(function (out) {
         if (out.ok && out.data && out.data.session_token) {
           session = out.data;
+          if (refs.connection) { refs.connection.remove(); refs.connection = null; }
           if (out.data.max_turns) { maxTurns = out.data.max_turns; }
           saveSession();
           updateCounter((committed()[committed().length - 1] || {}).turn || 0);
         } else {
           var e = (out.data && out.data.error) || {};
-          stageDirection(e.message || 'Couldn’t open a session with the interview server. You can still read your existing transcript; reload to retry the connection.');
+          connectionNotice(e.code === 'turnstile_failed'
+            ? 'Verification could not be completed. Complete the verification check, or press SEND to retry.'
+            : 'Couldn’t open a session with the interview server. Press SEND to retry.');
         }
       }, function () {
-        stageDirection('The interview server didn’t answer. Check your connection or the API address, then reload.');
+        connectionNotice('The interview server didn’t answer. Check your connection or the API address, then press SEND to retry.');
       });
-    });
+    }).then(function () { minting = null; });
+    return minting;
   }
 
   /* ============================================================================
