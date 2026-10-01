@@ -265,6 +265,19 @@ this file is what those decisions oblige us to *do*.
 - [ ] **T27 — John's editor pass** `@john` `origin:call-2026-08-06`
       John marks up the practicum with the editor's pencils. He said there would
       not be many comments.
+- [ ] **T28 — Rotate the Anthropic key (Packet B)** `@damien` `due:2026-10-04` `origin:cockpit-2026-09-30-backlog-review`
+      Damien's answer (packet-b-e, 2026-09-30): "This week." Treat the legacy
+      Anthropic keys as compromised — plaintext copies sit in files, backups and
+      Trash — and revoke them. Order, and who moves each step:
+      1. `@damien` creates a current Anthropic key in the console and stores it
+         through the prompting command the agent supplies (protected file
+         outside the repo, mode 600, self-check prints only an HTTP code).
+         Not done as of 2026-09-30: no current key file exists.
+      2. `@agent` validates it with `app/worker/test/live-stream-smoke.mjs`
+         (`PROVIDER=anthropic`, file credential input).
+      3. `@damien` revokes the legacy keys in the Anthropic console.
+      4. `@agent` finds and removes the plaintext legacy copies, after revocation.
+      Packet E sign-ins stay with Damien and are not part of this item.
 
 ---
 
