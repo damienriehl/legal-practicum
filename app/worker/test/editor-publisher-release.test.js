@@ -3228,3 +3228,97 @@ test("schema-v2 preparation idempotency binds the operation membership", async (
   assert.equal((await postPrepare(body)).status,200);
   assert.equal((await postPrepare({ ...body,accepted_operation_ids:["op-1","op-2"] })).status,409);
 });
+
+test("SQL test adapter enforces the Durable Object bind limit", () => {
+  const core = makeCore();
+  const query = (count) => `SELECT ${Array(count).fill("?").join(",")}`;
+  assert.equal(core.sql.exec(query(100),...Array(100).fill(1)).toArray().length,1);
+  assert.throws(() => core.sql.exec(query(101),...Array(101).fill(1)),
+    /too many SQL variables.*101/);
+});
+
+test("claimBatch chunks 250 suggestion IDs and preserves whole-group claims", () => {
+  const core = makeCore(() => 1100);
+  const ids = Array.from({ length:250 },(_,i) => `bind-suggestion-${String(i).padStart(3,"0")}`);
+  for (const id of ids) core.suggest({ id,editor:"slot:john",scope:"edit",origin:"human",
+    kind:"prose",source_ref:`data/copy/home.json#${id}`,original_text:"old",
+    original_hash:"hash",new_text:"new",map_version:"v1" },{}, { directApply:true });
+  core.sql.exec("UPDATE suggestions SET group_id='bind-group' WHERE id IN (?,?)",ids[0],ids[249]);
+  const claimed = core.claimBatch("bind-batch",{ ids:[...ids].reverse().concat(ids[0]),base_sha:"base" });
+  assert.equal(claimed.ok,true);
+  assert.deepEqual([...claimed.claimed].sort(),ids);
+  assert.equal(claimed.claimed.length,250);
+  assert.equal(core._one("SELECT COUNT(*) AS n FROM suggestions WHERE status='in_flight'").n,250);
+});
+
+for (const legacy of [false,true]) test(`DEV annotations chunk 250 ${legacy ? "legacy" : "submitted"} reviews`, () => {
+  const core = makeCore(() => 9001);
+  const seeds = Array.from({ length:250 },(_,i) => seedSingleOperationProjectionCase(core,{
+    suffix:`bind-${String(i).padStart(3,"0")}`,legacy }));
+  const refs = seeds.map((seed) => seed.sourceRef).reverse();
+  // Equal timestamps must retain the window query's descending ID tie-break.
+  for (const seed of seeds) {
+    core.sql.exec(`INSERT INTO production_review_revisions
+      SELECT id || '-new',source_ref,source_revision || '-new',prod_base,commit_sha,original_hash,
+        proposed_hash,original_text,proposed_text,source_original_text,source_proposed_text,
+        suggestion_ids_json,operations_json,evidence_digest,created_at
+      FROM production_review_revisions WHERE id=?`,seed.revisionId);
+    for (const [id,sha] of [["a","wrong-base"],["z","prod-base"]])
+      core.sql.exec(`INSERT INTO production_published_operation_sources
+        (operation_id,source_ref,release_id,candidate_sha,published_at) VALUES (?,?,?,?,?)`,
+      `${seed.operationId}-${id}`,seed.sourceRef,"annotation-history",sha,9000);
+  }
+  const annotations = core.getDevReviewAnnotations(refs.concat(refs[0]));
+  assert.deepEqual(annotations.map((row) => row.source_ref),refs);
+  for (const row of annotations) {
+    assert.equal(row.stale_reason,"stale_revision");
+    assert.equal(row.decisions.length,1);
+    assert.equal(row.decisions[0].decision,"accepted");
+    assert.equal(row.operations.length,1);
+  }
+  for (const seed of seeds) core.sql.exec("DELETE FROM production_review_revisions WHERE id=?",
+    `${seed.revisionId}-new`);
+  assert.equal(core.getDevReviewAnnotations(refs).every((row) => !row.stale),true,
+    "latest published SHA must use the descending operation-ID tie-break");
+  const exec = core.sql.exec.bind(core.sql);
+  let maxBinds = 0;
+  core.sql.exec = (query,...binds) => {
+    maxBinds = Math.max(maxBinds,binds.length);
+    return exec(query,...binds);
+  };
+  assert.equal(core.getDevReviewAnnotations(refs).length,250);
+  assert.equal(maxBinds,90,"annotation queries must leave room below the DO bind limit");
+});
+
+test("operation frontier chunks 250 revisions through summary, projection and release preparation", () => {
+  const core = makeCore(() => 9001);
+  const seeds = Array.from({ length:250 },(_,i) => seedSingleOperationProjectionCase(core,{
+    suffix:`bind-${String(i).padStart(3,"0")}` }));
+  const exec = core.sql.exec.bind(core.sql);
+  let maxBinds = 0;
+  core.sql.exec = (query,...binds) => {
+    maxBinds = Math.max(maxBinds,binds.length);
+    return exec(query,...binds);
+  };
+  const revisions = seeds.map((seed) => ({ review_revision_id:seed.revisionId })).reverse();
+  const rows = core._operationFrontierSummaryRows(revisions.concat(revisions[0]));
+  assert.deepEqual(rows.map((row) => row.review_revision_id),seeds.map((seed) => seed.revisionId));
+  assert.equal(core._operationFrontierSummaryRows(revisions,1,2).length,0);
+  assert.equal(core._operationFrontierSummaryRows(revisions,0,1).length,250);
+  assert.equal(core._operationFrontierSummaryProjection().eligible_operation_count,250);
+  const projection = core.productionPreparationContext().projection;
+  assert.equal(projection.sources.length,250);
+  assert.equal(projection.eligible_operation_count,250);
+  assert.deepEqual(projection.sources.map((source) => source.decisions[0].operation_id),
+    seeds.map((seed) => seed.operationId));
+  const prepared = core.prepareProductionRelease(release({ schema_version:2,
+    target_batch_id:"operation-frontier",candidate_sha:"bind-candidate",
+    review_receipt_hash:"multi-receipt",review_receipts:projection.review_receipts.map((r) => r.receipt_hash),
+    projection_identity:"bind-projection",accepted_operation_ids:seeds.map((seed) => seed.operationId),
+    held_exclusions:[] }));
+  assert.equal(prepared.ok,true,prepared.reason);
+  assert.deepEqual([...core._operationFrontierFrozenIds(rows)].sort(),seeds.map((seed) => seed.operationId));
+  assert.equal(core._operationFrontierSummaryProjection().eligible_operation_count,0);
+  assert.equal(core._operationFrontierProjection().eligible_operation_count,0);
+  assert.ok(maxBinds <= 90,`maximum bound parameters: ${maxBinds}`);
+});
