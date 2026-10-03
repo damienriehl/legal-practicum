@@ -1,134 +1,69 @@
-# Editing the Practicum — a one-page guide for Prof. Sonsteng
+# Editing the Practicum — a guide for Prof. Sonsteng
 
-*Your edits publish themselves to the editing site — usually within two minutes — and
-**every version is kept**, so any change can be undone with one click. You can never break
-anything. Edit freely. Damien publishes the reviewed production release separately.*
-Bigger changes — adding or removing paragraphs, or anything you ask for across many pages —
-go to Damien first, so those waiting a little longer is normal.*
+Go to **edit.legalpracticum.org** in Chrome or Edge. When asked, enter the email
+address Damien put on the list. The email contains a sign-in link: click it.
+You can also enter the six-digit code from the email. Check your junk folder if
+it does not arrive.
 
-## Your edits appear on the editing site on their own — in about 2 minutes
+The bar at the top says:
 
-On the editing site, you no longer have to wait for Damien to record a wording change. Click
-**Edit**, type directly in the paragraph, and pause for a moment: the editor saves as you type.
-Click **Done** when you have finished that paragraph. Your wording appears on the editing site
-**automatically within ~2 minutes**. That means the editing/DEV site only. Damien separately
-reviews an immutable batch as Publisher before the public production site changes.
-You still can't break anything — every version is kept, and any change can be undone with one
-click (below).
+> You're editing the practicum. Click EDIT beside any paragraph to change it. Changes save on their own.
 
-- **The pills tell you where a change stands.** Right after you save, a small label shows
-  **"Going live…"**; once it's published it clears. If something couldn't be applied cleanly,
-  the paragraph shows your text with a warning outline and a **"Needs attention — not applied"**
-  pill, so nothing is ever silently lost.
-- **The green bar is honest about the editing service.** When DEV auto-apply is healthy it reads
-  *"Your edits appear on the editing site automatically (~2 min)."* If the home service is
-  momentarily paused it says so — *"Auto-apply paused … your edits are safe and queued"* — and
-  your work waits safely.
-- **History + one-click undo.** A **"History"** link in the top bar opens the change history for
-  every document: who changed what, a redline of each revision, and a **Request revert** button
-  to roll a change back. (Damien's link executes reverts immediately; yours files the request.)
+**Large Type** starts on. The bar has **STANDARD** and **LARGE TYPE** buttons;
+it remembers your choice on this computer.
 
-Comments are the exception — they're notes for Damien, not live edits.
+## Change the words
 
-## Getting in
+Click **Edit** beside a paragraph and type. Pause for a moment to let the change
+save. Click **Done** when you finish. If you change only spaces or line breaks,
+there is no change to send.
 
-**Go to `edit.legalpracticum.org`.** Type it into your browser, or save it as a bookmark —
-it is short enough to read aloud over the phone, and there is nothing secret in it.
+A small label tells you what has happened. **Going live…** means the wording is
+on its way to the editing site. **Needs attention — not applied** means Damien
+needs to finish applying it. Damien reviews changes before they reach the public
+site. **Undo my change** is available while editing the paragraph.
 
-The first time (and about once a month after), the page asks for your email address and then
-emails you a **six-digit code**. Type the code in. That's the whole sign-in — no password to
-choose, no account to create. Use the same address Damien put on the list; if a different one
-is typed in, the code never arrives.
+Some paragraphs appear on several pages. While editing one, you will see
+**This wording also appears on other pages.** When you save, choose whether the
+change should apply everywhere or only on this page.
 
-Once you're in, it opens the real practicum website, but now you can change it. A green bar
-across the top reads **"Your edits appear on the editing site automatically (~2 min)."** If you
-ever don't see that bar, you're on the normal site; go to the address again.
+## Leave a note
 
-*Your old personal link still works too, for now — nothing you have bookmarked has stopped
-working. The new address is simply the better door, and the one to use from here on.*
+Click **Comment** beside a paragraph, or select words and click **Comment**.
+Write your note and click **Send comment** to send it. Comments go to Damien.
 
-Use **Chrome or Edge on your Windows PC** (an iPad works too). Tap **Large Type** in the top bar
-any time to make everything bigger.
+## Suggest a bigger change
 
-### If it won't let you in
+Click **Suggest a bigger change** in the top bar. Describe what you want and
+choose how far it should reach: part of this matter, the matter, a module, or the
+whole course. Click **Send to Damien**. Bigger changes wait for Damien's review.
+If a request touches many paragraphs, the editor asks you to confirm its reach.
 
-- **The code didn't arrive.** Check the junk folder first. If it still isn't there, the address
-  on the list may be a different one — text Damien and he can add the one you're using.
-- **You get a page saying "Please reopen your editing link".** That means you reached the editor
-  but aren't recognised yet. Go to `edit.legalpracticum.org` again and sign in with the
-  emailed code. Nothing you wrote has been lost.
+Buttons beside paragraphs also let you ask to **Add paragraph**, **Remove**, or
+**Move up / Move down**. These requests wait for review too.
 
-## The things you can do
+## If you are signed out
 
-**1. Fix the words (edit in place).**
-Click the **Edit** pencil beside a paragraph. It becomes editable, like a Word document. Change
-a word, add a sentence, or delete one. The editor saves after you pause; click **Done** when you
-have finished that paragraph. You'll see **"Going live…"** — and about two minutes later your
-wording appears on the editing site. If you refresh or close the tab before it sends, the editor
-restores the draft and labels it **"Draft restored — not sent yet."**
+Your unsent words are saved on this computer. You will see:
 
-**2. Leave a note (comment).**
-Select some text with your mouse (drag across it), and a small **Comment** button appears. Click
-it and type your thought — for example, *"This section should say more about the client's own
-words,"* or *"This chapter is too long — cut the middle."* Click **Comment**. Your note shows up
-in the margin so you can see what you've already said.
+> You've been signed out. Your words are saved.
 
-You can do this on **every page** — the exercises, the curriculum chapters, the templates, the
-website copy, the skills browser, and the private teaching notes and answer keys.
+Click **Sign in again**. The panel says **We'll email you a link - just click it.**
+After signing in, your draft returns. Keep using the same browser and computer.
+A restored draft is labelled **Draft restored — not sent yet.**
 
-**3. Add, remove and move whole paragraphs.**
-Next to every paragraph, alongside **Edit** and **Comment**, there are now buttons to
-**Add paragraph** (write a new one right where it will appear), **Remove** (ask for the
-paragraph to be taken out), and **Move up / Move down**. These are bigger changes than a
-word fix, so they work a little differently: **they go to Damien first.** The label on the
-paragraph says **"waiting for review"**, and the page changes only after he approves. Every
-one of them can be undone with one click, always — a removed paragraph is never gone.
+If sending fails repeatedly, your words stay saved here. The editor tells you
+when to press **Done** to try again.
 
-**4. Change the facts of a scenario — in one place.**
-Every matter now has a **Facts page** (the "FACTS" link at the top of the matter's contents).
-It lists the scenario's source values — names, dates, amounts — each with a note saying where
-it's used. Change a value there and everything *generated from it* follows automatically;
-passages that *restate* it in prose are found and drafted for Damien's review, so the scenario
-can't quietly contradict itself. You can also **add a new fact** at the bottom of the page —
-it's recorded first, and worked into the prose only through drafted wording you and Damien
-approve.
+## Get help
 
-**5. Ask for a bigger change — in your own words.**
-The green bar has a **"Bigger change…"** button. Click it, choose how far the change should
-reach — this matter, a whole module, or the entire course — and say what you want in a
-sentence or two, as if you were telling a colleague. For example: *"Wherever the filing
-deadline of 14 days appears, change it to 30 days."* The system drafts the change for every
-place it applies and shows Damien a redline; **nothing on the site changes until he approves.**
-If a request would touch a very large number of paragraphs, it tells you how many and asks
-once more, plainly, whether you mean it that widely. So the absence of an instant update after
-a bigger change is **expected** — it is waiting for Damien, not lost.
+Click **Help** in the top bar. It explains:
 
-## What happens next
+> EDIT changes the words in a paragraph. COMMENT leaves a note for Damien. You cannot break anything.
 
-- **Your edit becomes available on the editing site.** The system double-checks it, rebuilds that
-  DEV site, and keeps the source and history. Its production status is **Available on DEV — waiting for Publisher**.
-  Damien reviews the exact immutable batch and explicitly authorizes the public
-  production release under the separate Publisher role. Damien reviews the smallest meaningful
-  wording changes independently; accepted, rejected, and questioned redlines remain visible in
-  the authenticated editing view, while only accepted changes may enter a later production
-  candidate. A question about one change does not hold unrelated accepted changes;
-  approval alone does not publish it.
-- **Your wording is right there when you come back.** Open your link again and the page shows
-  what you wrote, exactly as you left it. Click the paragraph to keep refining it.
-- **If a change can't be applied cleanly** it stays on the page with a **"Needs attention — not
-  applied"** pill so Damien can finish it by hand. Nothing you write is ever lost.
-- **Comments are different** — they're notes for Damien, not live edits, and they wait for him.
+If Damien's contact information is available, it appears there. Otherwise the
+panel says **Leave a comment - Damien reads every one.** Click **Help** again to
+close it.
 
-## A few reassurances
-
-- **You cannot break the website.** Every version is kept, every change is one click from being
-  undone, and the system re-checks DEV before showing the change there. Production has a separate
-  Publisher gate and verifies both the public site and editor map before saying Published.
-- **Take your time.** If you start editing a paragraph and walk away, your work is saved on your
-  computer — come back and it's still there.
-- **If your link ever stops working,** you'll see a plain message telling you to text Damien for
-  a fresh one. No error codes, no fuss.
-- **Please don't paste private client information** into an edit or comment — these are teaching
-  materials.
-
-*Questions? Text Damien. He sees everything you suggest.*
+You cannot break the website. Versions are kept, and changes can be undone.
+Please use teaching material, without private client information.

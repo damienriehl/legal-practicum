@@ -27,11 +27,12 @@ function instructorBlockDescriptors(blocks) {
 
 // Render the instructor doc shell. `doc` is the bundle entry {matter_id, doc_type,
 // source_ref, html, blocks}; `pending` is this editor's pending items for the doc.
-export function renderInstructorDoc(doc, pending) {
+export function renderInstructorDoc(doc, pending, { viewerRole = "editor", helpContact = "" } = {}) {
   const base = `/edit/instructor/${escapeHtml(doc.matter_id)}/${escapeHtml(doc.doc_type)}/`;
   const mapIsland = escapeJsonIsland({
     version: INSTRUCTOR_VERSION,
-    scope: "instructor",
+    scope: "instructor", viewer_role: viewerRole,
+    help_contact: typeof helpContact === "string" ? helpContact : "",
     source_ref: doc.source_ref,
     blocks: instructorBlockDescriptors(doc.blocks),
   });

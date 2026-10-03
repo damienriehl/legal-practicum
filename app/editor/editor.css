@@ -857,3 +857,16 @@ html.type-lg .eb-confirm__yes, html.type-lg .eb-confirm__no { font-size: 1.05rem
 .eb-scoped__send:disabled { opacity: .55; cursor: default; }
 .eb-scoped__send:focus-visible, .eb-scoped__cancel:focus-visible { outline: 2px solid var(--claret, #7c1e2b); outline-offset: 2px; }
 html.type-lg .eb-scoped__lede, html.type-lg .eb-scoped__label { font-size: 1.05rem; }
+
+/* One type control and readable author actions at either size. */
+html.has-editor-banner #type-toggle { display: none !important; }
+html.editor-simple .eb-act__label { max-width: 7rem; opacity: 1; }
+html.editor-simple .eb--shared::before { content: none; }
+.editor-help { flex-basis: 100%; padding: .5rem 1rem; font-size: 1rem; }
+.editor-help[hidden] { display: none; }
+.eb-reauth .btn { min-height: 48px; padding: .7rem 1.2rem; font-size: 1.2rem; }
+/* The author's longer instruction and Help panel stay in document flow,
+   including at phone widths and with larger type. */
+html.editor-simple .editor-banner { position: sticky; }
+html.has-editor-banner.editor-simple body { padding-top: 0; }
+html.editor-simple .editor-banner__msg { flex-basis: 100%; }

@@ -18,7 +18,7 @@ const { execFileSync } = require('child_process');
 
 const DIR = __dirname;                              // app/editor
 const REPO = path.resolve(DIR, '..', '..');         // repo root
-const OUT = process.env.HOME;
+const OUT = process.env.EDITOR_SCREENSHOT_DIR || '/tmp';
 // Default: load the harness straight off disk (file://). When the checkout lives
 // somewhere snap-confined Chromium cannot read (e.g. a ~/.cache worktree), set
 // HARNESS_URL to a localhost static-server URL for app/editor/test-harness.html
@@ -111,10 +111,87 @@ async function bootFacts(browser, w, h) {
 
 async function run() {
   const browser = await puppeteer.launch({
-    executablePath: '/snap/bin/chromium',
+    executablePath: process.env.EDITOR_CHROME_BIN || '/snap/bin/chromium',
     headless: process.env.HEADFUL !== '1' && process.env.EDITOR_HEADLESS !== '0',
     args: ['--no-sandbox', '--disable-dev-shm-usage', '--window-size=1300,1500']
   });
+
+  // John's role is injected exactly as it is by the Worker.
+  for (const width of [1280, 390]) {
+    const john = await browser.newPage();
+    await john.setViewport({ width, height: 844 });
+    await john.setRequestInterception(true);
+    john.on('request', req => {
+      if (req.isNavigationRequest() && req.frame() === john.mainFrame()) {
+        const html = fs.readFileSync(path.join(DIR, 'test-harness.html'), 'utf8')
+          .replace('"viewer_role": "admin"', '"viewer_role": "editor"');
+        req.respond({ status: 200, contentType: 'text/html', body: html });
+      } else req.continue();
+    });
+    await john.goto(HARNESS, { waitUntil: 'load' });
+    await john.waitForFunction(() => window.SonstengEditor && window.SonstengEditor.ready() >= 4);
+    await john.evaluate(() => { localStorage.removeItem('sonsteng-type-lg'); localStorage.removeItem('sonsteng_type_lg'); });
+    await john.reload({ waitUntil: 'load' });
+    const ui = await john.evaluate(() => ({
+      banner: window.SonstengEditor.bannerText(), large: document.documentElement.classList.contains('type-lg'),
+      links: document.querySelectorAll('.editor-banner__history, .editor-banner__student').length,
+      bigger: document.querySelector('.editor-banner__bigger').textContent,
+      label: getComputedStyle(document.querySelector('.eb-act__label')).opacity
+    }));
+    assert('J R4 plain author bar at ' + width,
+      ui.banner === "You're editing the practicum. Click EDIT beside any paragraph to change it. Changes save on their own." &&
+      ui.large && ui.links === 0 && ui.bigger === 'Suggest a bigger change' && ui.label === '1');
+    await john.evaluate(() => Array.from(document.querySelectorAll('.editor-banner button')).find(b => b.textContent === 'Help').click());
+    assert('J R4 help without configured contact at ' + width,
+      await john.$eval('.editor-help', n => !n.hidden && n.textContent.includes('Leave a comment - Damien reads every one.')));
+    await john.click('.editor-banner .segmented-toggle button:first-child');
+    await john.reload({ waitUntil: 'load' });
+    assert('J R4 remembers standard type at ' + width, await john.evaluate(() => !document.documentElement.classList.contains('type-lg')));
+    const cleanEntry = await john.evaluate(() => {
+      const original = window.SonstengEditor.block(1).originalText;
+      document.querySelector('[data-eb-index="1"]').textContent = original.replace(/ /g, ' \n   ');
+      window.SonstengEditor.focusBlock(1);
+      return window.SonstengEditor.blockText(1);
+    });
+    assert('J R3 edit entry collapses source line breaks at ' + width, !/[\n\r]/.test(cleanEntry));
+    await john.evaluate(() => window.SonstengEditor.focusBlock(4));
+    assert('J R4 shared wording warning appears only while editing at ' + width,
+      await john.evaluate(() => window.SonstengEditor.noteText(4) === 'This wording also appears on other pages.'));
+    const noop = await john.evaluate(() => {
+      const s = window.SonstengEditor.block(1);
+      window.SonstengEditor.typeInto(1, '  ' + s.originalText.replace(/ /g, ' \n   ') + '  ');
+      window.SonstengEditor.clickSave(1);
+      return { dirty: window.SonstengEditor.block(1).dirty, calls: window.__MOCK_CTRL__.server().calls };
+    });
+    assert('J R3 whitespace-only edits send nothing at ' + width, !noop.dirty && noop.calls === 0);
+    await john.evaluate(() => {
+      window.__ERROR_REPORTS__ = [];
+      window.__EDITOR_MOCK__ = null;
+      window.fetch = function (url, opts) {
+        if (url.endsWith('/client-error')) { window.__ERROR_REPORTS__.push(JSON.parse(opts.body)); return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) }); }
+        window.__MANUAL_REDIRECT__ = opts.redirect;
+        return Promise.resolve({ ok: false, status: 0, type: 'opaqueredirect' });
+      };
+      window.SonstengEditor.typeInto(1, 'Draft survives an expired Access session.');
+      window.SonstengEditor.clickSave(1);
+    });
+    await john.waitForFunction(() => document.querySelector('.eb-reauth.show'));
+    const expired = await john.evaluate(() => ({
+      text: document.querySelector('.eb-reauth').textContent, count: document.querySelectorAll('.eb-reauth').length,
+      redirect: window.__MANUAL_REDIRECT__, reports: window.__ERROR_REPORTS__, block: window.SonstengEditor.block(1)
+    }));
+    assert('J R2 Access redirect saves draft and shows one reload panel at ' + width,
+      expired.redirect === 'manual' && expired.count === 1 && expired.block.dirty &&
+      expired.text.includes("You've been signed out. Your words are saved.") &&
+      expired.text.includes('Sign in again') && expired.text.includes("We'll email you a link - just click it."));
+    assert('J R5 signed-out report contains metadata only at ' + width,
+      expired.reports.length === 1 && expired.reports[0].kind === 'signed-out' &&
+      Object.keys(expired.reports[0]).sort().join(',') === 'kind,page,status');
+    await john.click('.eb-reauth button');
+    await john.waitForFunction(() => window.SonstengEditor && /Draft survives/.test(window.SonstengEditor.block(1).snapshot));
+    assert('J R2 sign-in button reload restores draft at ' + width, true);
+    await john.close();
+  }
 
   /* ======================= DESKTOP (Windows-ish 1280) ==================== */
   {
@@ -482,7 +559,11 @@ async function run() {
       s1a.suggestionId === idA && /about to expire/.test(s1a.snapshot) && idOnSrvBefore === false && s1a.dirty === true,
       'id-preserved=' + (s1a.suggestionId === idA) + ' on-server=' + idOnSrvBefore);
     assert('A2 friendly re-auth affordance shown (never a raw 4xx)', reauth === true, 'reauth visible=' + reauth);
-    await page.evaluate(() => window.SonstengEditor.reauthResend(1));
+    await page.reload({ waitUntil: 'load' });
+    await page.waitForFunction(() => window.SonstengEditor && window.SonstengEditor.ready() >= 4);
+    assert('A3a sign-in reload restores the saved words', /about to expire/.test(await page.evaluate(() => window.SonstengEditor.block(1).snapshot)));
+    await installRadiusMock(page);
+    await page.evaluate(() => window.SonstengEditor.clickSave(1));
     await page.waitForFunction(() => window.SonstengEditor.block(1).state === 'IDLE', { timeout: 4000 });
     const idOnSrvAfter = await page.evaluate((id) => window.__MOCK_CTRL__.server().ids.indexOf(id) !== -1, idA);
     assert('A3 resend after re-auth reuses the SAME id (idempotent)', idOnSrvAfter === true, 'server has id ' + (idA || '').slice(0, 8));
