@@ -111,7 +111,10 @@ async function startServer(core) {
     res.writeHead(response.status, headers);
     res.end(Buffer.from(await response.arrayBuffer()));
   });
-  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
   const origin = `http://127.0.0.1:${server.address().port}`;
   env.EDIT_ORIGIN = origin;
   return { server, origin };
@@ -178,15 +181,62 @@ async function shot(page, dir, name, selector) {
 }
 
 test("in-place override: per-heading button, inline radio scale, keyboard, round trip, cancel, errors, phone fit",
-  { skip: puppeteer ? false : "puppeteer not installed", timeout: 90_000 }, async () => {
+  { skip: puppeteer ? false : "puppeteer not installed", timeout: 90_000 }, async (t) => {
     const core = seededCore();
-    const { server, origin } = await startServer(core);
-    const shots = process.env.ASSESSMENT_SHOTS_DIR;
-    if (shots) mkdirSync(shots, { recursive: true });
-    const url = `${origin}/edit/assessments/${AUDIT_ID}`;
-    const scopes = { "assessment-review": { granted: true, ver: 1 } };
-    const browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox"] });
+    let browser, server, launchTimer, cleanupPromise;
+    const controller = new AbortController();
+    const cleanup = () => cleanupPromise ||= (async () => {
+      clearTimeout(launchTimer);
+      if (!browser) controller.abort();
+      server?.closeAllConnections();
+      const closed = server ? new Promise((resolve) => server.close(resolve)) : Promise.resolve();
+      if (browser) {
+        let closeTimer;
+        try {
+          await Promise.race([
+            browser.close().catch(() => {}),
+            new Promise((resolve) => {
+              closeTimer = setTimeout(() => { browser.process()?.kill("SIGKILL"); resolve(); }, 5000);
+            }),
+          ]);
+        } finally {
+          clearTimeout(closeTimer);
+          browser.process()?.kill("SIGKILL");
+        }
+      }
+      await closed;
+    })();
+    t.after(cleanup);
     try {
+      try {
+        await Promise.race([
+          puppeteer.launch({ headless: true, args: ["--no-sandbox"], timeout: 10_000, signal: controller.signal })
+            .then((launched) => {
+              if (controller.signal.aborted) {
+                launched.process()?.kill("SIGKILL");
+                return launched.close().catch(() => {});
+              }
+              browser = launched;
+            }),
+          new Promise((resolve, reject) => {
+            launchTimer = setTimeout(() => {
+              reject(new Error("browser launch exceeded 10 seconds"));
+              controller.abort();
+            }, 10_000);
+          }),
+        ]);
+      } catch (error) {
+        t.skip(`browser could not start: ${error.message}`);
+        return;
+      } finally {
+        clearTimeout(launchTimer);
+      }
+      const started = await startServer(core);
+      server = started.server;
+      const shots = process.env.ASSESSMENT_SHOTS_DIR;
+      if (shots) mkdirSync(shots, { recursive: true });
+      const url = `${started.origin}/edit/assessments/${AUDIT_ID}`;
+      const scopes = { "assessment-review": { granted: true, ver: 1 } };
       const page = await browser.newPage();
       const failures = [];
       let expectFailures = false;
@@ -377,7 +427,6 @@ test("in-place override: per-heading button, inline radio scale, keyboard, round
       if (shots) await page.screenshot({ path: join(shots, "390-full.png"), fullPage: true });
       assert.deepEqual(failures, []);
     } finally {
-      await browser.close();
-      server.close();
+      await cleanup();
     }
   });

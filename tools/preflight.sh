@@ -277,6 +277,7 @@ run "Midstate naming/remedy contract"       python3 tools/midstate_contract.py
 run "pitch content contract"                python3 tools/verify_pitch.py
 run "bundle parity"                         python3 tools/check_build_parity.py
 run "python unit tests"                     python3 -m pytest tools/tests/ -q
+run "tools Node unit tests"                 run_node --test tools/tests/*.test.js
 run "granular review migration contract"    run_worker_editor_review_test
 run "worker unit tests"                     run_worker_unit_tests
 run "offline red-team probe"                run_offline_redteam_probe

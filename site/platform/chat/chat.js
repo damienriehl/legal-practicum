@@ -73,6 +73,7 @@
     var mock = window.__SONSTENG_MOCK__;
     if (typeof mock === 'function') { return Promise.resolve(mock({ path: path, method: opts.method || 'POST', body: opts.body || null })); }
     var fo = { method: opts.method || 'POST', headers: {}, cache: 'no-store', credentials: 'omit' };
+    if (opts.signal) fo.signal = opts.signal;
     if (opts.body) { fo.headers['content-type'] = 'application/json'; fo.body = JSON.stringify(opts.body); }
     return fetch(apiBase() + path, fo).then(function (res) {
       return res.json().catch(function () { return null; }).then(function (data) {
@@ -607,9 +608,8 @@
     var text = (refs.input.value || '').trim();
     if (!text) return;
     if (!session) {
-      mintSession().then(function () {
-        if (session && state === S.IDLE && refs.input.value.trim() === text) send(text);
-      });
+      queuedSubmission = text;
+      mintSession();
       return;
     }
     send(text);
@@ -1168,7 +1168,7 @@
     };
   })();
 
-  var minting = null;
+  var minting = null, queuedSubmission = null;
   function mintSession() {
     if (cfg.sample || session) return Promise.resolve();
     if (minting) return minting;
@@ -1179,23 +1179,36 @@
       // Turnstile token (single-use, ~300s TTL) — query only, never stored/logged.
       if (ts) params.push('cf_ts=' + encodeURIComponent(ts));
       var path = '/v1/session' + (params.length ? '?' + params.join('&') : '');
-      return api(path, { method: 'GET' }).then(function (out) {
+      var controller = new AbortController(), timer;
+      var deadline = new Promise(function (resolve, reject) {
+        timer = setTimeout(function () {
+          controller.abort();
+          reject(new Error('Session request timed out'));
+        }, 15000);
+      });
+      var request = Promise.resolve().then(function () { return api(path, { method: 'GET', signal: controller.signal }); });
+      return Promise.race([request, deadline]).finally(function () {
+        clearTimeout(timer);
+      }).then(function (out) {
         if (out.ok && out.data && out.data.session_token) {
           session = out.data;
           if (refs.connection) { refs.connection.remove(); refs.connection = null; }
           if (out.data.max_turns) { maxTurns = out.data.max_turns; }
           saveSession();
           updateCounter((committed()[committed().length - 1] || {}).turn || 0);
+          var text = queuedSubmission;
+          queuedSubmission = null;
+          if (text && state === S.IDLE && refs.input.value.trim() === text) send(text);
         } else {
           var e = (out.data && out.data.error) || {};
           connectionNotice(e.code === 'turnstile_failed'
             ? 'Verification could not be completed. Complete the verification check, or press SEND to retry.'
             : 'Couldn’t open a session with the interview server. Press SEND to retry.');
         }
-      }, function () {
-        connectionNotice('The interview server didn’t answer. Check your connection or the API address, then press SEND to retry.');
       });
-    }).then(function () { minting = null; });
+    }).catch(function () {
+      connectionNotice('The interview server didn’t answer. Check your connection or the API address, then press SEND to retry.');
+    }).finally(function () { minting = null; });
     return minting;
   }
 
