@@ -1,11 +1,27 @@
 """Regression contracts for user-story findings F5 and F10–F13."""
 
 import re
+from html import unescape
 from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
 
 
 ROOT = Path(__file__).resolve().parents[2]
 SITE = ROOT / "site/platform"
+
+
+def test_generated_critique_links_include_matter_packet():
+    links = []
+    for path in SITE.rglob("*.html"):
+        for href in re.findall(r'href="([^"]+)"', path.read_text()):
+            url = urlsplit(unescape(href))
+            if url.path.endswith("chat/critique.html"):
+                links.append(href)
+                packet = parse_qs(url.query).get("packet", [])
+                assert len(packet) == 1, (path, href)
+                assert re.fullmatch(r"\.\./matters/[a-z0-9-]+/", packet[0]), (path, href)
+                assert (SITE / "chat" / packet[0] / "index.html").is_file(), (path, href)
+    assert links, "no generated critique links found"
 
 
 def test_catalog_fields_wrap_with_their_labels():

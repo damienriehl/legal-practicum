@@ -5,12 +5,10 @@
   },
   "deploy": "Publisher-authorized release lane: tools/prod_release_daemon.py releases an authorized batch to Cloudflare Pages and the production Worker (docs/prod-release-operations.md)",
   "uat": {
-    "status": "in_progress",
-    "date": "2026-09-30",
+    "status": "done",
+    "date": "2026-10-03",
     "open_failures": [
-      "F1-F14, F18-F19 fixes merged; PROD awaits next Publisher release (F8 interview verification P1 live on PROD until then)",
-      "Review P2s open: queued SEND dropped in one late-token ordering; critique back link lacks packet param",
-      "Adopter worker-tests journey hangs (F20)",
+      "F1-F14, F18-F20 and review P2 fixes merged; PROD awaits next Publisher release (F8 interview verification P1 live on PROD until then)",
       "P3 open: pitch lede repeats headline; phone header height; templates phrase; pitch Comments button crowding"
     ]
   },

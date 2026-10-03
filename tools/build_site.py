@@ -1426,7 +1426,8 @@ def chat_href(relpath, m, persona, represented):
 
 def critique_href(relpath, m):
     return (up_prefix(relpath) + "chat/critique.html?matter=" + quote(m["id"])
-            + "&title=" + quote(m.get("caption", "")))
+            + "&title=" + quote(m.get("caption", ""))
+            + "&packet=" + quote("../matters/" + m["_slug"] + "/", safe="/."))
 
 # The keyless scripted-sample consultation. Every entry point across the site links
 # to the SAME recording (m05 · Devon Halvard) so professors can experience a client
