@@ -109,7 +109,9 @@ def test_semantic_heading_repairs_preserve_the_existing_visible_words():
     # editor reading order; page identities and headings stay unchanged.
     # John’s wording pass advances visible link labels and authored editor copy;
     # destinations, page identities, and editor reading order stay unchanged.
+    # U1 adds three templates and their editable blocks, advancing links,
+    # editor content, and reading order; existing page identities stay fixed.
     baseline = json.loads((TOOLS / "tests/fixtures/platform-semantic-baseline.json").read_text())
-    assert baseline["fields"]["links"] == "ec6a0500d3832af03c0dd0ba0b8d10fc82d0cfb5dd1654ef9add710be2c91506"
-    assert baseline["fields"]["editor_blocks"] == "51e965de4d602d04fc6131e2e4bef09fc610adc67aee629e0bcd5b7003b97c0a"
-    assert baseline["fields"]["reading_order"] == "2f585be0a779e8854eb3f5c8d5ac13762a39685ae4601c390f202ed66081fe38"
+    assert baseline["fields"]["links"] == "78e7674abadf66f4ca981ffa0b9ef5abf69a2502a93bd09e0e48acfd9ec2f271"
+    assert baseline["fields"]["editor_blocks"] == "31ca3e1e0bc55ea2ea9d6a3533c53c1e387d3612f27f29d431c428fb4070fc84"
+    assert baseline["fields"]["reading_order"] == "8c0b284f99fd07290100514d03a8b3b50110100ccdc4aeb45933885140eb23b8"
