@@ -36,10 +36,10 @@ function input(over = {}) {
   };
 }
 
-test("kind vocabulary: the five structural kinds are declared and disjoint from auto-apply", () => {
+test("kind vocabulary: the six structural kinds are declared and disjoint from auto-apply", () => {
   assert.deepEqual(
     [...STRUCTURAL_KINDS].sort(),
-    ["delete", "insert_after", "merge", "move", "split"]);
+    ["delete", "insert_after", "merge", "move", "move_section", "split"]);
   for (const k of STRUCTURAL_KINDS) assert.equal(AUTO_APPLY_KINDS.has(k), false);
   assert.equal(AUTO_APPLY_KINDS.has("prose"), true);
   assert.equal(AUTO_APPLY_KINDS.has("json_scalar"), true);
@@ -60,6 +60,17 @@ test("a structural suggestion lands pending and round-trips op_arg", () => {
   const all = core.listAll();
   assert.equal(all.find((x) => x.id === "mv1").op_arg,
     "data/matters/m01/case-file/notes.md#b9c2e77a1");
+});
+
+test("a section move keeps its bare sibling bid while waiting for approval", () => {
+  const core = makeCore();
+  const r = core.suggest(input({
+    id: "section1", kind: "move_section", new_text: null, op_arg: "9c2e77a1",
+  }), undefined, { directApply: true });
+  assert.equal(r.ok, true);
+  assert.equal(r.suggestion.status, STATUS.PENDING);
+  assert.equal(r.suggestion.kind, "move_section");
+  assert.equal(core.listAll().find((x) => x.id === "section1").op_arg, "9c2e77a1");
 });
 
 test("DIRECT_APPLY never fast-paths a structural kind; prose still auto-accepts", () => {

@@ -25,6 +25,19 @@ test("resolvePagePath accepts an allowlisted page (dir + index.html forms)", () 
   assert.ok(resolvePagePath(dir.replace(/\/$/, ""))); // no trailing slash
 });
 
+test("getting-started routes expose editable authored copy", () => {
+  for (const path of ["getting-started/index.html", "getting-started/", "getting-started"]) {
+    const page = resolvePagePath(path);
+    assert.ok(page, `missing editable route ${path}`);
+    assert.equal(page.pageKey, "getting-started/index.html");
+    assert.equal(page.blocks.length, 13);
+    for (const block of page.blocks) {
+      assert.ok(block.source_ref.startsWith("data/copy/getting-started.json#"));
+      assert.ok(validateJsonScalar(block.source_ref, block.json_path, "edit"));
+    }
+  }
+});
+
 test("injector SSRF: traversal / absolute / protocol-relative / scheme rejected", () => {
   for (const hostile of [
     "../../etc/passwd",
@@ -177,4 +190,10 @@ test("public and instructor blocks live in DISJOINT maps (dual-scope resolution 
     assert.ok(lookupBlock(instrRef, "instructor"), "instructor block resolves under instructor scope");
     assert.equal(lookupBlock(instrRef, "edit"), null, "instructor block must NOT resolve under edit scope");
   }
+});
+
+test("heading source level survives page descriptor projection", () => {
+  const heading = Object.values(EDITOR_MAP.pages).flat().find(b => b.heading_level);
+  assert.ok(heading);
+  assert.equal(pageBlockDescriptors([heading])[0].heading_level, heading.heading_level);
 });

@@ -25,7 +25,7 @@ def dataset(tmp_path, monkeypatch):
     write_json(data / 'taxonomy' / 'tasks.json', {'tasks': []})
     write_json(data / 'taxonomy' / 'folio-crosswalk.json', {})
     write_json(data / 'firm' / 'firm.json', {})
-    for page in ('home', 'matters', 'firm'):
+    for page in ('home', 'matters', 'firm', 'getting-started'):
         write_json(data / 'copy' / (page + '.json'), {'shape_labels': {}})
     write_json(matter / 'matter.json', {'id': 'm01', 'caption': 'Fixture & matter', 'tier': 'meridian', 'jurisdiction': 'meridian'})
     write_json(matter / 'rubric.json', {})
@@ -241,3 +241,12 @@ def test_firm_dashboard_exports_unreconciled_status_and_met_targets(tmp_path, mo
         rows = list(csv.DictReader(stream))
     assert rows
     assert {row['reconciled'] for row in rows} == {'no'}
+
+
+def test_editor_heading_source_levels_survive_renderer_demotion(monkeypatch):
+    monkeypatch.setattr(bs, 'EDMAP', type(bs.EDMAP)())
+    bs.EDMAP.enabled = True
+    html = bs.markdown('##### A {#b:aaaaaaaa}\n\n###### Child {#b:bbbbbbbb}', src='data/test.md')
+    entries, _, _ = bs._extract_page_blocks('<main>' + html + '</main>')
+    assert [entry['heading_level'] for entry in entries] == [5, 6]
+    assert html.count('<h6') == 2

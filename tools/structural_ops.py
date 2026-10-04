@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""structural_ops.py — insert/delete/split/merge/move on markdown text,
+"""structural_ops.py — insert/delete/split/merge/move/move_section on markdown text,
 addressed by durable block IDs (U4 of the word-like-editing plan).
 
 Every operation takes the RAW markdown text of a source (a whole ``.md`` file
@@ -13,7 +13,7 @@ source LINES, and returns the new text. Identity rules:
   * delete retires the block's bid (never reused — the registry keeps it);
   * split keeps the original bid on the FIRST part and mints for the second;
   * merge keeps the FIRST block's bid and retires the second's;
-  * move changes NO bid.
+  * move / move_section change NO bid.
 
 Any ambiguity or invariant violation raises StructuralError — the caller
 routes it to needs_human; nothing is ever silently corrupted.
@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import dataclasses
 import os
+import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -219,6 +220,53 @@ def op_move(text, bid, dest_anchor_bid):
         if insert_end + 1 <= len(out) - 1 and not _is_blank(out[insert_end + 1]):
             out.insert(insert_end + 1, "")
 
+    new_raw = "\n".join(out)
+    _verify(text, new_raw, added=set(), removed=set())
+    return new_raw
+
+
+def op_move_section(text, bid, sibling_bid):
+    """Swap with the adjacent sibling heading identified by its bare bid.
+
+    A section includes its heading and every block before the next heading
+    of the same or higher source level. Descendants travel with their parent;
+    siblings must share a parent. No block identities change.
+    """
+    source = locate_block(text, bid)
+    target = locate_block(text, sibling_bid)
+    lines = _lines(text)
+    headings = []
+    stack = []
+    for block in _blocks(text):
+        if not re.fullmatch(r"h[1-6]", block.tag):
+            continue
+        # The renderer demotes headings, capping at h6; use source levels.
+        level = len(re.match(r"^\s*(#{1,6})\s", lines[block.start_line]).group(1))
+        while stack and stack[-1][1] >= level:
+            stack.pop()
+        parent = stack[-1][0].bid if stack else None
+        headings.append((block, level, parent))
+        stack.append((block, level))
+    info = {block.bid: (level, parent) for block, level, parent in headings}
+    if bid == sibling_bid or bid not in info or sibling_bid not in info:
+        raise StructuralError("section moves require two different headings")
+    siblings = [block for block, level, parent in headings if (level, parent) == info[bid]]
+    ids = [block.bid for block in siblings]
+    if sibling_bid not in ids or abs(ids.index(bid) - ids.index(sibling_bid)) != 1:
+        raise StructuralError("section target must be an adjacent sibling in the same parent")
+    first, second = sorted((source, target), key=lambda block: block.start_line)
+    level = info[bid][0]
+    end = next((block.start_line for block, other_level, _ in headings
+                if block.start_line > second.start_line and other_level <= level), len(lines))
+    first_end = second.start_line
+    while first_end > first.start_line and _is_blank(lines[first_end - 1]):
+        first_end -= 1
+    second_end = end
+    while second_end > second.start_line and _is_blank(lines[second_end - 1]):
+        second_end -= 1
+    separator = lines[first_end:second.start_line] or [""]
+    out = (lines[:first.start_line] + lines[second.start_line:second_end] + separator
+           + lines[first.start_line:first_end] + lines[second_end:])
     new_raw = "\n".join(out)
     _verify(text, new_raw, added=set(), removed=set())
     return new_raw

@@ -601,8 +601,8 @@ class Patch:
     json_path: str      # scalar path, or body_md path for prose_json_body/structural_json_body
     original_text: str  # RAW source span (map-resolved) for prose; scalar value for json_scalar
     new_text: str
-    op: str = None      # structural operation name (insert_after|delete|split|merge|move), else None
-    op_arg: str = None  # merge's second ref / move's destination ref
+    op: str = None      # structural operation name (insert_after|delete|split|merge|move|move_section), else None
+    op_arg: str = None  # merge/move ref; move_section's adjacent sibling heading bid
     created_at: int = 0 # store row creation time (orders same-anchor inserts)
     page: str = None
     editor: str = None
@@ -611,7 +611,7 @@ class Patch:
 
 
 # Structural suggestion kinds (U4, KTD3) — mirror of the Worker store's set.
-STRUCTURAL_KINDS = {"insert_after", "delete", "split", "merge", "move"}
+STRUCTURAL_KINDS = {"insert_after", "delete", "split", "merge", "move", "move_section"}
 
 
 def classify(source_ref, block, op=None):
@@ -806,6 +806,10 @@ def _apply_structural_to_text(text, patch, existing_bids):
         if not arg_bid:
             raise structural_ops.StructuralError("merge target carries no bid")
         return structural_ops.op_merge(text, bid, arg_bid)
+    if patch.op == "move_section":
+        if not re.fullmatch(r"[0-9a-f]{8}", patch.op_arg or ""):
+            raise structural_ops.StructuralError("section target carries no bid")
+        return structural_ops.op_move_section(text, bid, patch.op_arg)
     if patch.op == "move":
         arg_bid = _bid_of_ref(patch.op_arg or "")
         if not arg_bid:
@@ -2007,6 +2011,10 @@ def _gate_group(members, source_index, worktree):
         row_kind = r.get("kind")
         if row_kind in STRUCTURAL_KINDS:
             op_arg = r.get("op_arg") or None
+            if row_kind == "move_section":
+                target_ref = re.sub(r"b[0-9a-f]{8}$", "b" + (op_arg or ""), source_ref)
+                if not re.fullmatch(r"[0-9a-f]{8}", op_arg or "") or target_ref not in source_index:
+                    return OUT_DRIFT, []
             if row_kind in ("merge", "move"):
                 if not op_arg or op_arg not in source_index:
                     return OUT_DRIFT, []

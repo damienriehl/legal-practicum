@@ -31,6 +31,30 @@ class TestPlatformSemanticContract(unittest.TestCase):
     def tearDownClass(cls):
         shutil.rmtree(cls.tmp, ignore_errors=True)
 
+    def test_getting_started_content_links_and_editability(self):
+        page = self.actual["pages"]["getting-started/index.html"]
+        text = " ".join(page["text"])
+        for phrase in ("practicum director", "dean", "associate dean", "faculty",
+                       "practicum teaching faculty", "teaching team", "Adapt",
+                       "supervise the technology’s feedback and assessment",
+                       "Faculty keep teaching the way they teach now"):
+            self.assertIn(phrase, text)
+        for word in ("critique", "grading", "demonstrate", "objective"):
+            self.assertNotIn(word, text.lower())
+        links = {link["href"] for link in page["links"]}
+        self.assertTrue({"../matters/index.html", "../templates/index.html"} <= links)
+        home_links = {link["href"] for link in self.actual["pages"]["index.html"]["links"]}
+        self.assertIn("getting-started/index.html", home_links)
+        refs = {block["source_ref"] for block in page["editor_blocks"]}
+        for section, fields in {
+            "hero": ("eyebrow", "heading", "lede"),
+            "leadership": ("heading", "body"), "structure": ("heading", "body"),
+            "oversight": ("heading", "body"),
+            "resources": ("heading", "body", "library_label", "templates_label"),
+        }.items():
+            for field in fields:
+                self.assertIn("data/copy/getting-started.json#" + section + "." + field, refs)
+
     def mutate(self, field, value, page="index.html"):
         changed = copy.deepcopy(self.actual)
         changed["pages"][page][field] = value
@@ -45,6 +69,7 @@ class TestPlatformSemanticContract(unittest.TestCase):
         self.assertNotIn("chat/index.html", pages)
         self.assertNotIn("chat/critique.html", pages)
         self.assertIn("index.html", pages)
+        self.assertIn("getting-started/index.html", pages)
         self.assertIn("firm/index.html", pages)
         self.assertIn("modules/m1.html", pages)
 

@@ -61,6 +61,11 @@
         "meta": "ABOUT THE METHOD",
         "title": "The centaur layer",
         "description": "Every exercise here ships with a machine-readable rubric and a revise-and-repeat loop — the two halves of a human+AI (“centaur”) pedagogy. AI is the default speaker and gives the first-pass assessment and feedback with unlimited reps; scarce faculty time is reserved for the high-value coaching only a human can give. The simulated client interviews, rubric feedback, and firm dashboard below are that layer, live."
+      },
+      "getting_started": {
+        "meta": "AT YOUR SCHOOL",
+        "title": "Getting started at your school",
+        "description": "Meet the people who run the practicum, shape it around your school, and find free matters and templates to begin."
       }
     }
   }

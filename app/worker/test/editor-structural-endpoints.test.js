@@ -174,3 +174,46 @@ test("a plain prose edit still flows exactly as before (no regression)", async (
   assert.equal(cap.input.kind, "prose");
   assert.equal(cap.input.op_arg ?? null, null);
 });
+
+
+test("move_section resolves a bare sibling bid only in the same source", async () => {
+  let headings;
+  for (const blocks of Object.values(EDITOR_MAP.pages)) {
+    const groups = new Map();
+    for (const b of blocks) {
+      if (!b.heading_level || !b.source_ref.includes('.md#b')) continue;
+      const key = b.source_ref.split('#')[0] + ':' + b.heading_level;
+      const group = groups.get(key) || [];
+      group.push(b); groups.set(key, group);
+      if (group.length >= 2) { headings = group; break; }
+    }
+    if (headings) break;
+  }
+  assert.ok(headings, "fixture has same-file headings");
+  const [H1, H2] = headings;
+  const cap = {};
+  const env = envWith(cap);
+  const res = await post(env, { source_ref: H1.source_ref, op: "move_section",
+    op_arg: H2.source_ref.slice(-8), original_hash: H1.original_hash });
+  assert.equal(res.status, 200);
+  assert.equal(cap.input.kind, "move_section");
+  assert.equal(cap.input.op_arg, H2.source_ref.slice(-8));
+  for (const arg of [OTHER.source_ref.slice(-8), "ffffffff", H1.source_ref.slice(-8), H2.source_ref]) {
+    const bad = await post(env, { source_ref: H1.source_ref, op: "move_section",
+      op_arg: arg, original_hash: H1.original_hash });
+    assert.equal(bad.status, 400);
+  }
+  const scalar = await post(env, { source_ref: SCALAR.source_ref, op: "move_section",
+    op_arg: H2.source_ref.slice(-8), original_hash: SCALAR.original_hash });
+  assert.equal(scalar.status, 400);
+  const paragraph = Object.values(EDITOR_MAP.pages).flat().find((b) =>
+    b.kind === "prose" && !b.heading_level &&
+    b.source_ref.split('#')[0] === H1.source_ref.split('#')[0]);
+  assert.ok(paragraph, "fixture has a paragraph in the heading's source");
+  const nonHeadingTarget = await post(env, { source_ref: H1.source_ref, op: "move_section",
+    op_arg: paragraph.source_ref.slice(-8), original_hash: H1.original_hash });
+  assert.equal(nonHeadingTarget.status, 400);
+  const nonHeadingAnchor = await post(env, { source_ref: paragraph.source_ref, op: "move_section",
+    op_arg: H1.source_ref.slice(-8), original_hash: paragraph.original_hash });
+  assert.equal(nonHeadingAnchor.status, 400);
+});

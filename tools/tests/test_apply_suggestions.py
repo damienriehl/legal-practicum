@@ -1262,6 +1262,22 @@ class StructuralApplyTest(unittest.TestCase):
         self.assertIn("paid in full", paras[0])
         self.assertIn("Intake notes", paras[1])
 
+    def test_move_section_applies_to_fixture_file(self):
+        text, _ = sb.stamp_md_text('# Parent\n\n## A\n\nBody A.\n\n### Child\n\nChild body.\n\n## B\n\nBody B.\n', set())
+        with open(os.path.join(self.root, M03_MD), 'w', encoding='utf-8') as fh:
+            fh.write(text)
+        _git(['add', M03_MD], self.root)
+        _git(['commit', '-m', 'section fixture'], self.root)
+        self.index = resolve_index(self.root, SPEC)
+        ids = {b.raw: b.bid for b in ap.structural_ops._blocks(text)}
+        self._add_op('section1', M03_MD + '#b' + ids['A'], 'move_section', op_arg=ids['B'])
+        res = self._run('section-batch', FakePipeline(SPEC))
+        self.assertTrue(res.committed)
+        self.assertEqual(self.store.rows['section1']['status'], 'applied')
+        self.assertEqual([b.raw for b in ap.structural_ops._blocks(self._md())],
+                         ['Parent', 'B', 'Body B.', 'A', 'Body A.', 'Child', 'Child body.'])
+        self.assertEqual(sorted(BID_RE.findall(self._md())), sorted(BID_RE.findall(text)))
+
     def test_split_and_merge_preserve_text_through_engine(self):
         # split p0 of the json body ("You represent the plaintiff in a negligence action.")
         ref = bref(self.root, M03_EX, 0, "sections.intro.body_md")

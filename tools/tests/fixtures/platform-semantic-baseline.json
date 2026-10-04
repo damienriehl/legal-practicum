@@ -5,6 +5,7 @@
     "about/content-license.html",
     "about/third-party.html",
     "firm/index.html",
+    "getting-started/index.html",
     "hours/index.html",
     "index.html",
     "matters/index.html",
@@ -76,10 +77,10 @@
     "templates/index.html"
   ],
   "fields": {
-    "text": "7f4c86b22068d06af5b8990d60c2e401819a75e83bbcdf9c30c60f8e86b18603",
-    "headings": "f126565f5c263a0b8e36982f308be2f245343a2cdfe2e76ebc1860de1dc5639f",
-    "links": "78e7674abadf66f4ca981ffa0b9ef5abf69a2502a93bd09e0e48acfd9ec2f271",
-    "editor_blocks": "31ca3e1e0bc55ea2ea9d6a3533c53c1e387d3612f27f29d431c428fb4070fc84",
-    "reading_order": "8c0b284f99fd07290100514d03a8b3b50110100ccdc4aeb45933885140eb23b8"
+    "text": "cae0d92d07255009040053608b908fcfce3747558e29845ad99942858b229823",
+    "headings": "75fda5017338e5c86332d69d725bf7a5a8c3d5496a905e263cdb5ace3f8a5643",
+    "links": "41dac2a70d775d8a4cbbaf468ca19ea5278d1cf90a4328d5b6abfaa79ef05e63",
+    "editor_blocks": "6abe4d12802d53fb1cde0abcf0a0a13c9f781b8d53f1d28c662e226210a8f610",
+    "reading_order": "f83f413d43f81ab3dc9d8b44992c64e44c1a66cec145278452d03d4b80fde806"
   }
 }

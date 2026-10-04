@@ -295,7 +295,7 @@ def test_accepted_only_materializer_defers_structural_group_from_prod():
     assert {item.reason for item in partial.exclusions} == {"structural_prod_deferred"}
 
 
-@pytest.mark.parametrize("op", ["insert_after", "delete", "split", "merge", "move"])
+@pytest.mark.parametrize("op", ["insert_after", "delete", "split", "merge", "move", "move_section"])
 def test_accepted_only_materializer_defers_every_structural_operation(op):
     source = projection_source()
     source["operations"] = [{"id":op, "decision_id":op, "kind":op, "op":op,
@@ -1286,3 +1286,18 @@ def test_candidate_builder_stops_at_generator_boundary_and_honors_evidence_fence
             return {"active_release":None,"batches":[],"blocked_reason":"missing_batch_evidence"}
     with pytest.raises(ReleaseError, match="missing_batch_evidence"):
         ProductionCandidateBuilder(Blocked(),Git(),tmp_path / "blocked.json").prepare_latest()
+
+
+def test_section_move_holds_edits_to_sibling_target():
+    source = projection_source()
+    anchor = 'data/sections.md#baaaaaaaa'
+    target = 'data/sections.md#bbbbbbbbb'
+    source['source_ref'] = anchor
+    source['operations'] = [
+        {'id': 'section', 'op': 'move_section', 'source_ref': anchor, 'op_arg': 'bbbbbbbb'},
+        {'id': 'wording', 'source_ref': target},
+    ]
+    assert AcceptedOnlyMaterializer._production_holds([source]) == {
+        'section': 'structural_prod_deferred',
+        'wording': 'depends_on_structural_prod_deferred',
+    }

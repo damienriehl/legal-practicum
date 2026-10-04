@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "type": "page_copy",
+  "page": "getting-started",
+  "hero": {
+    "eyebrow": "BRING THE PRACTICUM TO YOUR SCHOOL",
+    "heading": "Getting started at your school",
+    "lede": "Give your students more chances to practice the work of a lawyer, with people they trust guiding the way. Start with one matter and build from there."
+  },
+  "leadership": {
+    "heading": "A director, supported by a teaching team",
+    "body": "A practicum director runs the program with a teaching team. Together, they choose the matters, arrange the practice sessions, and help students turn feedback into their next step."
+  },
+  "structure": {
+    "heading": "Make it fit your school",
+    "body": "One sample structure brings together a dean, an associate dean, faculty, practicum teaching faculty, and a teaching team, with the practicum director coordinating the work. Adapt the roles and responsibilities to your school: use the people and arrangements that already serve your students well."
+  },
+  "oversight": {
+    "heading": "Your people stay in charge",
+    "body": "The director and teaching team supervise the technology’s feedback and assessment. They review what students receive, bring their judgment to the results, and guide the next round of practice. AI can help students get more practice and timely feedback; your team remains responsible for the learning experience. Faculty keep teaching the way they teach now."
+  },
+  "resources": {
+    "heading": "Try a matter together",
+    "body": "Explore the free matter library and catalog with your team. Choose a matter that fits your course, then use the templates to plan the work and support students along the way. You can start small and grow at a pace that works for your school.",
+    "library_label": "Explore the free matter library and catalog",
+    "templates_label": "Open the course templates"
+  }
+}

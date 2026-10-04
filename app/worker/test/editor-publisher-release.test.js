@@ -525,12 +525,13 @@ test("v2 preparation expands one accepted move decision to both immutable endpoi
   assert.deepEqual(prepared.release.operation_ids,["move-from","move-to"]);
 });
 
-test("structural operations and dependent prose stay held outside production membership", () => {
+for (const kind of ["merge", "move_section"]) test(`${kind} and dependent prose stay held outside production membership`, () => {
   const core = makeCore(() => 2750);
-  const sourceA = "data/copy/home.json#a";
-  const sourceB = "data/copy/home.json#b";
-  const operations = [{ id:"merge-operation",decision_id:"merge-operation",kind:"merge",op:"merge",
-    source_ref:sourceA,op_arg:sourceB,source_revision:"dev-merge",prod_base:"prod-base" }];
+  const sourceA = "data/copy/sections.md#baaaaaaaa";
+  const sourceB = "data/copy/sections.md#bbbbbbbbb";
+  const operations = [{ id:"merge-operation",decision_id:"merge-operation",kind,op:kind,
+    source_ref:sourceA,op_arg:kind === "move_section" ? "bbbbbbbb" : sourceB,
+    source_revision:"dev-merge",prod_base:"prod-base" }];
   assert.equal(core.recordReviewRevision({ id:"revision-merge",source_ref:sourceA,
     source_revision:"dev-merge",prod_base:"prod-base",commit_sha:"dev-merge",
     original_hash:"a-old",proposed_hash:"a-new",original_text:"A",proposed_text:"A B",
@@ -559,6 +560,9 @@ test("structural operations and dependent prose stay held outside production mem
       decisions:proseDecisions }] }).ok,true);
   const projection = core.productionPreparationContext().projection;
   assert.equal(projection.eligible_operation_count,0);
+  assert.deepEqual(core._operationFrontierSummaryProjection(), {
+    eligible_operation_count:0,held_operation_count:2,
+  });
   const reviewContext = core.getPublisherReview("slot:damien");
   assert.equal(reviewContext.counts.held,2);
   assert.equal(reviewContext.counts.unreviewed,0);
