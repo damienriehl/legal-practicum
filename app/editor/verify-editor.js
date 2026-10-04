@@ -878,6 +878,49 @@ async function run() {
         !has(15, 'up') && !has(15, 'down');
     });
     assert('ST section controls respect siblings and parent boundaries', sectionControls);
+    const moveControls = await page.evaluate(() => {
+      function rail(i) { return document.querySelector('.eb-tools[data-eb-for="' + i + '"]'); }
+      function paragraphMoves(i) { return rail(i).querySelectorAll('.eb-act--up, .eb-act--down').length; }
+      function sectionMoves(i) { return rail(i).querySelectorAll('.eb-act--section-up, .eb-act--section-down').length; }
+      function paths(i, kind) {
+        return Array.from(rail(i).querySelectorAll('.eb-act--' + kind + ' svg path'))
+          .map(path => path.getAttribute('d')).join('|');
+      }
+      return {
+        headings: [9, 11, 12, 13, 15].every(i => paragraphMoves(i) === 0) &&
+          sectionMoves(9) === 1 && sectionMoves(12) === 2 && sectionMoves(13) === 1,
+        paragraph: paragraphMoves(5) === 1 && paragraphMoves(16) === 1 &&
+          sectionMoves(5) === 0 && sectionMoves(16) === 0,
+        icons: ['up', 'down'].every(dir => {
+          const paragraphIndex = dir === 'up' ? 16 : 5;
+          return paths(12, 'section-' + dir) !== '' && paths(paragraphIndex, dir) !== '' &&
+            paths(12, 'section-' + dir) !== paths(paragraphIndex, dir);
+        })
+      };
+    });
+    assert('ST headings show only section moves, never paragraph moves', moveControls.headings);
+    assert('ST paragraphs keep paragraph moves without section moves', moveControls.paragraph);
+    assert('ST section icons differ from paragraph icons in both directions', moveControls.icons);
+
+    const metadataPage = await browser.newPage();
+    await metadataPage.setRequestInterception(true);
+    metadataPage.on('request', req => {
+      if (req.isNavigationRequest() && req.frame() === metadataPage.mainFrame()) {
+        const html = fs.readFileSync(path.join(DIR, 'test-harness.html'), 'utf8')
+          .replace('<h2>Section B</h2>', '<p>Section B</p>');
+        req.respond({ status: 200, contentType: 'text/html', body: html });
+      } else req.continue();
+    });
+    await metadataPage.goto(HARNESS, { waitUntil: 'load' });
+    await metadataPage.waitForFunction(() => window.SonstengEditor && window.SonstengEditor.ready() >= 4);
+    const metadataControls = await metadataPage.evaluate(() => {
+      var rail = document.querySelector('.eb-tools[data-eb-for="12"]');
+      return rail.querySelectorAll('.eb-act--up, .eb-act--down').length === 0 &&
+        rail.querySelectorAll('.eb-act--section-up, .eb-act--section-down').length === 2 &&
+        !!document.querySelector('.eb-tools[data-eb-for="9"] .eb-act--section-down');
+    });
+    assert('ST heading_level alone gives section moves and preserves sibling detection', metadataControls);
+    await metadataPage.close();
     const sectionLabels = await page.evaluate(() => {
       var up = document.querySelector('.eb-tools[data-eb-for="12"] .eb-act--section-up');
       var down = document.querySelector('.eb-tools[data-eb-for="12"] .eb-act--section-down');
