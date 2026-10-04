@@ -1,6 +1,6 @@
 ## Purpose {#b:ee77ae52}
 
-Use technology to help you run a law practice, then check and revise its output yourself. Work from the [firm dashboard](../firm/index.html) for Ellingboe & Ravndal. Use a tool your school selects. You remain responsible for the numbers, advice, public claims, and handling of information; the tool does not make professional decisions for you. {#b:c1e0bfd3}
+Use technology to help you run a law practice, then check and revise its output yourself. Work from the firm dashboard for Ellingboe & Ravndal. Use a tool your school selects. You remain responsible for the numbers, advice, public claims, and handling of information; the tool does not make professional decisions for you. {#b:c1e0bfd3}
 
 ### Your objectives {#b:f2af2ede}
 

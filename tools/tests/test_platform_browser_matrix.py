@@ -116,7 +116,9 @@ def test_semantic_heading_repairs_preserve_the_existing_visible_words():
     # Both the firm technology exercise (PR #98) and the persuasion rewrite’s
     # technology wording changed links, headings, and editor blocks; existing
     # page identities stay fixed.
+    # Literal-link repairs change authored editor copy; the exercise lead-in
+    # changes visible text. Page identities, headings, and reading order stay fixed.
     baseline = json.loads((TOOLS / "tests/fixtures/platform-semantic-baseline.json").read_text())
     assert baseline["fields"]["links"] == "ff748a4f874edff14a2512b90b9190e34ba648f87a4f17c61bf500fa006b9b41"
-    assert baseline["fields"]["editor_blocks"] == "fd5d6f20d1175cd10344b7224b4b9a1c42f98ad134600f259f8b67535b83b65d"
+    assert baseline["fields"]["editor_blocks"] == "cd47e1979be52ab1c145e59b1738d99408cca6c17a3b97689e4e5da94e483298"
     assert baseline["fields"]["reading_order"] == "341fcb4553eee9ff23fbf78d17044e5eceac876558c3b4e049b4de9cba3a6114"
