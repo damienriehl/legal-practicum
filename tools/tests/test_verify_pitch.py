@@ -54,7 +54,7 @@ VALID_PAGE = """<!doctype html>
 </head>
 <body>
   <nav><a href="#case-study">Case study</a></nav>
-  <header><p class="byline">John O. Sonsteng · Damien Riehl · Roger S. Haydock</p></header>
+  <header><p class="byline">John O. Sonsteng · Damien A. Riehl · Roger S. Haydock</p></header>
   <main>
     <section id="case-study">
       <h2>A practical legal education</h2>

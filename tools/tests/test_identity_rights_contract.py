@@ -26,7 +26,7 @@ MIT_LICENSE = ROOT / "LICENSE"
 MASTER_OUTLINE = ROOT / "docs/master-outline.md"
 CC_BY_URL = "https://creativecommons.org/licenses/by/4.0/"
 COPYRIGHT_LINE = "Copyright (c) 2026 Damien Riehl, John O. Sonsteng, Roger S. Haydock"
-COVER_BYLINE = "John O. Sonsteng · Damien Riehl · Roger S. Haydock"
+COVER_BYLINE = "John O. Sonsteng · Damien A. Riehl · Roger S. Haydock"
 MIT_BLOCK = """MIT License
 
 Copyright (c) 2026 Damien Riehl, John O. Sonsteng, Roger S. Haydock

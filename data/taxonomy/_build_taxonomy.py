@@ -833,7 +833,7 @@ TASKS = {
       ("Keep judgment-heavy work human","Retain the hard calls.")),
    NONE("Centaur delegation judgment is an AI-era skill not modeled in FOLIO."), []),
   ("Integrate AI first-pass into the revise-and-repeat loop",
-   "Obtain an AI first-pass critique and revise the work against the rubric.",
+   "Obtain AI first-pass feedback and revise the work against the rubric.",
    "synthesis","M3",
    st(("Get an AI first-pass critique","Run the draft through AI."),
       ("Revise against the rubric","Improve using the rubric.")),

@@ -264,7 +264,7 @@
       "source_ref": "data/taxonomy/tasks.json#tasks.0.subtasks.1.description",
       "family": "subtask_description",
       "record_id": "TSK-001.02",
-      "authored_text": "Weigh the strong and weak points of both sides."
+      "authored_text": "Weigh both sides' strong points and weak points."
     },
     {
       "source_ref": "data/taxonomy/tasks.json#tasks.0.subtasks.2.name",
@@ -4068,13 +4068,13 @@
       "source_ref": "data/taxonomy/tasks.json#tasks.101.description",
       "family": "task_description",
       "record_id": "TSK-102",
-      "authored_text": "Obtain an AI first-pass critique and revise the work against the rubric."
+      "authored_text": "Obtain AI first-pass feedback and revise the work against the rubric."
     },
     {
       "source_ref": "data/taxonomy/tasks.json#tasks.101.subtasks.0.name",
       "family": "subtask_name",
       "record_id": "TSK-102.01",
-      "authored_text": "Get an AI first-pass critique"
+      "authored_text": "Get AI first-pass feedback"
     },
     {
       "source_ref": "data/taxonomy/tasks.json#tasks.101.subtasks.0.description",

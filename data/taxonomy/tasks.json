@@ -3096,13 +3096,13 @@
       "@id": "https://legalpracticum.org/spine/task/TSK-102",
       "skill_id": "SK-LP-20",
       "name": "Integrate AI first-pass into the revise-and-repeat loop",
-      "description": "Obtain an AI first-pass critique and revise the work against the rubric.",
+      "description": "Obtain AI first-pass feedback and revise the work against the rubric.",
       "bloom_level": "synthesis",
       "module": "M3",
       "subtasks": [
         {
           "id": "TSK-102.01",
-          "name": "Get an AI first-pass critique",
+          "name": "Get AI first-pass feedback",
           "description": "Run the draft through AI."
         },
         {

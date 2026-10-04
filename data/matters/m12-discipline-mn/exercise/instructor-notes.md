@@ -38,5 +38,5 @@ Map submissions to the rubric criteria. Reward students who correctly identify a
 - Client interview + debrief: ~90 min. {#b:cc10f8f4}
 - Candor/ethics workshop: ~60 min. {#b:3e75c31c}
 - Witness interview + timeline: ~75 min. {#b:1df695a9}
-- Brief drafting: out-of-class, ~5–7 hrs; in-class critique ~45 min. {#b:e267bb69}
+- Brief drafting: out-of-class, ~5–7 hrs; in-class feedback ~45 min. {#b:e267bb69}
 - Oral argument simulation: ~90 min. {#b:10fb510b}

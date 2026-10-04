@@ -107,8 +107,9 @@ def test_semantic_heading_repairs_preserve_the_existing_visible_words():
     # static page intentionally advance every digest, including the page set.
     # The hours shell and collapsed taxonomy notes advance text, links, and
     # editor reading order; page identities and headings stay unchanged.
-    # Critique packet parameters advance only the link digest.
+    # John’s wording pass advances visible link labels and authored editor copy;
+    # destinations, page identities, and editor reading order stay unchanged.
     baseline = json.loads((TOOLS / "tests/fixtures/platform-semantic-baseline.json").read_text())
-    assert baseline["fields"]["links"] == "b3e708705cec58af1d160c9472ad338dc0a52fdc0dafb824d456580be3f25c2f"
-    assert baseline["fields"]["editor_blocks"] == "fa18d2e230ff062b5ea6a5cf1a829466de5731958fa65740795551ffa4ef2c69"
+    assert baseline["fields"]["links"] == "ec6a0500d3832af03c0dd0ba0b8d10fc82d0cfb5dd1654ef9add710be2c91506"
+    assert baseline["fields"]["editor_blocks"] == "51e965de4d602d04fc6131e2e4bef09fc610adc67aee629e0bcd5b7003b97c0a"
     assert baseline["fields"]["reading_order"] == "2f585be0a779e8854eb3f5c8d5ac13762a39685ae4601c390f202ed66081fe38"

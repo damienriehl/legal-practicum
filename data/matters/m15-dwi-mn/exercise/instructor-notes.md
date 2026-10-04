@@ -37,7 +37,7 @@ The second core is **rapport-earned fact development**. Four sensitive facts are
 
 - Client interview + debrief: ~90 min. {#b:acb5639b}
 - Issue-spotting workshop: ~90 min. {#b:0631db16}
-- Suppression-theory drafting: out-of-class, ~4–6 hrs; in-class critique ~45 min. {#b:668b4b8c}
+- Suppression-theory drafting: out-of-class, ~4–6 hrs; in-class feedback ~45 min. {#b:668b4b8c}
 - Counseling simulation: ~60 min. {#b:b1bd0c86}
 - Plea-negotiation simulation: ~90 min. {#b:7589481d}
 
