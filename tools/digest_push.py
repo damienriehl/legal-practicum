@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-r"""digest_push.py — batched, cumulative ntfy digest for pending editor suggestions.
+r"""digest_push.py — batched ntfy digest for suggestions and metadata-only errors.
 
 WHY THIS EXISTS (editor plan decision 6): the admin **review page stays
 canonical** — it is the single place all outstanding suggestions are reviewed in
@@ -37,6 +37,13 @@ PUBLISH PATH:
     resolved by path (~/.config/claude-rc/ntfy-topic — the home box's canonical
     rc-notify topic) so it stays a rotatable secret, overridable by env. Public
     ntfy.sh by default; no self-hosted ntfy is configured on this box.
+
+CLIENT ERRORS:
+  * GET /client-errors?since=<epoch ms> uses the same admin token. New errors
+    notify even when suggestions are unchanged. The oldest 200 records are read
+    first; the state file retains client_errors_since after pending drains and
+    advances it only after a successful push. Failed pushes and dry runs retry
+    the same errors. Bodies contain counts, kinds, and attribution only.
 
 Python 3, stdlib only. The fetch and publish steps are injectable so the digest
 builder and dedupe logic are unit-testable with no network (see
@@ -183,11 +190,14 @@ def load_state(path):
         return {}
 
 
-def save_state(path, signature, count, now_iso):
+def save_state(path, signature, count, now_iso, client_errors_since=None):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     tmp = path + ".tmp"
     with open(tmp, "w", encoding="utf-8") as fh:
-        json.dump({"signature": signature, "count": count, "notified_at": now_iso}, fh)
+        state = {"signature": signature, "count": count, "notified_at": now_iso}
+        if client_errors_since is not None:
+            state["client_errors_since"] = client_errors_since
+        json.dump(state, fh)
     os.replace(tmp, path)
 
 
@@ -202,11 +212,11 @@ def clear_state(path):
 # --------------------------------------------------------------------------- #
 # I/O adapters (injectable for tests)
 # --------------------------------------------------------------------------- #
-def fetch_rows(api_base, token, timeout=30):
+def fetch_rows(api_base, token, timeout=30, *, endpoint="review"):
     """GET {api_base}/review (admin) -> list of full suggestion rows."""
     if not api_base:
         raise RuntimeError("EDIT_API_BASE is required (e.g. https://<worker>/edit/v1).")
-    url = api_base.rstrip("/") + "/review"
+    url = api_base.rstrip("/") + "/" + endpoint
     req = urllib.request.Request(url, method="GET")
     req.add_header("Accept", "application/json")
     req.add_header("X-Edit-Request", "1")
@@ -219,10 +229,27 @@ def fetch_rows(api_base, token, timeout=30):
             payload = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", "replace")  # token is never echoed in it
-        raise RuntimeError("GET /review -> HTTP %d: %s" % (exc.code, body))
+        raise RuntimeError("GET /%s -> HTTP %d: %s" % (endpoint, exc.code, body))
     except urllib.error.URLError as exc:
-        raise RuntimeError("GET /review unreachable: %s" % (exc.reason,))
+        raise RuntimeError("GET /%s unreachable: %s" % (endpoint, exc.reason))
     return payload.get("items") or payload.get("suggestions") or []
+
+
+def fetch_client_errors(api_base, token, since, timeout=30):
+    return fetch_rows(api_base, token, timeout, endpoint="client-errors?since=%d" % since)
+
+
+def error_summary(items):
+    """Counts and server-resolved attribution only; never include page or text."""
+    labels = {"signed-out": "signed out", "send-failed": "send failed",
+              "conflict": "conflict", "server-error": "server error"}
+    counts = {}
+    for item in items:
+        key = (labels.get(item["kind"], item["kind"]), item["attribution"])
+        counts[key] = counts.get(key, 0) + 1
+    return "Editor problems since last check: " + ", ".join(
+        "%d %s (%s)" % (n, kind, attribution)
+        for (kind, attribution), n in sorted(counts.items()))
 
 
 def resolve_topic():
@@ -278,7 +305,7 @@ def review_url_from_env():
     return DEFAULT_REVIEW_URL
 
 
-def run(*, dry_run=False, fetch=fetch_rows, publish=publish_ntfy,
+def run(*, dry_run=False, fetch=fetch_rows, fetch_errors=None, publish=publish_ntfy,
         topic_resolver=resolve_topic, state_path=None, now_iso=None, out=None):
     """Returns a dict describing the outcome (also the machine-readable summary)."""
     out = out or sys.stdout
@@ -291,9 +318,19 @@ def run(*, dry_run=False, fetch=fetch_rows, publish=publish_ntfy,
     digest = build_digest(rows, review_url)
     prev = load_state(state_path)
     prev_sig = prev.get("signature", "")
+    since = prev.get("client_errors_since", 0)
+    try:
+        errors = (fetch_errors or fetch_client_errors)(
+            os.environ.get(ENV_API_BASE), os.environ.get(ENV_SERVICE_TOKEN), since)
+    except Exception:
+        # Optional telemetry must not block suggestions or consume its cursor.
+        errors = []
+    errors = [item for item in errors if item["at"] > since]
+    high_water = max([since] + [item["at"] for item in errors])
 
     result = {
         "count": digest.count,
+        "client_error_count": len(errors),
         "signature": digest.signature,
         "review_url": review_url,
         "by_matter": digest.by_matter,
@@ -302,20 +339,26 @@ def run(*, dry_run=False, fetch=fetch_rows, publish=publish_ntfy,
         "dry_run": dry_run,
     }
 
-    if digest.count == 0:
+    if digest.count == 0 and not errors:
         result["reason"] = "nothing_pending"
         if not dry_run:
-            clear_state(state_path)  # so the next accumulation notifies again
+            if since:
+                save_state(state_path, "", 0, prev.get("notified_at"), since)
+            else:
+                clear_state(state_path)  # so the next accumulation notifies again
         print("[digest] nothing pending; quiet.", file=out)
         return result
 
-    if not should_notify(digest, prev_sig):
+    if not errors and not should_notify(digest, prev_sig):
         result["reason"] = "unchanged_since_last_notify"
         print("[digest] %d pending but set unchanged since last notify; quiet." % digest.count,
               file=out)
         return result
 
     title, body = digest.title(), digest.body()
+    if errors:
+        title = "Sonsteng: editor problems" if digest.count == 0 else title
+        body = (body + "\n" if digest.count else "") + error_summary(errors)
     print("[digest] WOULD NOTIFY" if dry_run else "[digest] NOTIFY", file=out)
     print("  title: " + title, file=out)
     print("  click: " + review_url, file=out)
@@ -327,7 +370,7 @@ def run(*, dry_run=False, fetch=fetch_rows, publish=publish_ntfy,
 
     topic = topic_resolver()
     publish(topic, title, body, review_url)
-    save_state(state_path, digest.signature, digest.count, now_iso)
+    save_state(state_path, digest.signature, digest.count, now_iso, high_water)
     result["notified"] = True
     result["reason"] = "sent"
     return result

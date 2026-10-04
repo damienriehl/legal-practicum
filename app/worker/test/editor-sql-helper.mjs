@@ -9,6 +9,8 @@ class NodeSql {
     this.db = new DatabaseSync(":memory:");
   }
   exec(query, ...binds) {
+    if (binds.length > 100)
+      throw new Error(`too many SQL variables: ${binds.length} exceeds Durable Object limit of 100`);
     if (binds.length === 0 && query.includes(";")) {
       this.db.exec(query); // multi-statement schema
       return { toArray: () => [] };

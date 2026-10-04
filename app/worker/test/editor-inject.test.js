@@ -232,6 +232,8 @@ test("injection chain neutralizes forged state identity and emits a safe Worker 
       { EDIT_UPSTREAM: "https://sonsteng-dev.damienriehl.com/platform/" }, args,
     );
     const validHtml = await valid.text();
+    assert.match(validHtml, /"viewer_role":"editor"/);
+    assert.match(validHtml, /"help_contact":""/);
     assert.match(validHtml,
       /"student_view_url":"https:\/\/sonsteng-dev\.damienriehl\.com\/platform\/matters\/m03-tort-meridian\/"/);
     assert.match(validHtml, /id="upstream-data">{"safe":true}/,
@@ -244,13 +246,15 @@ test("injection chain neutralizes forged state identity and emits a safe Worker 
     assert.equal((validHtml.match(/id="edits-data"/g) || []).length, 1);
 
     const invalid = await handleEditPage(
-      { EDIT_UPSTREAM: "https://example.org/platform/?editor_token=secret" }, args,
+      { EDIT_UPSTREAM: "https://example.org/platform/?editor_token=secret", EDITOR_HELP_CONTACT: "Contact Damien via the office" }, { ...args, viewerRole: "admin" },
     );
     const invalidHtml = await invalid.text();
     const invalidMapIsland = invalidHtml.match(
       /<script type="application\/json" id="editor-map-data">([\s\S]*?)<\/script>/,
     );
     assert.ok(invalidMapIsland, "Worker map island remains present");
+    assert.equal(JSON.parse(invalidMapIsland[1]).viewer_role, "admin");
+    assert.equal(JSON.parse(invalidMapIsland[1]).help_contact, "Contact Damien via the office");
     assert.doesNotMatch(invalidMapIsland[1], /student_view_url|editor_token|secret/);
     assert.doesNotMatch(invalidHtml, /editor_token|secret/);
 

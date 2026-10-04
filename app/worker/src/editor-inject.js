@@ -213,7 +213,7 @@ class HeadInjector {
 // Serve an allowlisted page: fetch clean, inject, return HTML. `pending` is the
 // array of this editor's pending items for THIS page (resolved by the router
 // from the DO). Returns a Response (headers finalized by the router wrap).
-export async function handleEditPage(env, { pageKey, blocks, overrides = [], pending, reviewAnnotations = [], heartbeatAgeS = null, directApply = false }) {
+export async function handleEditPage(env, { pageKey, blocks, overrides = [], pending, reviewAnnotations = [], heartbeatAgeS = null, directApply = false, viewerRole = "editor" }) {
   const studentViewUrl = buildStudentViewUrl(pageKey, env.EDIT_UPSTREAM);
   // Reuse the already-validated public URL on normal configurations. Retain the
   // established fetch behavior for a malformed public-link configuration so
@@ -237,7 +237,8 @@ export async function handleEditPage(env, { pageKey, blocks, overrides = [], pen
 
   const base = baseHrefFor(pageKey);
   const mapIsland = escapeJsonIsland({ version: MAP_VERSION, page: pageKey,
-    blocks: pageBlockDescriptors(blocks), overrides,
+    blocks: pageBlockDescriptors(blocks), overrides, viewer_role: viewerRole,
+    help_contact: typeof env.EDITOR_HELP_CONTACT === "string" ? env.EDITOR_HELP_CONTACT : "",
     ...(studentViewUrl ? { student_view_url: studentViewUrl } : {}) });
   const editsIsland = escapeJsonIsland({
     items: projectPendingItems(pending),

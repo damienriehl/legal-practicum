@@ -85,8 +85,9 @@
       del: function (k) { try { if (live) backing.removeItem(k); else delete mem[k]; } catch (e) { delete mem[k]; } }
     };
   }
-  var SS = makeStore(window.sessionStorage);   // per-tab ACTIVE draft buffer
-  var LS = makeStore(window.localStorage);     // cross-tab recovery-only + prefs
+  function browserStore(name) { try { return window[name]; } catch (e) { return null; } }
+  var SS = makeStore(browserStore('sessionStorage'));   // per-tab ACTIVE draft buffer
+  var LS = makeStore(browserStore('localStorage'));     // cross-tab recovery-only + prefs
   var DRAFT_PREFIX = 'sonsteng_edit_draft:';   // keyed by page + source_ref
   var SCOPED_DRAFT_KEY = DRAFT_PREFIX + 'scoped-request|' + location.pathname;
   var FACT_DRAFT_KEY = DRAFT_PREFIX + 'add-fact|' + location.pathname;
@@ -166,23 +167,49 @@
      lets test-harness.html exercise every path with no Worker. Real path uses
      same-origin fetch: cookie auth automatic (credentials:'include'); every
      mutation carries the X-Edit-Request:1 header (CSRF layer). */
+  var signedOut = false, reauthPanel = null, reportedErrors = {};
+  function reportClientError(kind, status) {
+    var key = kind + ':' + status;
+    if (reportedErrors[key]) return;
+    reportedErrors[key] = true;
+    api('/client-error', { body: { kind: kind, page: PAGE, status: status }, keepalive: true });
+  }
+  function inspectResponse(path, out) {
+    if (path === '/client-error') return out; // telemetry never reports itself
+    if (out.type === 'opaqueredirect' || out.status === 401 ||
+        (out.status === 403 && out.data && out.data.error && out.data.error.code === 'forbidden')) {
+      showReauth();
+      reportClientError('signed-out', 401);
+      return { ok: false, status: 401, data: { error: { code: 'no_edit_auth' } } };
+    }
+    if (out.status >= 500) reportClientError('server-error', out.status);
+    if (out.status === 409 || out.status === 410) reportClientError('conflict', out.status);
+    return out;
+  }
   function api(path, opts) {
     opts = opts || {};
+    if (signedOut && path !== '/client-error') {
+      return Promise.resolve({ ok: false, status: 401, data: { error: { code: 'no_edit_auth' } } });
+    }
     var headers = { 'X-Edit-Request': '1' };
     var mock = window.__EDITOR_MOCK__;
+    var request;
     if (typeof mock === 'function') {
-      return Promise.resolve(mock({ path: path, method: opts.method || 'POST', body: opts.body || null, headers: headers }));
-    }
-    var fo = { method: opts.method || 'POST', headers: headers, cache: 'no-store', credentials: 'same-origin' };
-    if (opts.keepalive) fo.keepalive = true;   // survive pagehide/visibilitychange
-    if (opts.body) { fo.headers['content-type'] = 'application/json'; fo.body = JSON.stringify(opts.body); }
-    return fetch(API_BASE + path, fo).then(function (res) {
-      return res.json().catch(function () { return null; }).then(function (data) {
-        return { ok: res.ok, status: res.status, data: data };
+      request = Promise.resolve(mock({ path: path, method: opts.method || 'POST', body: opts.body || null, headers: headers, redirect: 'manual' }));
+    } else {
+      var fo = { method: opts.method || 'POST', headers: headers, cache: 'no-store', credentials: 'same-origin', redirect: 'manual' };
+      if (opts.keepalive) fo.keepalive = true;
+      if (opts.body) { fo.headers['content-type'] = 'application/json'; fo.body = JSON.stringify(opts.body); }
+      request = fetch(API_BASE + path, fo).then(function (res) {
+        if (res.type === 'opaqueredirect' || res.status === 401) return { ok: false, status: res.status, type: res.type };
+        return res.json().catch(function () { return null; }).then(function (data) {
+          return { ok: res.ok, status: res.status, data: data };
+        });
       });
-    }, function (err) {
-      return { ok: false, status: 0, data: { error: { code: 'network', message: (err && err.message) || 'network' } }, network: true };
-    });
+    }
+    return request.catch(function () {
+      return { ok: false, status: 0, data: { error: { code: 'network' } }, network: true };
+    }).then(function (out) { return inspectResponse(path, out); });
   }
 
   /* ---------- DOM helper (createElement/textContent only) ------------------ */
@@ -212,6 +239,8 @@
   }
   var MAP_ISLAND = readJsonIsland('editor-map-data') || {};
   var EDITS_ISLAND = readJsonIsland('edits-data') || {};
+  var IS_ADMIN = MAP_ISLAND.viewer_role === 'admin';
+  var HELP_CONTACT = typeof MAP_ISLAND.help_contact === 'string' ? MAP_ISLAND.help_contact : '';
   var MAP = MAP_ISLAND.blocks || [];
   var PAGE_OVERRIDES = MAP_ISLAND.overrides || [];
   var STUDENT_VIEW_URL = typeof MAP_ISLAND.student_view_url === 'string'
@@ -501,7 +530,8 @@
         var data = out.data || {};
         var code = (data.error && data.error.code) || data.code || 'network';
         if (code === 'no_edit_auth') {
-          setLocalStatus(s, 'Your link needs a refresh', 'err'); showReauth(s);
+          clearTimers(s);
+          setLocalStatus(s, 'Signed out — words saved', 'err'); showReauth();
         } else if (code === 'stale_page') {
           showNote(s, 'This page just updated — please reload and try again. Nothing was lost.');
         } else {
@@ -1018,19 +1048,26 @@
   }
 
   /* ---------- re-auth affordance (401, never a raw 4xx) -------------------- */
-  function reauthEl(s) {
-    if (s._reauth) return s._reauth;
-    var box = el('div', 'eb-reauth');
-    var p = el('p', null, 'Your editing link needs a refresh before this can be saved. Your words are safe here — press the button and we will try sending again.');
-    var btn = el('button', 'btn', 'Refresh & send again'); btn.type = 'button';
-    btn.addEventListener('mousedown', function (e) { e.preventDefault(); hideReauth(s); sendSuggestion(s); });
-    btn.addEventListener('click', function (e) { if (e.detail === 0) { hideReauth(s); sendSuggestion(s); } });
-    box.appendChild(p); box.appendChild(btn);
-    insertAfter(box, s._note || s.el);
-    s._reauth = box; return box;
+  function showReauth() {
+    signedOut = true;
+    Object.keys(sessions).forEach(function (ref) {
+      var s = sessions[ref];
+      if (s.dirty) saveDraft(s);
+      clearTimers(s);
+    });
+    if (reauthPanel) return;
+    var box = el('div', 'eb-reauth show');
+    box.setAttribute('role', 'alert');
+    box.appendChild(el('p', null, "You've been signed out. Your words are saved."));
+    var btn = el('button', 'btn', 'Sign in again'); btn.type = 'button';
+    btn.addEventListener('click', function () { location.reload(); });
+    box.appendChild(btn);
+    box.appendChild(el('p', null, "We'll email you a link - just click it."));
+    document.body.insertBefore(box, bannerEl ? bannerEl.nextSibling : document.body.firstChild);
+    reauthPanel = box;
+    try { btn.focus(); } catch (e) {} // bring recovery into view, even far down the page
   }
-  function showReauth(s) { reauthEl(s).classList.add('show'); }
-  function hideReauth(s) { if (s._reauth) s._reauth.classList.remove('show'); }
+  function hideReauth(s) { /* Sign-in recovery requires a page reload. */ }
 
   /* ============================================================================
      5. Wiring — three verbs, one event each  (LIFTED from spike-blur-save)
@@ -1043,7 +1080,7 @@
     if (s.shared) {
       eb.classList.add('eb--shared');
       eb.setAttribute('data-eb-shared', 'true');
-      eb.setAttribute('title', 'Shared text — editing it can change more than one page');
+      if (IS_ADMIN) eb.setAttribute('title', 'Shared text — editing it can change more than one page');
     }
 
     toolsEl(s);
@@ -1095,12 +1132,25 @@
     });
   }
 
+  function collapseSourceWhitespace(el) {
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    var node, first = null, last = null;
+    while ((node = walker.nextNode())) {
+      node.nodeValue = node.nodeValue.replace(/[ \t\r\n\f]+/g, ' ');
+      if (!first) first = node;
+      last = node;
+    }
+    if (first) first.nodeValue = first.nodeValue.replace(/^[ \t\r\n\f]+/, '');
+    if (last) last.nodeValue = last.nodeValue.replace(/[ \t\r\n\f]+$/, '');
+  }
+
   function makeEditable(s, focus) {
     if (!s.editable) return;
     // Redlines are review chrome, never editable prose. Restore the canonical
     // block before exposing contenteditable so deleted text cannot be saved.
     if (s._reviewRendered) { restoreOriginal(s); s._reviewRendered = false; }
     try { s.el.setAttribute('contenteditable', 'plaintext-only'); } catch (e) { s.el.setAttribute('contenteditable', 'true'); }
+    if (s.state === ST.IDLE && !s.dirty) collapseSourceWhitespace(s.el);
     s.el.setAttribute('role', 'textbox');
     s.el.setAttribute('aria-label', 'Editable paragraph' + (s.kind ? '' : ''));
     if (focus) { try { s.el.focus(); } catch (e) {} enterEdit(s); }
@@ -1114,13 +1164,15 @@
     if (!s.suggestionId) s.suggestionId = uuid();   // R2 mint ONCE per edit-session
     hideNote(s); hideReauth(s);
     reconcileDraft(s);                              // R8 re-poll on (re)entry
+    if (!s.dirty) collapseSourceWhitespace(s.el);
+    if (s.shared && !IS_ADMIN) showNote(s, 'This wording also appears on other pages.');
     showBar(s);
     log('EDIT enter ref=' + s.ref + ' id=' + (s.suggestionId || '').slice(0, 8));
   }
 
   /* ---------- AUTO-SAVE scheduling (debounce + backoff) -------------------- */
   function scheduleAutoSave(s) {
-    if (!s.editable) return;
+    if (!s.editable || signedOut) return;
     if (s._debounce) { clearTimeout(s._debounce); s._debounce = null; }
     if (!s.dirty) return;
     s._debounce = setTimeout(function () { s._debounce = null; autoSaveFire(s); }, AUTOSAVE_MS);
@@ -1129,10 +1181,19 @@
     if (!s.dirty) return;
     if (s.state === ST.SAVING) { s._queued = true; return; }   // one in-flight per block
     // Re-auth is an explicit user action — never auto-resend behind a shown prompt.
-    if (s._reauth && s._reauth.classList.contains('show')) return;
+    if (signedOut) return;
     sendSuggestion(s, { auto: true });
   }
   function armRetry(s) {
+    if (signedOut) return;
+    if (s._retry) { clearTimeout(s._retry); s._retry = null; }
+    s._failures = (s._failures || 0) + 1;
+    if (s._failures >= 4) {
+      reportClientError('send-failed', s._lastFailureStatus || 0);
+      setLocalStatus(s, 'Not sent — words saved here', 'err');
+      setBarStatus('That didn’t send. Your words are saved here. Press Done to try again.');
+      return;
+    }
     s._retryDelay = s._retryDelay ? Math.min(s._retryDelay * 2, RETRY_MAX_MS) : RETRY_BASE_MS;
     if (s._retry) clearTimeout(s._retry);
     s._retry = setTimeout(function () {
@@ -1155,6 +1216,7 @@
      success so the next burst is a distinct request. */
   function sendSuggestion(s, opts) {
     opts = opts || {};
+    if (signedOut) { if (s.dirty) saveDraft(s); return; }
     if (s.state === ST.SAVING) return;              // in-flight guard (dedupe layer 1)
     if (!s.dirty) { if (!opts.auto) setLocalStatus(s, 'No change to send', null); return; }
     // A shared leaf remains one edit session and one suggestion. Its reach is a
@@ -1181,6 +1243,7 @@
 
     api('/suggest', { body: payload }).then(function (out) {
       if (out.ok) {
+        s._failures = 0;
         if (s._retry) { clearTimeout(s._retry); s._retry = null; }
         s._retryDelay = 0;
         clearDraft(s);
@@ -1272,7 +1335,7 @@
         s.state = ST.EDITING; s.suggestionId = uuid(); barDisable(false);
         saveDraft(s); s.el.classList.add('editing', 'dirty');
         setLocalStatus(s, 'Page-only copy recorded; newer draft not sent', 'draft');
-        setBarStatus('This page’s copy was recorded. Save again to send your newer wording.');
+        setBarStatus('This page’s copy was recorded. Press Done again to send your newer wording.');
         repollPending(); return;
       }
       s.state = ST.IDLE;
@@ -1352,7 +1415,7 @@
       saveDraft(s);
       if (opts.pageOverride) {
         setLocalStatus(s, 'Not sent — choose this page again', 'err');
-        setBarStatus('The request conflicted with an earlier send. Save again and choose this page only.');
+        setBarStatus('The request conflicted with an earlier send. Press Done again and choose this page only.');
         return;
       }
       log('SEND id_conflict ref=' + s.ref + ' -> rotated id, resending');
@@ -1360,11 +1423,12 @@
       return;
     }
     if (code === 'no_edit_auth') {
-      // R5: preserve draft + id; friendly re-auth; resend reuses the same id.
+      // Preserve draft + id for restoration after signing in again.
       s.state = ST.EDITING; barDisable(false);
       saveDraft(s);
-      setLocalStatus(s, 'Your link needs a refresh', 'err');
-      setBarStatus('Your editing link needs a refresh — press “Refresh & send again”.');
+      clearTimers(s);
+      setLocalStatus(s, 'Signed out — words saved', 'err');
+      setBarStatus('Your words are saved. Sign in again to continue.');
       showReauth(s);
       log('SEND no_edit_auth ref=' + s.ref + ' (draft+id preserved id=' + (s.suggestionId || '').slice(0, 8) + ')');
       return;
@@ -1373,7 +1437,7 @@
       s.state = ST.EDITING; barDisable(false);
       saveDraft(s);
       setLocalStatus(s, 'Please wait a moment', 'err');
-      setBarStatus('You are sending changes faster than the inbox can take them. Wait a moment, then press Save again.');
+      setBarStatus('You are sending changes faster than the inbox can take them. Wait a moment, then press Done again.');
       log('SEND rate_limited ref=' + s.ref);
       return;
     }
@@ -1382,7 +1446,7 @@
       s.state = ST.EDITING; barDisable(false);
       saveDraft(s);
       setLocalStatus(s, 'Too long to send', 'err');
-      setBarStatus('That change is longer than the editor can send in one piece. Please shorten it a little, then press Save again.');
+      setBarStatus('That change is longer than the editor can send in one piece. Please shorten it a little, then press Done again.');
       log('SEND validation_error(413) ref=' + s.ref);
       return;
     }
@@ -1407,13 +1471,14 @@
     saveDraft(s);
     if (opts.pageOverride) {
       setLocalStatus(s, 'Not sent — choose this page again', 'err');
-      setBarStatus('That didn’t send. Your wording is preserved; save again and choose this page only.');
+      setBarStatus('That didn’t send. Your wording is preserved; press Done again and choose this page only.');
       log('PAGE OVERRIDE error ref=' + s.ref + ' status=' + out.status + ' code=' + code);
       return;
     }
     setLocalStatus(s, 'Not sent — will retry', 'err');
-    setBarStatus('That didn’t send — it will retry automatically, or press Save to try now.');
-    if (opts.auto) armRetry(s);
+    setBarStatus('That didn’t send — it will retry automatically, or press Done to try now.');
+    s._lastFailureStatus = out.status;
+    armRetry(s);
     log('SEND error ref=' + s.ref + ' status=' + out.status + ' code=' + code);
   }
 
@@ -2078,7 +2143,7 @@
     var banner = el('div', 'editor-banner'); banner.setAttribute('role', 'region'); banner.setAttribute('aria-label', 'Editing mode');
     bannerEl = banner;
     var msg = el('div', 'editor-banner__msg');
-    msg.appendChild(el('span', 'editor-banner__tag', 'EDITING'));
+    if (IS_ADMIN) msg.appendChild(el('span', 'editor-banner__tag', 'EDITING'));
     bannerMsgEl = el('span', null, 'You’re editing — changes go to Damien for review.');
     msg.appendChild(bannerMsgEl);
     banner.appendChild(msg);
@@ -2086,7 +2151,7 @@
     // Public counterpart of this exact allowlisted page. The Worker builds and
     // validates the absolute URL; the client only renders it as a real anchor.
     // It intentionally carries no editor query string or credentials.
-    if (STUDENT_VIEW_URL) {
+    if (IS_ADMIN && STUDENT_VIEW_URL) {
       var studentLink = el('a', 'editor-banner__student', 'View as student');
       studentLink.setAttribute('href', STUDENT_VIEW_URL);
       studentLink.setAttribute('title', 'Open this page without editing controls');
@@ -2099,15 +2164,25 @@
     var histLink = el('a', 'editor-banner__history', 'History');
     histLink.setAttribute('href', '/edit/history/');
     histLink.setAttribute('title', 'Redline change history for every document');
-    banner.appendChild(histLink);
+    if (IS_ADMIN) banner.appendChild(histLink);
 
     // U8: the request-level verb — "ask for a bigger change in your own words".
     // Every scoped change waits for Damien (R6/KD3), and the dialog says so.
-    var bigBtn = el('button', 'editor-banner__bigger', 'Bigger change…');
+    var bigBtn = el('button', 'editor-banner__bigger', IS_ADMIN ? 'Bigger change…' : 'Suggest a bigger change');
     bigBtn.type = 'button';
     bigBtn.setAttribute('title', 'Describe a change across this matter, a module, or the whole course — Damien approves it before anything changes');
     bigBtn.addEventListener('click', function () { openScopedDialog(); });
     banner.appendChild(bigBtn);
+    if (!IS_ADMIN) {
+      document.documentElement.classList.add('editor-simple');
+      var help = el('button', 'editor-banner__bigger', 'Help'); help.type = 'button';
+      var panel = el('div', 'editor-help'); panel.hidden = true;
+      panel.appendChild(el('p', null, 'EDIT changes the words in a paragraph. COMMENT leaves a note for Damien. You cannot break anything.'));
+      panel.appendChild(el('p', null, HELP_CONTACT || 'Leave a comment - Damien reads every one.'));
+      help.setAttribute('aria-expanded', 'false');
+      help.addEventListener('click', function () { panel.hidden = !panel.hidden; help.setAttribute('aria-expanded', panel.hidden ? 'false' : 'true'); });
+      banner.appendChild(help); banner.appendChild(panel);
+    }
 
     var tg = el('div', 'segmented-toggle'); tg.setAttribute('role', 'group'); tg.setAttribute('aria-label', 'Type size');
     var bStd = el('button', null, 'STANDARD'); bStd.type = 'button'; bStd.setAttribute('aria-pressed', 'true');
@@ -2127,7 +2202,9 @@
     bLg.addEventListener('click', function () { setTypeLg(true); });
     // Use the same preference key as the public platform. Read the old editor-
     // only spelling once so existing users keep their choice during migration.
-    if (LS.get('sonsteng-type-lg') === '1' || LS.get('sonsteng_type_lg') === '1') setTypeLg(true);
+    var typePref = LS.get('sonsteng-type-lg');
+    if (typePref == null) typePref = LS.get('sonsteng_type_lg');
+    setTypeLg(typePref == null ? !IS_ADMIN : typePref === '1');
     updateBanner();
     // Let the banner degrade to "paused" locally even if a re-poll never lands.
     setInterval(updateBanner, 30000);
@@ -2142,6 +2219,10 @@
      its original "changes go to Damien for review" copy. */
   function updateBanner() {
     if (!bannerEl || !bannerMsgEl) return;
+    if (!IS_ADMIN) {
+      bannerMsgEl.textContent = "You're editing the practicum. Click EDIT beside any paragraph to change it. Changes save on their own.";
+      return;
+    }
     if (!DIRECT_APPLY) {
       bannerEl.classList.remove('editor-banner--warn');
       bannerMsgEl.textContent = 'You’re editing — changes go to Damien for review.';
@@ -2197,6 +2278,7 @@
   // reused so a later draft-wins reload replays the SAME payload (server dedupes on
   // the fingerprint). Never rotates here — the page is going away.
   function flushOnHide() {
+    if (signedOut) return;
     Object.keys(sessions).forEach(function (ref) {
       var s = sessions[ref];
       if (!s.editable || !s.dirty || s.state === ST.SAVING) return;
@@ -2305,7 +2387,7 @@
     blockText: function (index) { var s = byIndex[index]; return s ? s.el.textContent : ''; },
     statusText: function (index) { var s = byIndex[index]; return s && s._status ? s._status.textContent : ''; },
     noteText: function (index) { var s = byIndex[index]; return s && s._note && s._note.classList.contains('show') ? s._note.textContent : ''; },
-    reauthShown: function (index) { var s = byIndex[index]; return !!(s && s._reauth && s._reauth.classList.contains('show')); },
+    reauthShown: function (index) { var s = byIndex[index]; return signedOut && !!reauthPanel; },
     marginBubbles: function () { return marginBubbles.map(function (n) { return n.textContent; }); },
     bannerText: function () { return bannerMsgEl ? bannerMsgEl.textContent : ''; },
     bannerWarn: function () { return !!(bannerEl && bannerEl.classList.contains('editor-banner--warn')); },
@@ -2349,7 +2431,7 @@
     openPreview: function (index) { var s = byIndex[index]; if (s) { activeRef = s.ref; showBar(s); openPreview(); } },
     confirmSend: function (index) { var s = byIndex[index]; if (s) { activeRef = s.ref; sendSuggestion(s); } },
     clickCancel: function (index) { var s = byIndex[index]; if (s) discard(s); },
-    reauthResend: function (index) { var s = byIndex[index]; if (s) { hideReauth(s); sendSuggestion(s); } },
+    reauthResend: function (index) { var s = byIndex[index]; if (s) location.reload(); },
     // selection commenting
     captured: function () { return captured && { text: captured.text, source_ref: captured.source_ref }; },
     floatVisible: function () { return !!(floatBtn && floatBtn.classList.contains('show')); },

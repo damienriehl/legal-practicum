@@ -99,7 +99,7 @@ def _git(td, *args, check=True):
         ["git", *args], cwd=td, check=check, capture_output=True, text=True)
 
 
-def _stale_remote_fixture(root, branch="main"):
+def _stale_remote_fixture(root, branch="main", with_site=False):
     """Local checkout/cache stay at A while a bare upstream advances to B."""
     remote = os.path.join(root, "remote.git")
     seed = os.path.join(root, "seed")
@@ -109,6 +109,14 @@ def _stale_remote_fixture(root, branch="main"):
     _git(root, "init", "-q", seed)
     _git(seed, "config", "user.email", "test@example.invalid")
     _git(seed, "config", "user.name", "Test")
+    if with_site:
+        stamp = os.path.join(seed, "site/platform/data/.build-stamp.json")
+        os.makedirs(os.path.dirname(stamp))
+        with open(stamp, "w") as f:
+            f.write('{"git_base_sha": "base"}')
+        with open(os.path.join(seed, "source.txt"), "w") as f:
+            f.write("source")
+        _git(seed, "add", "site", "source.txt")
     _git(seed, "commit", "--allow-empty", "-q", "-m", "A")
     _git(seed, "branch", "-m", branch)
     _git(seed, "remote", "add", "origin", remote)
@@ -179,26 +187,143 @@ class TestDeployCheckoutGuard(unittest.TestCase):
         self.assertFalse(status.deployable)
         self.assertEqual(fetch_calls, [])
 
-    def test_stale_cached_upstream_fetches_then_apply_refuses(self):
+    def test_stale_cached_upstream_fast_forwards_then_allows_apply(self):
         with tempfile.TemporaryDirectory() as d:
-            checkout, _remote, cached_a, remote_b = _stale_remote_fixture(d)
-            rec = Recorder(rows=[row("aaaaaaaa")])
-            res = _run(
-                rec, state_path=os.path.join(d, "state.json"), branch="main",
-                deploy_guard=lambda branch: dad.checkout_deploy_status(
-                    checkout, branch=branch))
+            checkout, _remote, _cached_a, remote_b = _stale_remote_fixture(d)
+            statuses = []
 
-            self.assertEqual(res.reason, "deploy_refused")
-            self.assertEqual(rec.calls, ["fetch", "heartbeat", "notify_deploy_refusal"])
-            status = rec.deploy_refusals[0]
-            self.assertEqual(status.reason, "behind")
-            self.assertEqual(status.behind, 1)
-            self.assertFalse(status.deployable)
-            self.assertEqual(
-                _git(checkout, "rev-parse", "refs/remotes/origin/main").stdout.strip(),
-                remote_b)
-            self.assertEqual(
-                _git(checkout, "rev-parse", "refs/heads/main").stdout.strip(), cached_a)
+            def guard(branch):
+                status = dad.checkout_deploy_status(checkout, branch=branch)
+                statuses.append(status)
+                return status
+
+            rec = Recorder(rows=[row("aaaaaaaa")])
+            res = _run(rec, state_path=os.path.join(d, "state.json"), branch="main",
+                       deploy_guard=guard)
+
+            self.assertEqual(res.reason, "applied")
+            self.assertEqual(rec.deploy_refusals, [])
+            self.assertTrue(statuses[0].metadata()["fast_forwarded"])
+            self.assertEqual(statuses[0].behind, 0)
+            self.assertEqual(_git(checkout, "rev-parse", "HEAD").stdout.strip(), remote_b)
+
+    def test_tick_cleans_generated_stamp_before_guard_and_fast_forward(self):
+        for source_dirty in (False, True):
+            with self.subTest(source_dirty=source_dirty), tempfile.TemporaryDirectory() as d:
+                checkout, _remote, local_a, remote_b = _stale_remote_fixture(d, with_site=True)
+                stamp = os.path.join(checkout, "site/platform/data/.build-stamp.json")
+                with open(stamp, "w") as f:
+                    f.write('{"git_base_sha": "rebuilt"}')
+                if source_dirty:
+                    with open(os.path.join(checkout, "source.txt"), "w") as f:
+                        f.write("unsaved source change")
+                rec = Recorder(rows=[row("aaaaaaaa")])
+                statuses = []
+
+                def guard(branch):
+                    status = dad.checkout_deploy_status(checkout, branch=branch)
+                    statuses.append(status)
+                    return status
+
+                result = _run(rec, state_path=os.path.join(d, "state.json"), branch="main",
+                              clean_site=lambda: dad.restore_regenerable_site(checkout),
+                              deploy_guard=guard)
+                with open(stamp) as f:
+                    self.assertEqual(f.read(), '{"git_base_sha": "base"}')
+                if source_dirty:
+                    self.assertEqual(result.reason, "deploy_refused")
+                    self.assertEqual(statuses[0].reason, "dirty_checkout")
+                    self.assertNotIn("apply", rec.calls)
+                    self.assertEqual(_git(checkout, "rev-parse", "HEAD").stdout.strip(), local_a)
+                    with open(os.path.join(checkout, "source.txt")) as f:
+                        self.assertEqual(f.read(), "unsaved source change")
+                else:
+                    self.assertEqual(result.reason, "applied")
+                    self.assertTrue(statuses[0].fast_forwarded)
+                    self.assertIn("deploy:main", rec.calls)
+                    self.assertEqual(_git(checkout, "rev-parse", "HEAD").stdout.strip(), remote_b)
+
+    def test_every_revert_guard_cleans_site_before_checking(self):
+        with tempfile.TemporaryDirectory() as d:
+            rec = Recorder()
+            order = []
+            result = _run(rec, state_path=os.path.join(d, "state.json"),
+                          fetch_reverts=lambda: [{"id": "r1"}, {"id": "r2"}],
+                          clean_site=lambda: order.append("clean") or True,
+                          deploy_guard=lambda branch: order.append("guard") or dad.DeployCheckoutStatus(0),
+                          revert_exec=lambda req: order.append("revert") or (False, "conflict"))
+            self.assertEqual(result.reason, "no_accepted")
+            self.assertEqual(order, ["clean", "guard", "revert", "clean", "guard", "revert"])
+
+    def test_dirty_checkout_refuses_without_merge(self):
+        for change in ("untracked", "tracked", "staged"):
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as d:
+                checkout, _remote, local_a, _remote_b = _stale_remote_fixture(d)
+                path = os.path.join(checkout, "fixture.txt")
+                if change != "untracked":
+                    _git(checkout, "config", "user.email", "test@example.invalid")
+                    _git(checkout, "config", "user.name", "Test")
+                    with open(path, "w") as f:
+                        f.write("base")
+                    _git(checkout, "add", "fixture.txt")
+                    _git(checkout, "commit", "-q", "-m", "tracked fixture")
+                    local_a = _git(checkout, "rev-parse", "HEAD").stdout.strip()
+                with open(path, "w") as f:
+                    f.write("dirty")
+                if change == "staged":
+                    _git(checkout, "add", "fixture.txt")
+                calls = []
+
+                def git(args):
+                    calls.append(args)
+                    return dad._git(args, checkout)
+
+                status = dad.checkout_deploy_status(checkout, branch="main", git=git)
+                self.assertEqual(status.reason, "dirty_checkout")
+                self.assertFalse(status.deployable)
+                self.assertFalse(status.metadata()["fast_forwarded"])
+                self.assertFalse(any(args[0] == "merge" for args in calls))
+                self.assertEqual(_git(checkout, "rev-parse", "HEAD").stdout.strip(), local_a)
+
+    def test_local_commits_refuse_without_merge(self):
+        for diverged in (False, True):
+            with self.subTest(diverged=diverged), tempfile.TemporaryDirectory() as d:
+                checkout, _remote, _local_a, remote_b = _stale_remote_fixture(d)
+                if not diverged:
+                    _git(checkout, "merge", "--ff-only", remote_b)
+                _git(checkout, "config", "user.email", "test@example.invalid")
+                _git(checkout, "config", "user.name", "Test")
+                _git(checkout, "commit", "--allow-empty", "-q", "-m", "local")
+                calls = []
+
+                def git(args):
+                    calls.append(args)
+                    return dad._git(args, checkout)
+
+                status = dad.checkout_deploy_status(checkout, branch="main", git=git)
+                self.assertEqual(status.reason, "diverged")
+                self.assertFalse(status.deployable)
+                self.assertFalse(any(args[0] == "merge" for args in calls))
+
+    def test_merge_failure_refuses(self):
+        for failure in (0, 1, subprocess.TimeoutExpired("git", 300)):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as d:
+                checkout, _remote, local_a, _remote_b = _stale_remote_fixture(d)
+
+                def git(args):
+                    if args[0] == "merge":
+                        self.assertEqual(args, ["merge", "--ff-only", "refs/remotes/origin/main"])
+                        if isinstance(failure, Exception):
+                            raise failure
+                        return failure, "private git output"
+                    return dad._git(args, checkout)
+
+                status = dad.checkout_deploy_status(checkout, branch="main", git=git)
+                self.assertEqual(status.reason, "fast_forward_failed")
+                self.assertFalse(status.deployable)
+                self.assertEqual(status.metadata()["fast_forwarded"], failure == 0)
+                self.assertNotIn("private", str(status.metadata()))
+                self.assertEqual(_git(checkout, "rev-parse", "HEAD").stdout.strip(), local_a)
 
     def test_stale_cached_upstream_fetch_failure_refuses_apply(self):
         with tempfile.TemporaryDirectory() as d:
@@ -261,6 +386,8 @@ class TestDeployCheckoutGuard(unittest.TestCase):
                 return dad._fetch_git(args, checkout)
 
             rec = Recorder(rows=[row("aaaaaaaa")])
+            statuses = []
+            real_run = dad.run
             with mock.patch.dict(
                     os.environ, {dad.ENV_DEPLOY_BRANCH: selected}, clear=True), \
                     mock.patch.object(dad, "run") as run:
@@ -268,12 +395,19 @@ class TestDeployCheckoutGuard(unittest.TestCase):
                     self.assertEqual(kwargs["branch"], selected)
                     status = dad.checkout_deploy_status(
                         checkout, branch=kwargs["branch"], git=git, fetch=fetch)
-                    rec.notify_deploy_refusal(status)
-                    return dad.DaemonResult(
-                        0, "batch-1", "deploy_refused", {}, False, [])
+                    statuses.append(status)
+                    return real_run(
+                        api_base=None, token=None, now=NOW,
+                        state_path=os.path.join(d, "state.json"), branch=selected,
+                        fetch=rec.fetch, apply_engine=rec.apply_engine,
+                        do_rebuild=rec.rebuild, do_deploy=rec.deploy,
+                        heartbeat=rec.heartbeat, notify=rec.notify,
+                        editorial=rec.editorial, out=io.StringIO(),
+                        deploy_guard=lambda _: status,
+                        deploy_refusal_notify=rec.notify_deploy_refusal)
 
                 run.side_effect = exercise_selected_branch
-                self.assertEqual(dad.main(["--no-lock"]), 1)
+                self.assertEqual(dad.main(["--no-lock"]), 0)
 
             self.assertEqual(fetch_calls, [[
                 "fetch", "--no-tags", "--no-prune", remote_name,
@@ -284,7 +418,12 @@ class TestDeployCheckoutGuard(unittest.TestCase):
                 "refs/heads/release/env-selected.."
                 "refs/remotes/deploy-upstream/releases/canonical",
             ], git_calls)
-            self.assertEqual(rec.deploy_refusals[0].reason, "behind")
+            self.assertEqual(statuses[0].reason, "current")
+            self.assertTrue(statuses[0].fast_forwarded)
+            self.assertEqual(rec.deploy_refusals, [])
+            self.assertIn("deploy:" + selected, rec.calls)
+            self.assertIn(["merge", "--ff-only", tracking_ref], git_calls)
+            self.assertEqual(_git(checkout, "rev-parse", "HEAD").stdout.strip(), remote_b)
 
     def test_fetch_exceptions_refuse_with_bounded_diagnostics(self):
         cases = (
@@ -343,6 +482,11 @@ class TestDeployCheckoutGuard(unittest.TestCase):
             if args == ["rev-list", "--count", "refs/heads/feat/canonical-docs.."
                         "refs/remotes/origin/feat/canonical-docs"]:
                 return 0, "0\n"
+            if args == ["status", "--porcelain", "--untracked-files=all"]:
+                return 0, ""
+            if args == ["rev-list", "--count", "refs/remotes/origin/feat/canonical-docs.."
+                        "refs/heads/feat/canonical-docs"]:
+                return 0, "0\n"
             if args == ["symbolic-ref", "--quiet", "HEAD"]:
                 return 0, "refs/heads/feat/canonical-docs\n"
             if args == ["symbolic-ref", "--quiet",
@@ -370,6 +514,8 @@ class TestDeployCheckoutGuard(unittest.TestCase):
             ["fetch", "apply", "rebuild", "deploy:feat/canonical-docs", "heartbeat"])
         self.assertEqual(rec.deploy_refusals, [])
         self.assertEqual(calls[-1], ["symbolic-ref", "--quiet", "HEAD"])
+        self.assertFalse(any(args[0] == "merge" for args in calls))
+        self.assertFalse(status.metadata()["fast_forwarded"])
 
     def test_deployed_branch_behind_while_head_current_refuses(self):
         with tempfile.TemporaryDirectory() as d:
@@ -498,10 +644,11 @@ class TestDeployCheckoutGuard(unittest.TestCase):
 
             status = dad.checkout_deploy_status(checkout, branch="main")
 
-            self.assertEqual(status.behind, 1)
-            self.assertEqual(status.reason, "behind_fallback_origin")
+            self.assertEqual(status.behind, 0)
+            self.assertEqual(status.reason, "current_fallback_origin")
+            self.assertTrue(status.fast_forwarded)
             self.assertTrue(status.upstream_fallback)
-            self.assertFalse(status.deployable)
+            self.assertTrue(status.deployable)
 
             _git(checkout, "reset", "-q", "--hard", remote_b)
             current = dad.checkout_deploy_status(checkout, branch="main")
@@ -634,6 +781,7 @@ class TestDeployCheckoutGuard(unittest.TestCase):
             "behind": None,
             "upstream_fallback": False,
             "fetch_rc": 128,
+            "fast_forwarded": False,
         }
         payloads = dict(result.steps)
         self.assertEqual(payloads["deploy_guard"], expected)

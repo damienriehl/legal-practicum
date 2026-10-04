@@ -20,6 +20,9 @@ import { normalize } from "./text-norm.js";
 import { lookupBlocks } from "./editor-map.js";
 import { sha256HexSync,integrityDigest,MAX_DIGEST_DEPTH } from "./integrity-digest.js";
 
+// Leave room below the Durable Object SQLite limit of 100 bound parameters.
+const SQL_BIND_CHUNK = 90;
+
 // Kind vocabularies (U4, KTD3). Structural operations are ordinary suggestion
 // rows carried through the ONE pipeline — but they never take the DIRECT_APPLY
 // fast path (the plan's execution note: a structural op is single-block, and
@@ -492,11 +495,47 @@ export class EditorStoreCore {
     this._ensureColumn("production_noop_applications", "match", "TEXT NOT NULL DEFAULT 'exact'");
     this._ensureColumn("production_review_revisions", "source_original_text", "TEXT");
     this._ensureColumn("production_review_revisions", "source_proposed_text", "TEXT");
+    this._migrateClientErrors();
     this._backfillReviewOperations();
     this.sql.exec(`INSERT OR IGNORE INTO production_published_operation_sources
       (operation_id,source_ref,release_id,candidate_sha,published_at)
       SELECT operation_id,source_ref,release_id,candidate_sha,published_at
       FROM production_published_operations`);
+  }
+
+  _migrateClientErrors() {
+    const migrationId = "client-errors-v1";
+    if (this._one("SELECT id FROM editor_schema_migrations WHERE id=?", migrationId)) return;
+    this.transactionSync(() => {
+      this.sql.exec(`CREATE TABLE IF NOT EXISTS client_errors (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL,
+        kind TEXT NOT NULL, page TEXT NOT NULL, status INTEGER NOT NULL,
+        attribution TEXT NOT NULL
+      ); CREATE INDEX IF NOT EXISTS client_errors_at ON client_errors(at);`);
+      this.sql.exec("INSERT INTO editor_schema_migrations (id,applied_at) VALUES (?,?)",
+        migrationId, this.now());
+    });
+  }
+
+  recordClientError({ kind, page, status, attribution }) {
+    return this.transactionSync(() => {
+      // Strictly increasing timestamps keep the timestamp-only digest cursor
+      // lossless when several reports arrive in the same millisecond.
+      const last = this._one("SELECT MAX(at) AS at FROM client_errors");
+      const at = Math.max(this.now(), (last?.at || 0) + 1);
+      this.sql.exec("INSERT INTO client_errors (at,kind,page,status,attribution) VALUES (?,?,?,?,?)",
+        at, kind, page, status, attribution);
+      this.sql.exec("DELETE FROM client_errors WHERE at < ?", this.now() - 30 * 86400000);
+      this.sql.exec(`DELETE FROM client_errors WHERE id IN (
+        SELECT id FROM client_errors ORDER BY at DESC,id DESC LIMIT -1 OFFSET 1000)`);
+      return { ok: true };
+    });
+  }
+
+  listClientErrors(since) {
+    // Oldest first: a bounded page must never skip unconsumed errors.
+    return this._all(`SELECT at,kind,page,status,attribution FROM client_errors
+      WHERE at > ? ORDER BY at ASC,id ASC LIMIT 200`, since);
   }
 
   _backfillReviewOperations() {
@@ -589,6 +628,20 @@ export class EditorStoreCore {
 
   _all(query, ...binds) {
     return this.sql.exec(query, ...binds).toArray();
+  }
+
+  // Query one IN list at a time; deduplicate so rows cannot repeat across chunks.
+  // Callers with ORDER BY must preserve that ordering when merging the chunks.
+  _allIn(query, values, ...binds) {
+    const ids = [...new Set(values)];
+    const size = SQL_BIND_CHUNK - binds.length;
+    const rows = [];
+    for (let offset=0;offset<ids.length;offset+=size) {
+      const chunk = ids.slice(offset,offset+size);
+      for (const row of this._all(query(chunk.map(() => "?").join(",")),...chunk,...binds))
+        rows.push(row);
+    }
+    return rows;
   }
 
   _canonical(value,depth=0) {
@@ -920,10 +973,9 @@ export class EditorStoreCore {
     const leaseExp = now + leaseMs;
     let candidates;
     if (Array.isArray(ids) && ids.length) {
-      const ph = ids.map(() => "?").join(",");
-      candidates = this._all(
-        `SELECT id, group_id, status FROM suggestions WHERE id IN (${ph})`, ...ids
-      );
+      candidates = this._allIn((ph) =>
+        `SELECT id, group_id, status FROM suggestions WHERE id IN (${ph})`, ids
+      ).sort((a,b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
     } else {
       candidates = this._all(
         "SELECT id, group_id, status FROM suggestions WHERE status=?", STATUS.ACCEPTED
@@ -1449,8 +1501,8 @@ export class EditorStoreCore {
     const operationIds = (projection.sources || []).flatMap((source) =>
       (source.operations || []).map((operation) => operation.id));
     const lifecycleByOperation = new Map();
-    for (let offset=0;offset<operationIds.length;offset+=400) {
-      const chunk = operationIds.slice(offset,offset+400);
+    for (let offset=0;offset<operationIds.length;offset+=SQL_BIND_CHUNK) {
+      const chunk = operationIds.slice(offset,offset+SQL_BIND_CHUNK);
       const marks = chunk.map(() => "?").join(",");
       for (const row of this._all(`SELECT operation_id,lifecycle_state
         FROM production_review_operations WHERE operation_id IN (${marks})`,...chunk))
@@ -2110,8 +2162,8 @@ export class EditorStoreCore {
     const refs = [...new Set(sourceRefs.filter((ref) => typeof ref === "string" && ref))].slice(0, 1000);
     const out = [];
     const legacyProd = this._one("SELECT candidate_sha FROM production_releases WHERE state IN ('verified','complete') AND COALESCE(schema_version,1)=1 ORDER BY updated_at DESC,id DESC LIMIT 1");
-    for (let offset = 0; offset < refs.length; offset += 400) {
-      const chunk = refs.slice(offset,offset + 400), marks = chunk.map(() => "?").join(",");
+    for (let offset = 0; offset < refs.length; offset += SQL_BIND_CHUNK) {
+      const chunk = refs.slice(offset,offset + SQL_BIND_CHUNK), marks = chunk.map(() => "?").join(",");
       const currentBySource = new Map(this._all(`SELECT id,source_ref,proposed_hash FROM (
         SELECT id,source_ref,proposed_hash,ROW_NUMBER() OVER (PARTITION BY source_ref ORDER BY created_at DESC,id DESC) AS row_num
         FROM production_review_revisions WHERE source_ref IN (${marks}))
@@ -2138,11 +2190,11 @@ export class EditorStoreCore {
           reviewedBySource.set(reviewed.source_ref,reviewed);
       }
       const reviewIds = [...new Set([...reviewedBySource.values()].map((row) => row.review_id))];
-      const decisionMarks = reviewIds.map(() => "?").join(",");
-      const submittedDecisions = reviewIds.length ? this._all(
-        `SELECT review_id,review_revision_id,operation_id,decision,note FROM production_review_submission_decisions WHERE review_id IN (${decisionMarks}) ORDER BY operation_id`,...reviewIds) : [];
-      const legacyDecisions = reviewIds.length ? this._all(
-        `SELECT review_id,operation_id,decision,note FROM production_review_decisions WHERE review_id IN (${decisionMarks}) ORDER BY operation_id`,...reviewIds) : [];
+      const byOperationId = (a,b) => a.operation_id < b.operation_id ? -1 : a.operation_id > b.operation_id ? 1 : 0;
+      const submittedDecisions = this._allIn((decisionMarks) =>
+        `SELECT review_id,review_revision_id,operation_id,decision,note FROM production_review_submission_decisions WHERE review_id IN (${decisionMarks}) ORDER BY operation_id`,reviewIds).sort(byOperationId);
+      const legacyDecisions = this._allIn((decisionMarks) =>
+        `SELECT review_id,operation_id,decision,note FROM production_review_decisions WHERE review_id IN (${decisionMarks}) ORDER BY operation_id`,reviewIds).sort(byOperationId);
       const decisionsByReview = new Map();
       for (const item of [...submittedDecisions,...legacyDecisions]) {
         const key = `${item.review_id}\0${item.review_revision_id || ""}`;
@@ -2963,8 +3015,9 @@ export class EditorStoreCore {
   }
 
   _operationFrontierSummaryRows(revisions, startKey=null, endKey=null) {
-    const marks = revisions.map(() => "?").join(",");
-    return this._all(`SELECT * FROM (WITH active_groups AS (
+    // Sorted, disjoint revision chunks preserve the SQL's revision/key ordering.
+    const revisionIds = revisions.map((row) => row.review_revision_id).sort();
+    return this._allIn((marks) => `SELECT * FROM (WITH active_groups AS (
         SELECT DISTINCT group_id FROM production_review_operations
         WHERE lifecycle_state='unpublished' AND decision='accepted' AND group_id IS NOT NULL
           AND operation_id NOT IN (SELECT operation_id FROM production_published_operations)
@@ -2990,14 +3043,14 @@ export class EditorStoreCore {
           AND (? IS NULL OR (CAST(evidence.key AS INTEGER)>=? AND
             CAST(evidence.key AS INTEGER)<?))
       ORDER BY revision.id,CAST(evidence.key AS INTEGER))`,
-    ...revisions.map((row) => row.review_revision_id),startKey,startKey,endKey);
+    revisionIds,startKey,startKey,endKey);
   }
 
   _populateOperationFrontierSourceStates(rows, sourceStates, legacyProd) {
     const pending = [...new Map(rows.filter((row) => !sourceStates.has(row.review_revision_id))
       .map((row) => [row.review_revision_id,row])).values()];
-    for (let offset=0;offset<pending.length;offset+=400) {
-      const chunk = pending.slice(offset,offset+400);
+    for (let offset=0;offset<pending.length;offset+=SQL_BIND_CHUNK) {
+      const chunk = pending.slice(offset,offset+SQL_BIND_CHUNK);
       const sourceRefs = [...new Set(chunk.map((row) => row.revision_source_ref))];
       const marks = sourceRefs.map(() => "?").join(",");
       const latestBySource = new Map(this._all(`SELECT source_ref,id FROM (
@@ -3022,8 +3075,8 @@ export class EditorStoreCore {
 
   _operationFrontierFrozenIds(rows) {
     const frozen = new Set();
-    for (let offset=0;offset<rows.length;offset+=400) {
-      const chunk = rows.slice(offset,offset+400).map((row) => row.operation_id);
+    for (let offset=0;offset<rows.length;offset+=SQL_BIND_CHUNK) {
+      const chunk = rows.slice(offset,offset+SQL_BIND_CHUNK).map((row) => row.operation_id);
       const marks = chunk.map(() => "?").join(",");
       for (const row of this._all(`SELECT DISTINCT member.operation_id
         FROM production_release_operation_members member
@@ -3151,10 +3204,10 @@ export class EditorStoreCore {
       eligible_operation_count:0 };
 
     const revisionIds = [...new Set(submittedRows.map((row) => row.review_revision_id))];
-    const revisionMarks = revisionIds.map(() => "?").join(",");
-    const operationRows = this._all(`SELECT operation_id,decision_id,review_id,review_revision_id,
+    const operationRows = this._allIn((revisionMarks) => `SELECT operation_id,decision_id,review_id,review_revision_id,
       group_id,decision,note,lifecycle_state FROM production_review_operations
-      WHERE review_revision_id IN (${revisionMarks}) ORDER BY operation_id`,...revisionIds);
+      WHERE review_revision_id IN (${revisionMarks}) ORDER BY operation_id`,revisionIds)
+      .sort((a,b) => a.operation_id < b.operation_id ? -1 : a.operation_id > b.operation_id ? 1 : 0);
     const lifecycleByOperation = new Map(operationRows.map((row) =>
       [row.operation_id,row.lifecycle_state]));
     const publishedOperations = new Set(this._all(
@@ -3173,24 +3226,22 @@ export class EditorStoreCore {
     }
 
     const sourceRefs = [...new Set(submittedRows.map((row) => row.source_ref))];
-    const sourceMarks = sourceRefs.map(() => "?").join(",");
-    const latestBySource = new Map(this._all(`SELECT source_ref,id FROM (
+    const latestBySource = new Map(this._allIn((sourceMarks) => `SELECT source_ref,id FROM (
       SELECT source_ref,id,ROW_NUMBER() OVER (PARTITION BY source_ref ORDER BY created_at DESC,id DESC) AS row_num
-      FROM production_review_revisions WHERE source_ref IN (${sourceMarks})) WHERE row_num=1`,...sourceRefs)
+      FROM production_review_revisions WHERE source_ref IN (${sourceMarks})) WHERE row_num=1`,sourceRefs)
       .map((row) => [row.source_ref,row.id]));
-    const publishedBySource = new Map(this._all(`SELECT source_ref,candidate_sha FROM (
+    const publishedBySource = new Map(this._allIn((sourceMarks) => `SELECT source_ref,candidate_sha FROM (
       SELECT source_ref,candidate_sha,ROW_NUMBER() OVER (PARTITION BY source_ref ORDER BY published_at DESC,operation_id DESC) AS row_num
-      FROM production_published_operation_sources WHERE source_ref IN (${sourceMarks})) WHERE row_num=1`,...sourceRefs)
+      FROM production_published_operation_sources WHERE source_ref IN (${sourceMarks})) WHERE row_num=1`,sourceRefs)
       .map((row) => [row.source_ref,row.candidate_sha]));
     const legacyProd = this._one("SELECT candidate_sha FROM production_releases WHERE state IN ('verified','complete') AND COALESCE(schema_version,1)=1 ORDER BY updated_at DESC,id DESC LIMIT 1");
     const candidateOperationIds = [...lifecycleByOperation.keys()];
-    const candidateMarks = candidateOperationIds.map(() => "?").join(",");
-    const frozen = new Set(this._all(`SELECT member.operation_id FROM production_release_operation_members member
+    const frozen = new Set(this._allIn((candidateMarks) => `SELECT member.operation_id FROM production_release_operation_members member
       JOIN production_releases release ON release.id=member.release_id
       WHERE release.state IN ('prepared','authorized','executing','pages_deployed','worker_deployed',
         'delayed','failed_fenced','restoring','verified')
         AND member.operation_id IN (${candidateMarks})`,
-      ...candidateOperationIds).map((row) => row.operation_id));
+      candidateOperationIds).map((row) => row.operation_id));
 
     const receiptById = new Map();
     const projectionSources = [];

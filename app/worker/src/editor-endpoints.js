@@ -1228,3 +1228,41 @@ export async function productionTransitionEndpoint(request, env, auth) {
     credential_channel:"bearer" });
   return result.ok ? json(result) : editError(result.reason || "conflict", "Release transition rejected.", 409);
 }
+
+// Metadata only: error records feed the existing admin digest.
+function logMeta(fields) {
+  try { console.log(JSON.stringify({ t: Date.now(), ...fields })); } catch {}
+}
+
+export async function clientErrorEndpoint(request, env, auth) {
+  if (!csrfOk(request, env)) return editError("csrf_failed", "Missing edit request header or bad origin.", 403);
+  if (!auth?.editor) return editError("forbidden", "Authentication required.", 403);
+  const parsed = await readBoundedJson(request, 1024);
+  if (!parsed.ok) return editError("validation_error", "Invalid error report.", parsed.reason === "too_large" ? 413 : 400);
+  const body = parsed.value;
+  const kinds = new Set(["signed-out", "send-failed", "conflict", "server-error"]);
+  if (!body || typeof body !== "object" || Array.isArray(body) ||
+      Object.keys(body).some(key => !["kind", "page", "status"].includes(key)) ||
+      !kinds.has(body.kind) || typeof body.page !== "string" || body.page.length > 256 ||
+      !/^[a-zA-Z0-9_./-]+$/.test(body.page) || body.page.includes("..") ||
+      !Number.isInteger(body.status) || (body.status !== 0 && (body.status < 100 || body.status > 599)))
+    return editError("validation_error", "Invalid error report.", 400);
+  // Reuse the atomic per-identity/day abuse gate, under a distinct namespace.
+  const gate = await env.BUDGET.getByName("global-v1").claimAssessmentRequest(
+    "editor-client-error:" + attributionLabel(auth.editor), 30);
+  if (!gate.ok) return editError("rate_limited", "Please wait before reporting again.", 429);
+  await editorStub(env).recordClientError({ kind: body.kind, page: body.page,
+    status: body.status, attribution: attributionLabel(auth.editor) });
+  logMeta({ ev: "editor_client_error", kind: body.kind, page: body.page, status: body.status });
+  return json({ ok: true });
+}
+
+// ---- GET /edit/v1/client-errors (admin; bounded metadata only) ---------------
+export async function clientErrorsEndpoint(request, env, auth) {
+  if (!auth?.scopes?.admin?.granted) return editError("forbidden", "Admin scope required.", 403);
+  const raw = new URL(request.url).searchParams.get("since");
+  const since = raw === null ? 0 : Number(raw);
+  if ((raw !== null && !/^\d+$/.test(raw)) || !Number.isSafeInteger(since) || since < 0)
+    return editError("validation_error", "since must be epoch milliseconds.", 400);
+  return json({ ok: true, items: await editorStub(env).listClientErrors(since) });
+}

@@ -120,10 +120,12 @@ def _run_reverts(rec, **kw):
 
 
 class TestRevertOrchestration(unittest.TestCase):
-    def test_stale_cached_upstream_fetches_then_revert_refuses(self):
+    def test_stale_cached_upstream_fetches_then_diverged_revert_refuses(self):
         evidence = _merged_revert_evidence()
         with tempfile.TemporaryDirectory() as d:
             checkout, _remote, cached_a, remote_b = _stale_remote_fixture(d)
+            _git(checkout, "commit", "--allow-empty", "-m", "Local divergent commit")
+            local_head = _git(checkout, "rev-parse", "HEAD").stdout.strip()
             rec = RevertRecorder([evidence])
             res = _run_reverts(
                 rec, branch="main",
@@ -132,8 +134,7 @@ class TestRevertOrchestration(unittest.TestCase):
 
             self.assertEqual(res.reason, "deploy_refused")
             status = rec.deploy_refusals[0]
-            self.assertEqual(status.reason, "behind")
-            self.assertEqual(status.behind, 1)
+            self.assertEqual(status.reason, "diverged")
             self.assertFalse(status.deployable)
             self.assertNotIn(("revert_exec", "rq1"), rec.calls)
             self.assertFalse(any(
@@ -143,7 +144,7 @@ class TestRevertOrchestration(unittest.TestCase):
                 _git(checkout, "rev-parse", "refs/remotes/origin/main").stdout.strip(),
                 remote_b)
             self.assertEqual(
-                _git(checkout, "rev-parse", "refs/heads/main").stdout.strip(), cached_a)
+                _git(checkout, "rev-parse", "refs/heads/main").stdout.strip(), local_head)
 
     def test_stale_cached_upstream_fetch_failure_refuses_revert(self):
         evidence = _merged_revert_evidence()
@@ -172,17 +173,19 @@ class TestRevertOrchestration(unittest.TestCase):
                 _git(checkout, "rev-parse", "refs/remotes/origin/main").stdout.strip(),
                 cached_a)
 
-    def test_up_to_date_after_fetch_allows_revert(self):
-        evidence = _merged_revert_evidence()
+    def test_clean_stale_checkout_fast_forwards_and_allows_revert(self):
+        evidence = {"id": "rq1", "doc": "d", "run_first": "aa", "run_last": "bb"}
         with tempfile.TemporaryDirectory() as d:
             checkout, _remote, _cached_a, remote_b = _stale_remote_fixture(d)
-            _git(checkout, "reset", "-q", "--hard", remote_b)
             rec = RevertRecorder([evidence])
             res = _run_reverts(
                 rec, branch="main",
                 deploy_guard=lambda branch: dad.checkout_deploy_status(
                     checkout, branch=branch))
 
+            self.assertEqual(_git(checkout, "rev-parse", "HEAD").stdout.strip(), remote_b)
+            self.assertIn(("revert_exec", "rq1"), rec.calls)
+            self.assertIn(("complete", "rq1", "sha123"), rec.calls)
             self.assertEqual(res.reason, "no_accepted")
             self.assertEqual(rec.deploy_refusals, [])
             self.assertIn(("deploy", "main"), rec.calls)
@@ -201,6 +204,8 @@ class TestRevertOrchestration(unittest.TestCase):
             _git(checkout, "remote", "rename", "origin", remote_name)
             _git(checkout, "config", "branch.%s.merge" % selected, merge_ref)
             _git(checkout, "update-ref", tracking_ref, cached_a)
+            _git(checkout, "commit", "--allow-empty", "-m", "Local divergent commit")
+            local_head = _git(checkout, "rev-parse", "HEAD").stdout.strip()
             git_calls = []
             fetch_calls = []
 
@@ -228,7 +233,12 @@ class TestRevertOrchestration(unittest.TestCase):
                 "refs/heads/release/env-selected.."
                 "refs/remotes/deploy-upstream/releases/canonical",
             ], git_calls)
-            self.assertEqual(rec.deploy_refusals[0].reason, "behind")
+            self.assertEqual(rec.deploy_refusals[0].reason, "diverged")
+            self.assertEqual(_git(checkout, "rev-parse", "HEAD").stdout.strip(), local_head)
+            self.assertEqual(_git(checkout, "rev-parse", tracking_ref).stdout.strip(), remote_b)
+            self.assertNotIn(("revert_exec", "rq1"), rec.calls)
+            self.assertNotIn(("deploy", selected), rec.calls)
+            self.assertNotIn(("complete", "rq1", "sha123"), rec.calls)
 
     def test_approved_revert_executes_deploys_resolves_done(self):
         rec = RevertRecorder([{"id": "rq1", "doc": "d", "run_first": "aa", "run_last": "bb"}])

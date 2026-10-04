@@ -106,18 +106,28 @@ and the apply engine's `APPLY_DEPLOY=1` site/Worker deploy builds a temporary
 worktree from canonical `HEAD`. Refusing a branch-name mismatch ensures the
 mutation, site archive, and Worker bundle all use one branch lineage.
 
-Zero for every required comparison permits the transaction. A positive count,
+After a successful bounded fetch, a matching, clean checkout (including no
+untracked files) that is strictly behind its upstream is advanced with a bounded
+`git merge --ff-only` using the fully qualified upstream ref. The guard recomputes
+the behind count and requires zero before permitting the transaction. A current
+checkout needs no merge. Dirty checkouts, local commits (ahead or diverged), and
+failed fast-forwards refuse with `dirty_checkout`, `diverged`, and
+`fast_forward_failed` respectively. The guard never resets, rebases, or forces.
+
+Zero ahead and behind counts on a clean matching checkout permit the transaction. A positive remaining count,
 configured/checked-out branch mismatch, invalid or missing local branch, detached
 `HEAD`, missing/unresolvable upstream, command failure, or malformed result refuses
 it before the apply engine or revert mutates the repository.
 
 A refusal posts an unhealthy heartbeat, exits the tick nonzero, and records only
 normalized metadata fields (`reason`, `deployable`, `behind`,
-`upstream_fallback`, and `fetch_rc`) in both refusal steps. Its metadata-only ntfy
+`upstream_fallback`, `fetch_rc`, and boolean `fast_forwarded`) in both refusal steps. Its metadata-only ntfy
 alert likewise never includes suggestion text, file content, paths, credentials,
 or raw Git output. Accepted suggestions remain accepted, and an approved or
 already-merged revert retains its journal phase, so a later tick can retry after
-an operator deliberately refreshes or repairs the daemon checkout.
+the guard fast-forwards a clean checkout or an operator repairs a dirty or
+diverged checkout. Standalone `deploy-dev.sh` with no argument fetches `origin main`
+and archives `origin/main`; an explicit argument archives that ref as before.
 
 Before comparing, the guard proves that the fetch destination is a direct
 remote-tracking ref, then runs a bounded `--no-tags --no-prune` fetch of the

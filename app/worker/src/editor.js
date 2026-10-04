@@ -21,7 +21,7 @@ import {
 } from "./assessment-endpoints.js";
 import { serveAsset } from "./editor-assets.js";
 import {
-  suggestEndpoint, systemSuggestEndpoint, pendingEndpoint, reviewJsonEndpoint,
+  clientErrorsEndpoint, clientErrorEndpoint, suggestEndpoint, systemSuggestEndpoint, pendingEndpoint, reviewJsonEndpoint,
   scopeEndpoint, scopedRequestEndpoint, scopedRequestsEndpoint,
   scopedClaimEndpoint, scopedResolveEndpoint, groupStatusEndpoint,
   decideEndpoint, digestEndpoint, claimEndpoint, finalizeEndpoint, reviewBackfillEndpoint,
@@ -178,6 +178,10 @@ export async function editorFetch(request, env, ctx) {
   }
 
   // ---- /edit/v1/* JSON endpoints --------------------------------------------
+  if (path === "/edit/v1/client-errors" && request.method === "GET")
+    return wrap(await clientErrorsEndpoint(request, env, auth));
+  if (path === "/edit/v1/client-error" && request.method === "POST")
+    return wrap(await clientErrorEndpoint(request, env, auth));
   if (path === "/edit/v1/suggest" && request.method === "POST")
     return wrap(await suggestEndpoint(request, env, auth));
   if (path === "/edit/v1/system-suggest" && request.method === "POST")
@@ -360,7 +364,7 @@ export async function editorFetch(request, env, ctx) {
     // Uniform 404 for BOTH missing doc AND insufficient scope (no oracle).
     if (request.method !== "GET" || !doc || !auth.scopes.instructor.granted) return wrap(uniform404());
     const all = await editorStub(env).listForEditor(auth.editor, null);
-    return wrap(renderInstructorDoc(doc, forDocPrefix(all, doc.source_ref)));
+    return wrap(renderInstructorDoc(doc, forDocPrefix(all, doc.source_ref), { viewerRole: auth.scopes.admin.granted ? "admin" : "editor", helpContact: env.EDITOR_HELP_CONTACT }));
   }
 
   // ---- human assessment signer view (Access-authenticated reviewer) --------
@@ -391,7 +395,7 @@ export async function editorFetch(request, env, ctx) {
     // banner reads honestly on first paint (before any repoll).
     const heartbeatAgeS = await stub.heartbeatAgeS();
     const directApply = env.DIRECT_APPLY === "true";
-    return wrap(await handleEditPage(env, { ...resolved, pending, reviewAnnotations, heartbeatAgeS, directApply }));
+    return wrap(await handleEditPage(env, { ...resolved, pending, reviewAnnotations, heartbeatAgeS, directApply, viewerRole: auth.scopes.admin.granted ? "admin" : "editor" }));
   }
 
   return wrap(uniform404());

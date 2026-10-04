@@ -16,6 +16,7 @@ import sys
 import io
 import tempfile
 import unittest
+import urllib.error
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 import digest_push as dp  # noqa: E402
@@ -150,9 +151,77 @@ class TestRunDedupe(unittest.TestCase):
                 os.environ[k] = v
 
     def _run(self, rows, publish, **kw):
+        kw.setdefault("fetch_errors", lambda *_a: [])
         return dp.run(fetch=lambda *_a, **_k: rows, publish=publish,
                       topic_resolver=lambda: "test-topic", state_path=self.state,
                       now_iso="2026-07-18T00:00:00+00:00", out=io.StringIO(), **kw)
+
+    def test_client_error_fetch_failure_preserves_cursor_and_sends_suggestions(self):
+        failures = [urllib.error.HTTPError("https://worker.test", code, "error", {}, None)
+                    for code in (404, 503)] + [urllib.error.URLError("offline"), RuntimeError("failure")]
+        for failure in failures:
+            with self.subTest(failure=failure):
+                dp.save_state(self.state, "previous", 1, "previous-time", 20)
+                seen = []
+
+                def fetch_errors(_api, _token, since):
+                    seen.append(since)
+                    raise failure
+
+                pub = _Capture()
+                result = self._run([row("new")], pub, fetch_errors=fetch_errors)
+                self.assertTrue(result["notified"])
+                self.assertEqual(result["client_error_count"], 0)
+                self.assertEqual(len(pub.calls), 1)
+                self.assertIn("1 suggestion", pub.calls[0]["title"])
+                self.assertEqual(seen, [20])
+                self.assertEqual(dp.load_state(self.state)["client_errors_since"], 20)
+
+    def test_unknown_client_error_kind_uses_kind_as_label(self):
+        self.assertEqual(dp.error_summary([{"kind": "new-kind", "attribution": "JOS"}]),
+                         "Editor problems since last check: 1 new-kind (JOS)")
+
+    def test_new_errors_notify_with_unchanged_pending_and_without_pending(self):
+        for rows in [[row("x")], []]:
+            dp.clear_state(self.state)
+            pub = _Capture()
+            self._run(rows, pub)
+            before = len(pub.calls)
+            errors = [{"at": 10, "kind": "send-failed", "attribution": "JOS",
+                       "page": "private-page", "status": 0}]
+            result = self._run(rows, pub, fetch_errors=lambda *_a: errors)
+            self.assertTrue(result["notified"])
+            self.assertEqual(len(pub.calls), before + 1)
+            self.assertIn("1 send failed (JOS)", pub.calls[-1]["body"])
+            self.assertNotIn("private-page", pub.calls[-1]["body"])
+
+    def test_error_high_water_survives_drain_and_no_new_errors_stays_quiet(self):
+        pub = _Capture()
+        errors = [{"at": at, "kind": "signed-out", "attribution": "JOS"} for at in [10, 20]]
+        seen = []
+        def fetch_errors(_api, _token, since):
+            seen.append(since)
+            return [e for e in errors if e["at"] > since]
+        self._run([row("x")], pub, fetch_errors=fetch_errors)
+        self.assertEqual(dp.load_state(self.state)["client_errors_since"], 20)
+        self._run([], pub, fetch_errors=fetch_errors)
+        self._run([], pub, fetch_errors=fetch_errors)
+        self.assertEqual(seen, [0, 20, 20])
+        self.assertEqual(len(pub.calls), 1)
+        errors.append({"at": 30, "kind": "conflict", "attribution": "RSH"})
+        self._run([], pub, fetch_errors=fetch_errors)
+        self.assertEqual(dp.load_state(self.state)["client_errors_since"], 30)
+        self.assertEqual(len(pub.calls), 2)
+
+    def test_error_cursor_does_not_advance_on_failed_push_or_dry_run(self):
+        errors = [{"at": 10, "kind": "server-error", "attribution": "JOS"}]
+        def fail(*_a):
+            raise RuntimeError("publish failed")
+        with self.assertRaisesRegex(RuntimeError, "publish failed"):
+            self._run([], fail, fetch_errors=lambda *_a: errors)
+        self.assertEqual(dp.load_state(self.state), {})
+        self._run([], _Capture(), fetch_errors=lambda *_a: errors, dry_run=True)
+        self.assertEqual(dp.load_state(self.state), {})
 
     def test_first_run_notifies_and_persists(self):
         pub = _Capture()

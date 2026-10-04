@@ -76,6 +76,7 @@
 <script type="application/json" id="editor-map-data">
 {
   "version": "harness-v1",
+  "viewer_role": "admin",
   "page": "matters/m05-dwi-meridian/index.html",
   "student_view_url": "https://sonsteng-dev.damienriehl.com/platform/matters/m05-dwi-meridian/",
   "blocks": [
@@ -196,6 +197,7 @@
   var scopedConfirmationToken = null;
   window.__EDITOR_MOCK__ = function (req) {
     var path = req.path, method = req.method, body = req.body || {};
+    if (path === '/client-error') return Promise.resolve({ ok: true, status: 200, data: { ok: true } });
     log('-> ' + method + ' ' + path + (body.id ? ' id=' + String(body.id).slice(0, 8) : ''));
     // contract check: mutations must carry the custom header
     if (method !== 'GET' && !(req.headers && req.headers['X-Edit-Request'] === '1')) {
