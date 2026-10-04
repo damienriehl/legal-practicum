@@ -176,7 +176,8 @@
   }
   function inspectResponse(path, out) {
     if (path === '/client-error') return out; // telemetry never reports itself
-    if (out.type === 'opaqueredirect' || out.status === 401) {
+    if (out.type === 'opaqueredirect' || out.status === 401 ||
+        (out.status === 403 && out.data && out.data.error && out.data.error.code === 'forbidden')) {
       showReauth();
       reportClientError('signed-out', 401);
       return { ok: false, status: 401, data: { error: { code: 'no_edit_auth' } } };

@@ -72,18 +72,22 @@ function session(h, text = 'Source\n    paragraph.') {
   s._status = node('span');
   return s;
 }
-test('R2 opaque Access redirect and 401 save drafts, cancel timers, and show one reload panel', async () => {
-  for (const response of [{ type: 'opaqueredirect', status: 0 }, { status: 401 }]) {
+test('R2 opaque Access redirect, 401 and forbidden 403 save drafts, cancel timers, and show one reload panel', async () => {
+  for (const response of [{ type: 'opaqueredirect', status: 0 }, { status: 401 },
+    { ok: false, status: 403, json: async () => ({ error: { code: 'forbidden' } }) }]) {
     const h = harness(), s = session(h);
+    let jsonReads = 0;
     s.dirty = true; s.snapshot = 'John’s unsent words'; s.suggestionId = 'draft-id';
     h.client.scheduleAutoSave(s);
     h.context.fetch = async (url, opts) => {
       h.requests.push({ url, opts });
-      return url.endsWith('/client-error') ? { ok: true, status: 200, json: async () => ({}) } : response;
+      if (url.endsWith('/client-error')) return { ok: true, status: 200, json: async () => ({}) };
+      return { ...response, json: async () => { jsonReads++; return response.json(); } };
     };
     await h.client.api('/suggest', { body: { new_text: s.snapshot } });
     await h.client.api('/pending', { method: 'GET' });
     assert.equal(h.client.signedOut(), true);
+    assert.equal(jsonReads, response.status === 403 ? 1 : 0);
     assert.equal(h.timers.size, 0);
     assert.equal(h.body.children.length, 1);
     const panel = h.body.children[0];
@@ -104,6 +108,27 @@ test('R2 opaque Access redirect and 401 save drafts, cancel timers, and show one
     assert.equal(h.requests.filter(r => r.url.endsWith('/suggest')).length, 1);
     const report = JSON.parse(h.requests.find(r => r.url.endsWith('/client-error')).opts.body);
     assert.deepEqual(report, { kind: 'signed-out', page: 'index.html', status: 401 });
+  }
+});
+test('R2 forbidden telemetry response does not sign the editor out', async () => {
+  const h = harness();
+  h.context.fetch = async () => ({ ok: false, status: 403,
+    json: async () => ({ error: { code: 'forbidden' } }) });
+  const response = await h.client.api('/client-error', { body: { kind: 'conflict' } });
+  assert.equal(response.status, 403);
+  assert.equal(h.client.signedOut(), false);
+  assert.equal(h.body.children.length, 0);
+});
+test('R2 csrf_failed and other 403 responses do not sign the editor out', async () => {
+  for (const data of [{ error: { code: 'csrf_failed' } }, { error: { code: 'other' } }, null]) {
+    const h = harness();
+    let jsonReads = 0;
+    h.context.fetch = async () => ({ ok: false, status: 403, json: async () => { jsonReads++; return data; } });
+    const response = await h.client.api('/suggest', { body: { new_text: 'Words' } });
+    assert.equal(response.status, 403);
+    assert.equal(jsonReads, 1);
+    assert.equal(h.client.signedOut(), false);
+    assert.equal(h.body.children.length, 0);
   }
 });
 test('R3 edit entry collapses source text nodes in place and whitespace-only Done sends nothing', () => {

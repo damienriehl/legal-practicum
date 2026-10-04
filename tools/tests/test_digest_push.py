@@ -16,6 +16,7 @@ import sys
 import io
 import tempfile
 import unittest
+import urllib.error
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 import digest_push as dp  # noqa: E402
@@ -154,6 +155,31 @@ class TestRunDedupe(unittest.TestCase):
         return dp.run(fetch=lambda *_a, **_k: rows, publish=publish,
                       topic_resolver=lambda: "test-topic", state_path=self.state,
                       now_iso="2026-07-18T00:00:00+00:00", out=io.StringIO(), **kw)
+
+    def test_client_error_fetch_failure_preserves_cursor_and_sends_suggestions(self):
+        failures = [urllib.error.HTTPError("https://worker.test", code, "error", {}, None)
+                    for code in (404, 503)] + [urllib.error.URLError("offline"), RuntimeError("failure")]
+        for failure in failures:
+            with self.subTest(failure=failure):
+                dp.save_state(self.state, "previous", 1, "previous-time", 20)
+                seen = []
+
+                def fetch_errors(_api, _token, since):
+                    seen.append(since)
+                    raise failure
+
+                pub = _Capture()
+                result = self._run([row("new")], pub, fetch_errors=fetch_errors)
+                self.assertTrue(result["notified"])
+                self.assertEqual(result["client_error_count"], 0)
+                self.assertEqual(len(pub.calls), 1)
+                self.assertIn("1 suggestion", pub.calls[0]["title"])
+                self.assertEqual(seen, [20])
+                self.assertEqual(dp.load_state(self.state)["client_errors_since"], 20)
+
+    def test_unknown_client_error_kind_uses_kind_as_label(self):
+        self.assertEqual(dp.error_summary([{"kind": "new-kind", "attribution": "JOS"}]),
+                         "Editor problems since last check: 1 new-kind (JOS)")
 
     def test_new_errors_notify_with_unchanged_pending_and_without_pending(self):
         for rows in [[row("x")], []]:

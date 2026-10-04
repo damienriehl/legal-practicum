@@ -1031,6 +1031,11 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
 
     def deploy_refusal(batch_id=""):
         """Fail closed without changing retry-critical apply/revert state."""
+        # Rebuilds restamp tracked site/ output, including on failed ticks and
+        # between reverts. Reset that regenerable output before the strict guard;
+        # source changes and untracked files remain subject to refusal.
+        if clean_site is not None:
+            steps.append(("clean_site", bool(clean_site())))
         try:
             status = deploy_guard(branch)
         except Exception:
@@ -1182,18 +1187,11 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
 
     # The apply engine itself performs a DEV deployment under APPLY_DEPLOY=1,
     # followed by this daemon's authoritative deploy_dev call. Authorize the
-    # whole deployment-bearing transaction before touching the checkout so a
-    # refusal leaves the accepted rows available for the next tick.
+    # whole deployment-bearing transaction after restoring generated site output
+    # so a refusal leaves the accepted rows available for the next tick.
     refused = deploy_refusal(batch_id)
     if refused is not None:
         return refused
-
-    # 0) Clear benign GENERATED-output churn (site/.build-stamp.json carries the
-    #    HEAD sha, so the last tick's rebuild left it dirty). The engine's
-    #    assert_clean_tree is strict and would otherwise refuse every apply after
-    #    the first. Source dirtiness is deliberately NOT cleared.
-    if clean_site is not None:
-        steps.append(("clean_site", bool(clean_site())))
 
     # 1) EXISTING apply engine — patch + validate + parity + finalize + merge.
     rc, tail = apply_engine(batch_id)

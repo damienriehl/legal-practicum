@@ -245,7 +245,7 @@ def error_summary(items):
               "conflict": "conflict", "server-error": "server error"}
     counts = {}
     for item in items:
-        key = (labels[item["kind"]], item["attribution"])
+        key = (labels.get(item["kind"], item["kind"]), item["attribution"])
         counts[key] = counts.get(key, 0) + 1
     return "Editor problems since last check: " + ", ".join(
         "%d %s (%s)" % (n, kind, attribution)
@@ -319,8 +319,12 @@ def run(*, dry_run=False, fetch=fetch_rows, fetch_errors=None, publish=publish_n
     prev = load_state(state_path)
     prev_sig = prev.get("signature", "")
     since = prev.get("client_errors_since", 0)
-    errors = (fetch_errors or fetch_client_errors)(
-        os.environ.get(ENV_API_BASE), os.environ.get(ENV_SERVICE_TOKEN), since)
+    try:
+        errors = (fetch_errors or fetch_client_errors)(
+            os.environ.get(ENV_API_BASE), os.environ.get(ENV_SERVICE_TOKEN), since)
+    except Exception:
+        # Optional telemetry must not block suggestions or consume its cursor.
+        errors = []
     errors = [item for item in errors if item["at"] > since]
     high_water = max([since] + [item["at"] for item in errors])
 

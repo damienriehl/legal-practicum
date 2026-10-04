@@ -99,7 +99,7 @@ def _git(td, *args, check=True):
         ["git", *args], cwd=td, check=check, capture_output=True, text=True)
 
 
-def _stale_remote_fixture(root, branch="main"):
+def _stale_remote_fixture(root, branch="main", with_site=False):
     """Local checkout/cache stay at A while a bare upstream advances to B."""
     remote = os.path.join(root, "remote.git")
     seed = os.path.join(root, "seed")
@@ -109,6 +109,14 @@ def _stale_remote_fixture(root, branch="main"):
     _git(root, "init", "-q", seed)
     _git(seed, "config", "user.email", "test@example.invalid")
     _git(seed, "config", "user.name", "Test")
+    if with_site:
+        stamp = os.path.join(seed, "site/platform/data/.build-stamp.json")
+        os.makedirs(os.path.dirname(stamp))
+        with open(stamp, "w") as f:
+            f.write('{"git_base_sha": "base"}')
+        with open(os.path.join(seed, "source.txt"), "w") as f:
+            f.write("source")
+        _git(seed, "add", "site", "source.txt")
     _git(seed, "commit", "--allow-empty", "-q", "-m", "A")
     _git(seed, "branch", "-m", branch)
     _git(seed, "remote", "add", "origin", remote)
@@ -198,6 +206,54 @@ class TestDeployCheckoutGuard(unittest.TestCase):
             self.assertTrue(statuses[0].metadata()["fast_forwarded"])
             self.assertEqual(statuses[0].behind, 0)
             self.assertEqual(_git(checkout, "rev-parse", "HEAD").stdout.strip(), remote_b)
+
+    def test_tick_cleans_generated_stamp_before_guard_and_fast_forward(self):
+        for source_dirty in (False, True):
+            with self.subTest(source_dirty=source_dirty), tempfile.TemporaryDirectory() as d:
+                checkout, _remote, local_a, remote_b = _stale_remote_fixture(d, with_site=True)
+                stamp = os.path.join(checkout, "site/platform/data/.build-stamp.json")
+                with open(stamp, "w") as f:
+                    f.write('{"git_base_sha": "rebuilt"}')
+                if source_dirty:
+                    with open(os.path.join(checkout, "source.txt"), "w") as f:
+                        f.write("unsaved source change")
+                rec = Recorder(rows=[row("aaaaaaaa")])
+                statuses = []
+
+                def guard(branch):
+                    status = dad.checkout_deploy_status(checkout, branch=branch)
+                    statuses.append(status)
+                    return status
+
+                result = _run(rec, state_path=os.path.join(d, "state.json"), branch="main",
+                              clean_site=lambda: dad.restore_regenerable_site(checkout),
+                              deploy_guard=guard)
+                with open(stamp) as f:
+                    self.assertEqual(f.read(), '{"git_base_sha": "base"}')
+                if source_dirty:
+                    self.assertEqual(result.reason, "deploy_refused")
+                    self.assertEqual(statuses[0].reason, "dirty_checkout")
+                    self.assertNotIn("apply", rec.calls)
+                    self.assertEqual(_git(checkout, "rev-parse", "HEAD").stdout.strip(), local_a)
+                    with open(os.path.join(checkout, "source.txt")) as f:
+                        self.assertEqual(f.read(), "unsaved source change")
+                else:
+                    self.assertEqual(result.reason, "applied")
+                    self.assertTrue(statuses[0].fast_forwarded)
+                    self.assertIn("deploy:main", rec.calls)
+                    self.assertEqual(_git(checkout, "rev-parse", "HEAD").stdout.strip(), remote_b)
+
+    def test_every_revert_guard_cleans_site_before_checking(self):
+        with tempfile.TemporaryDirectory() as d:
+            rec = Recorder()
+            order = []
+            result = _run(rec, state_path=os.path.join(d, "state.json"),
+                          fetch_reverts=lambda: [{"id": "r1"}, {"id": "r2"}],
+                          clean_site=lambda: order.append("clean") or True,
+                          deploy_guard=lambda branch: order.append("guard") or dad.DeployCheckoutStatus(0),
+                          revert_exec=lambda req: order.append("revert") or (False, "conflict"))
+            self.assertEqual(result.reason, "no_accepted")
+            self.assertEqual(order, ["clean", "guard", "revert", "clean", "guard", "revert"])
 
     def test_dirty_checkout_refuses_without_merge(self):
         for change in ("untracked", "tracked", "staged"):

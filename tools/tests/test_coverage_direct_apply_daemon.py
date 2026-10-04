@@ -200,12 +200,16 @@ def test_invalid_guard_preserves_retry_state_and_never_runs_engine(tmp_path, gua
     dad.save_state(path,{"last_batch_id":"previous"})
     before = Path(path).read_bytes()
     notices = []
+    clean_calls = []
     def forbidden(*args):
         pytest.fail("mutation started without authorized checkout")
     result = dad.run(api_base=None,token=None,state_path=path,
         fetch=lambda:[{"id":"accepted-fixture","status":"accepted"}],
         deploy_guard=guard, deploy_refusal_notify=notices.append,
-        apply_engine=forbidden,clean_site=forbidden,out=io.StringIO())
+        apply_engine=forbidden,clean_site=lambda: clean_calls.append(True) or True,out=io.StringIO())
+    assert clean_calls == [True]
+    assert result.steps[1][0] == "clean_site"
+    assert result.steps[2][0] == "deploy_guard"
     assert result.reason == "deploy_refused"
     assert len(notices) == 1 and not notices[0].deployable
     assert Path(path).read_bytes() == before
