@@ -22,6 +22,7 @@ from fresh_site_build import build_fresh_site  # noqa: E402
 
 AUTHORED = [
     os.path.join(ROOT, "data", "copy", "home.json"),
+    os.path.join(ROOT, "data", "copy", "getting-started.json"),
     *[os.path.join(ROOT, "data", "curriculum", name) for name in ("m1.md", "m2.md", "m3.md")],
 ]
 AUTHORED += [
@@ -135,6 +136,7 @@ class TestPlatformLanguageContract(unittest.TestCase):
     def test_generated_learner_surfaces_use_locked_vocabulary(self):
         learner_pages = [
             Path(self.site, "index.html"),
+            Path(self.site, "getting-started", "index.html"),
             Path(self.site, "templates", "index.html"),
             *Path(self.site, "modules").glob("*.html"),
         ]
@@ -235,3 +237,19 @@ class TestPlatformLanguageContract(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_long_exercise_letter_grade_governs_only_mapped_rubrics():
+    import build_site as bs
+    mapped = bs.build_rubric_section({"_rubric": {
+        "declared_total": 100, "criteria": [],
+        "letter_grade_map": [{"grade": "A", "points": 90}, {"grade": "B", "points": 80}],
+    }}, "matters/test/index.html")
+    assert "LETTER GRADE GOVERNS THIS EXERCISE · A ≥ 90 · B ≥ 80" in mapped
+    assert "points are a consistency check" in mapped
+    assert "ASSESSMENT BANDS" not in mapped
+    unmapped = bs.build_rubric_section({"_rubric": {"declared_total": 7}}, "index.html")
+    assert "LETTER GRADE" not in unmapped
+    instrument = json.loads(Path(ROOT, "data", "curriculum", "assessment-instrument.json").read_text())
+    assert instrument["content"]["presentation"]["score_4_label"] == "competent"
+    assert instrument["content"]["presentation"]["letter_grade_translation"] == "prohibited"

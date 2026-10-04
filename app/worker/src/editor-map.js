@@ -216,6 +216,7 @@ export function pageBlockDescriptors(blocks) {
       has_inline_formatting: !!b.has_inline_formatting,
       context: b.context || "",
     };
+    if (b.heading_level != null) descriptor.heading_level = b.heading_level;
     const occurrences = (EDITOR_MAP.occurrences || {})[b.source_ref] || [];
     if (occurrences.length > 1) descriptor.occurrences = occurrences;
     return descriptor;

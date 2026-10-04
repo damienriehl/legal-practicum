@@ -412,7 +412,7 @@ def markdown(md, src=None, spans=None):
     start_line = [0] # 0-based source-line index of the current block's first line
     end_line = [0]   # 0-based source-line index of the current block's last line
 
-    def _emit(tag, source_span, attrs=""):
+    def _emit(tag, source_span, attrs="", heading_level=None):
         """Emit one editable block, annotating + registering it when recording."""
         m = _BID_MARKER_RE.search(source_span or "")
         bid = m.group(1) if m else None
@@ -433,6 +433,8 @@ def markdown(md, src=None, spans=None):
         source_ref = "{s}{sep}b{b}".format(s=src, sep=sep, b=bid)
         EDMAP.register(source_ref, "prose", clean,
                        _has_inline_formatting(clean), ctx[0])
+        if heading_level is not None:
+            EDMAP.sources[source_ref]["heading_level"] = heading_level
         return "<{t}{a} data-ebsrc=\"{r}\">{i}</{t}>".format(
             t=tag, a=open_attrs, r=esc(source_ref), i=inner_html)
 
@@ -472,7 +474,7 @@ def markdown(md, src=None, spans=None):
             level = min(len(h.group(1)) + 1, 6)  # demote so page h1 stays unique
             htext = h.group(2).strip()
             start_line[0] = end_line[0] = i
-            out.append(_emit("h%d" % level, htext))
+            out.append(_emit("h%d" % level, htext, heading_level=len(h.group(1))))
             # this heading becomes the context for following blocks (marker-free)
             ctx[0] = _BID_MARKER_RE.sub("", htext)
             i += 1
@@ -725,7 +727,7 @@ def load_corpus():
     taxonomy_crosswalk = load_json(os.path.join(DATA, "taxonomy", "folio-crosswalk.json"))
     firm = load_json(os.path.join(DATA, "firm", "firm.json"))
     copy = {page: load_json(os.path.join(DATA, "copy", page + ".json"))
-            for page in ("home", "matters", "firm")}
+            for page in ("home", "matters", "firm", "getting-started")}
     PAGE_OVERRIDES.clear()
     for page_copy, doc in copy.items():
         relpath = data_relpath(DATA, "copy", page_copy + ".json")
@@ -1492,7 +1494,7 @@ def build_home(corpus):
         "explore.eyebrow", "explore.heading",
     ):
         values[path], attrs[path] = _copy_scalar("home", copy, path, "home")
-    for card in ("sample", "skills", "matters", "firm", "templates", "centaur"):
+    for card in ("sample", "skills", "matters", "firm", "templates", "centaur", "getting_started"):
         fields = ["meta", "title", "description"]
         if card == "skills":
             fields = ["meta", "title"]
@@ -1558,6 +1560,11 @@ def build_home(corpus):
       <h3{templates_title_eb}>{templates_title}</h3>
       <p class="matter-card__premise"{templates_description_eb}>{templates_description}</p>
       <span class="arrow-link">Open the templates</span>
+    </a>
+    <a class="card" href="getting-started/index.html">
+      <p class="card__meta"{getting_started_meta_eb}>{getting_started_meta}</p>
+      <h3{getting_started_title_eb}>{getting_started_title}</h3>
+      <p class="matter-card__premise"{getting_started_description_eb}>{getting_started_description}</p>
     </a>
     <div class="card">
       <p class="card__meta"{centaur_meta_eb}>{centaur_meta}</p>
@@ -1687,6 +1694,35 @@ def build_modules(corpus):
             "{c} · MODULES".format(c=code),
             [("Home", "../index.html"), ("Modules", None), (code, None)],
             body, body_class="module--" + meta["accent"]))
+
+# --------------------------------------------------------------------------- #
+# Page — getting started at your school
+# --------------------------------------------------------------------------- #
+def build_getting_started(corpus):
+    rel = "getting-started/index.html"
+    copy = corpus["copy"]["getting-started"]
+
+    def leaf(path):
+        value, attr = _copy_scalar("getting-started", copy, path, "getting started at your school")
+        return attr, esc(value)
+
+    body = ('<header class="reveal"><p class="eyebrow"%s>%s</p>' % leaf("hero.eyebrow")
+            + '<h1%s>%s</h1>' % leaf("hero.heading")
+            + '<p class="lede"%s>%s</p></header>' % leaf("hero.lede")
+            + '<div class="brass-rule" role="presentation"></div>')
+    for section in ("leadership", "structure", "oversight", "resources"):
+        body += ('<section class="reveal prose"><h2%s>%s</h2>' % leaf(section + ".heading")
+                 + '<p%s>%s</p>' % leaf(section + ".body"))
+        if section == "resources":
+            for field, href in (("library_label", "../matters/index.html"),
+                                ("templates_label", "../templates/index.html")):
+                attr, label = leaf("resources." + field)
+                body += '<a class="link" href="%s"><p%s>%s</p></a>' % (href, attr, label)
+        body += '</section>'
+    write_file(rel, page_shell(
+        rel, copy["hero"]["heading"], "GETTING STARTED · AT YOUR SCHOOL",
+        [("Home", "../index.html"), ("Getting started", None)], body))
+
 
 # --------------------------------------------------------------------------- #
 # Page — course deliverable templates (single print-friendly handout page)
@@ -2240,6 +2276,10 @@ def build_rubric_section(m, rel):
                 w=esc(c.get("weight_points", "")), subs=subrows))
     grades = " · ".join("{g} ≥ {p}".format(g=esc(g["grade"]), p=esc(g["points"]))
                         for g in (ru.get("letter_grade_map") or []))
+    grade_note = (
+        '<p class="mono" style="font-size:var(--fs-mono-xs);color:var(--ink-soft)">'
+        'LETTER GRADE GOVERNS THIS EXERCISE · %s · points are a consistency check</p>' % grades
+        if grades else "")
     return """
   <div class="tablewrap"><table class="ledger">
     <caption>RUBRIC · DECLARED TOTAL {tot} POINTS</caption>
@@ -2247,8 +2287,8 @@ def build_rubric_section(m, rel):
     <tbody>{rows}</tbody>
     <tfoot><tr><td>Total</td><td></td><td></td><td class="num">{tot}</td></tr></tfoot>
   </table></div>
-  <p class="mono" style="font-size:var(--fs-mono-xs);color:var(--ink-soft)">ASSESSMENT BANDS · {grades}</p>
-""".format(tot=esc(ru.get("declared_total", "")), rows="".join(rows), grades=grades)
+  {grade_note}
+""".format(tot=esc(ru.get("declared_total", "")), rows="".join(rows), grade_note=grade_note)
 
 def build_packet_pages(corpus):
     """Returns list of (relpath, size) for budget accounting."""
@@ -3276,6 +3316,8 @@ def _extract_page_blocks(html_text):
         }
         if meta["kind"] == "json_scalar" and meta.get("json_path"):
             block["json_path"] = meta["json_path"]
+        if meta.get("heading_level") is not None:
+            block["heading_level"] = meta["heading_level"]
         if meta.get("mixed"):
             block["mixed"] = True
         entries.append(block)
@@ -4020,6 +4062,7 @@ def main(argv):
     copy_hours_app()
 
     build_home(corpus)
+    build_getting_started(corpus)
     build_modules(corpus)
     build_templates(corpus)
     build_skills(corpus)

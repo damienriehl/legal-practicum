@@ -305,7 +305,7 @@
   function makeSession(desc, elx, editable, commentOnly) {
     var s = {
       ref: desc.source_ref, index: desc.index, el: elx, kind: desc.kind,
-      editable: editable, commentOnly: commentOnly,
+      editable: editable, commentOnly: commentOnly, headingLevel: desc.heading_level || null,
       hasFormatting: !!desc.has_inline_formatting, jsonPath: desc.json_path || null,
       occurrences: Array.isArray(desc.occurrences) ? desc.occurrences.slice() : [],
       shared: Array.isArray(desc.occurrences) && desc.occurrences.length > 1,
@@ -513,7 +513,7 @@
   }
   var STRUCT_LABELS = {
     insert_after: 'New paragraph', delete: 'Removal', split: 'Split',
-    merge: 'Merge', move: 'Move'
+    merge: 'Merge', move: 'Move', move_section: 'Section move'
   };
 
   function sendStructural(s, op, fields, onDone) {
@@ -801,6 +801,34 @@
     });
   }
 
+  function sectionSibling(s, dir) {
+    if (!/^H[1-6]$/.test(s.el.tagName) || !/(\.|#)b[0-9a-f]{8}$/.test(s.ref)) return null;
+    var candidates = outermostCandidates(document.querySelector('main'));
+    var level = s.headingLevel || parseInt(s.el.tagName.slice(1), 10);
+    var start = candidates.indexOf(s.el);
+    if (start < 0) return null;
+    for (var i = start + dir; i >= 0 && i < candidates.length; i += dir) {
+      var node = candidates[i];
+      if (!/^H[1-6]$/.test(node.tagName)) continue;
+      var peer = null;
+      for (var key in byIndex) {
+        if (byIndex[key].el === node) { peer = byIndex[key]; break; }
+      }
+      var otherLevel = (peer && peer.headingLevel) || parseInt(node.tagName.slice(1), 10);
+      if (otherLevel > level) continue;
+      if (otherLevel < level) return null;
+      return peer && peer.editable && peer.kind === 'prose' &&
+        structBaseOf(peer.ref) === structBaseOf(s.ref) &&
+        /(\.|#)b[0-9a-f]{8}$/.test(peer.ref) ? peer : null;
+    }
+    return null;
+  }
+
+  function requestSectionMove(s, dir) {
+    var peer = sectionSibling(s, dir);
+    if (peer) sendStructural(s, 'move_section', { op_arg: peer.ref.slice(-8) }, null);
+  }
+
   function requestMove(s, dir) {
     var peers = sameFilePeers(s);
     var i = -1;
@@ -1003,6 +1031,18 @@
         t.appendChild(actButton(s, 'down', 'Move down', ICON_DOWN,
           'move this paragraph one place later (Damien approves it first)',
           function () { requestMove(s, 1); }));
+      }
+    }
+    if (s.editable && s.kind === 'prose' && /^H[1-6]$/.test(s.el.tagName)) {
+      if (sectionSibling(s, -1)) {
+        t.appendChild(actButton(s, 'section-up', 'Move section up', ICON_UP,
+          'move this section one place earlier (Damien approves it first)',
+          function () { requestSectionMove(s, -1); }));
+      }
+      if (sectionSibling(s, 1)) {
+        t.appendChild(actButton(s, 'section-down', 'Move section down', ICON_DOWN,
+          'move this section one place later (Damien approves it first)',
+          function () { requestSectionMove(s, 1); }));
       }
     }
     // The rail is inserted BEFORE its block and pulled back down over it, so it
@@ -1941,7 +1981,7 @@
   function canHydrate(s, item) {
     if (!s) return false;
     if (item.kind === 'comment') return false;
-    // Structural kinds (insert_after/delete/split/merge/move) address the block
+    // Structural kinds (including move_section) address the block
     // as an ANCHOR — painting their payload into it would corrupt the display.
     // They surface as a status pill on the anchor instead.
     if (item.kind && item.kind !== 'prose' && item.kind !== 'json_scalar') return false;
@@ -2324,6 +2364,11 @@
       var commentOnly = desc.kind === 'comment_only';
       var editable = !commentOnly;
       var s = makeSession(desc, elx, editable, commentOnly);
+    });
+    // Resolve every heading session before building sibling controls.
+    MAP.forEach(function (desc) {
+      var s = byIndex[desc.index];
+      if (!s) return;
       wireBlock(s);
       reconcileDraft(s);
     });

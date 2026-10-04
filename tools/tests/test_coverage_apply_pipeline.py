@@ -84,7 +84,11 @@ def curriculum_map(tmp_path_factory):
     tracked = subprocess.check_output(
         ["git", "ls-files", "-z", "tools", "data", "app", "site"], cwd=root
     ).decode().split("\0")
-    for rel in filter(None, tracked):
+    # New authored page copy must participate before it is committed, too.
+    tracked = set(filter(None, tracked)) | {
+        str(path.relative_to(root)) for path in (root / "data/copy").glob("*.json")
+    }
+    for rel in sorted(tracked):
         if Path(rel).suffix in (".pem", ".key"):
             continue
         target = scratch / rel

@@ -29,16 +29,23 @@ const SQL_BIND_CHUNK = 90;
 // the gate is risk, not scope), and they never supersede (two inserts after
 // one anchor are two distinct intents, not a re-edit).
 export const STRUCTURAL_KINDS = new Set([
-  "insert_after", "delete", "split", "merge", "move",
+  "insert_after", "delete", "split", "merge", "move", "move_section",
 ]);
 export const OBSERVER_OPERATION_MAX = 100_000;
+
+function structuralTargetRef(kind, anchor, opArg) {
+  return kind === "move_section" && /^[0-9a-f]{8}$/.test(opArg || "")
+    ? (anchor || "").replace(/b[0-9a-f]{8}$/, "b" + opArg) : opArg;
+}
 
 function classifyProductionScope(sources = []) {
   const structuralGroups = new Set(), structuralRefs = new Set();
   for (const source of sources) for (const operation of source.operations || []) {
     if (!STRUCTURAL_KINDS.has(operation.op)) continue;
     if (operation.group_id) structuralGroups.add(operation.group_id);
-    for (const ref of [source.source_ref,operation.source_ref,operation.op_arg])
+    const anchor = operation.source_ref || source.source_ref;
+    const target = structuralTargetRef(operation.op,anchor,operation.op_arg);
+    for (const ref of [source.source_ref,operation.source_ref,target])
       if (typeof ref === "string" && ref) structuralRefs.add(ref);
   }
   return sources.map((source) => ({ ...source,operations:(source.operations || []).map((operation) => {
@@ -3141,7 +3148,9 @@ export class EditorStoreCore {
         }
         if (STRUCTURAL_KINDS.has(row.operation_type)) {
           if (row.operation_group_id) structuralGroups.add(row.operation_group_id);
-          for (const ref of [source.source_ref,row.operation_source_ref,row.operation_arg])
+          const target = structuralTargetRef(row.operation_type,
+            row.operation_source_ref || source.source_ref,row.operation_arg);
+          for (const ref of [source.source_ref,row.operation_source_ref,target])
             if (typeof ref === "string" && ref) structuralRefs.add(ref);
         }
       }

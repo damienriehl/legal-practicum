@@ -104,7 +104,7 @@ def test_missing_source_at_named_commit_fails_proof(legacy_repo):
         {'source_ref': 'absent.md#b11111111', 'kind': 'prose', 'original_text': 'a', 'new_text': 'b'})
 
 
-@pytest.mark.parametrize('kind', ['insert_after', 'move'])
+@pytest.mark.parametrize('kind', ['insert_after', 'move', 'move_section'])
 def test_structural_exclusion_requires_exact_proof_base(legacy_repo, kind):
     repo, base, evidence, classification = legacy_repo
     # The actual scalar transition proves the commit, then the structural policy
@@ -129,3 +129,17 @@ def test_classification_and_effective_evidence_reject_inconsistent_sets(legacy_r
     expected = 'lacks exact apply commit' if change == 'missing_batch' else 'cover every legacy suggestion'
     with pytest.raises(BackfillError, match=expected):
         reconciliation.build_reconciliation(evidence, classification, repo, 'x', base)
+
+
+def test_section_move_commit_proof_checks_the_entire_swap(monkeypatch):
+    before = '## A {#b:aaaaaaaa}\n\nA body. {#b:aaaaaaab}\n\n## B {#b:bbbbbbbb}\n\nB body. {#b:bbbbbbbc}\n'
+    after = reconciliation.op_move_section(before, 'aaaaaaaa', 'bbbbbbbb')
+    files = {'base:data/sections.md': before, 'apply:data/sections.md': after}
+    monkeypatch.setattr(reconciliation, '_commit_matches_batch', lambda *args: True)
+    monkeypatch.setattr(reconciliation, '_git', lambda repo, *args, **kw:
+                        files[args[1]] if kw.get('text', True) else files[args[1]].encode())
+    row = {'source_ref': 'data/sections.md#baaaaaaaa', 'kind': 'move_section', 'op_arg': 'bbbbbbbb'}
+    batch = {'base_sha': 'base'}
+    assert reconciliation._commit_applies_suggestion('.', 'apply', batch, row)
+    files['apply:data/sections.md'] = after.replace('A body.', 'Changed body.')
+    assert not reconciliation._commit_applies_suggestion('.', 'apply', batch, row)

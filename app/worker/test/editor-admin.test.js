@@ -214,6 +214,7 @@ test("admin desk provides direct routes into the editable practicum", async () =
     "/edit/matters/index.html",
     "/edit/modules/m1.html",
     "/edit/templates/index.html",
+    "/edit/getting-started/index.html",
     "/edit/firm/index.html",
   ]) {
     assert.ok(html.includes(`href="${href}"`), `missing editable destination ${href}`);

@@ -10,7 +10,7 @@ import subprocess
 
 from apply_suggestions import Patch, STRUCTURAL_KINDS, build_review_revisions, json_get
 from build_prod_review_backfill import BackfillError, _canonical
-from structural_ops import StructuralError, _blocks, locate_block
+from structural_ops import StructuralError, _blocks, locate_block, op_move_section
 
 
 def _git(repo, *args, text=True):
@@ -62,6 +62,11 @@ def _commit_applies_suggestion(repo, commit, batch, row):
         return (before_file.count(str(old)) == 1 and after_file.count(str(old)) == 0 and
                 before_file.count(str(new)) == 0 and after_file.count(str(new)) == 1)
     bid = locator.removeprefix("b")
+    if kind == "move_section" and rel.endswith(".md"):
+        try:
+            return op_move_section(before_file, bid, row.get("op_arg")) == after_file
+        except StructuralError:
+            return False
     if kind in ("insert_after", "delete", "move") and rel.endswith(".md"):
         try:
             before_blocks = _blocks(before_file)
@@ -144,7 +149,7 @@ def build_reconciliation(evidence, classification, repo, migration_id, prod_base
                 raise BackfillError("excluded source is not restored to its proof base")
         else:
             locator = row["source_ref"].split("#", 1)[1]
-            if row.get("kind") in ("insert_after", "move"):
+            if row.get("kind") in ("insert_after", "move", "move_section"):
                 raise BackfillError("structural exclusion requires an exact proof base")
             try:
                 restored_value = _source_value(repo, "HEAD", rel, locator)

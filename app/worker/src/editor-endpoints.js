@@ -40,12 +40,14 @@ function validStructuralPayload(s) {
 // request; `block` is the map-resolved anchor; `scope` is the granted scope the
 // anchor resolved in. Returns { kind, new_text, op_arg } or { error: [code,
 // message] }. Rules:
-//   * structural ops address PROSE blocks only (never scalars/comment-only);
+//   * structural ops address PROSE blocks (including section headings), never scalars/comment-only;
 //   * insert_after needs a single-block payload;
 //   * delete carries no payload;
 //   * split carries exactly two single-block parts (stored "part1\n\npart2");
 //   * merge/move carry op_arg — a second ref that must resolve in the SAME
 //     scope's map, be prose, and live in the SAME source (file + body field).
+//   * move_section carries the adjacent sibling heading's bare eight-hex bid;
+//     resolve it in the same source. The apply engine verifies adjacency and parent.
 function resolveStructuralOp(body, block, scope) {
   const op = body.op;
   if (!STRUCTURAL_KINDS.has(op)) return { error: ["validation_error", "Unknown operation."] };
@@ -74,6 +76,19 @@ function resolveStructuralOp(body, block, scope) {
     if (!validStructuralPayload(new_text) || !validStructuralPayload(new_text2))
       return { error: ["validation_error", "Provide both parts of the split."] };
     return { kind: op, new_text: new_text.trim() + "\n\n" + new_text2.trim(), op_arg: null };
+  }
+  // Section targets carry a bare bid, resolved against the anchor's source.
+  // Heading/sibling boundaries are checked against current markdown at apply.
+  if (op === "move_section") {
+    if (!block.heading_level || !/^[0-9a-f]{8}$/.test(op_arg || "") ||
+        !/(\.|#)b[0-9a-f]{8}$/.test(block.source_ref) ||
+        op_arg === block.source_ref.slice(-8))
+      return { error: ["validation_error", "Provide a different sibling heading's block ID."] };
+    const targetRef = block.source_ref.replace(/b[0-9a-f]{8}$/, "b" + op_arg);
+    const target = lookupBlock(targetRef, scope);
+    if (!target || target.kind !== "prose" || target.heading_level !== block.heading_level)
+      return { error: ["validation_error", "That target is not an editable sibling heading in this document."] };
+    return { kind: op, new_text: null, op_arg };
   }
   // merge | move — need a second allowlisted ref in the same source.
   if (!op_arg) return { error: ["validation_error", "That operation needs a target."] };

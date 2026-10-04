@@ -7,7 +7,7 @@
   "properties": {
     "schema_version": {"const": "1.0.0"},
     "type": {"const": "page_copy"},
-    "page": {"enum": ["home", "matters", "firm"]},
+    "page": {"enum": ["home", "matters", "firm", "getting-started"]},
     "overrides": {"$ref": "#/$defs/overrides"}
   },
   "patternProperties": {
@@ -17,7 +17,8 @@
   "allOf": [
     {"if": {"properties": {"page": {"const": "home"}}}, "then": {"$ref": "#/$defs/home"}},
     {"if": {"properties": {"page": {"const": "matters"}}}, "then": {"$ref": "#/$defs/matters"}},
-    {"if": {"properties": {"page": {"const": "firm"}}}, "then": {"$ref": "#/$defs/firm"}}
+    {"if": {"properties": {"page": {"const": "firm"}}}, "then": {"$ref": "#/$defs/firm"}},
+    {"if": {"properties": {"page": {"const": "getting-started"}}}, "then": {"$ref": "#/$defs/gettingStarted"}}
   ],
   "$defs": {
     "scalar": {"type": "string", "minLength": 1},
@@ -54,11 +55,29 @@
         }},
         "explore": {"type": "object", "required": ["eyebrow", "heading", "cards"], "properties": {
           "eyebrow": {"$ref": "#/$defs/scalar"}, "heading": {"$ref": "#/$defs/scalar"},
-          "cards": {"type": "object", "required": ["sample", "skills", "matters", "firm", "templates", "centaur"], "properties": {
+          "cards": {"type": "object", "required": ["sample", "skills", "matters", "firm", "templates", "centaur", "getting_started"], "properties": {
             "sample": {"$ref": "#/$defs/fullCard"}, "skills": {"$ref": "#/$defs/shortCard"}, "matters": {"$ref": "#/$defs/metaDescriptionCard"},
-            "firm": {"$ref": "#/$defs/fullCard"}, "templates": {"$ref": "#/$defs/fullCard"}, "centaur": {"$ref": "#/$defs/fullCard"}
+            "firm": {"$ref": "#/$defs/fullCard"}, "templates": {"$ref": "#/$defs/fullCard"}, "centaur": {"$ref": "#/$defs/fullCard"}, "getting_started": {"$ref": "#/$defs/fullCard"}
           }}
         }}
+      }
+    },
+    "copySection": {
+      "type": "object", "required": ["heading", "body"],
+      "properties": {"heading": {"$ref": "#/$defs/scalar"}, "body": {"$ref": "#/$defs/scalar"}}
+    },
+    "gettingStarted": {
+      "type": "object", "required": ["hero", "leadership", "structure", "oversight", "resources"],
+      "properties": {
+        "hero": {"$ref": "#/$defs/hero"},
+        "leadership": {"$ref": "#/$defs/copySection"},
+        "structure": {"$ref": "#/$defs/copySection"},
+        "oversight": {"$ref": "#/$defs/copySection"},
+        "resources": {
+          "allOf": [{"$ref": "#/$defs/copySection"}],
+          "required": ["library_label", "templates_label"],
+          "properties": {"library_label": {"$ref": "#/$defs/scalar"}, "templates_label": {"$ref": "#/$defs/scalar"}}
+        }
       }
     },
     "shapeLabels": {

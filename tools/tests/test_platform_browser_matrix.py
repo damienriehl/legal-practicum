@@ -111,7 +111,9 @@ def test_semantic_heading_repairs_preserve_the_existing_visible_words():
     # destinations, page identities, and editor reading order stay unchanged.
     # U1 adds three templates and their editable blocks, advancing links,
     # editor content, and reading order; existing page identities stay fixed.
+    # U2 changes rubric text; U3 adds the getting-started page and home card,
+    # advancing page identities, links, headings, editor blocks, and reading order.
     baseline = json.loads((TOOLS / "tests/fixtures/platform-semantic-baseline.json").read_text())
-    assert baseline["fields"]["links"] == "78e7674abadf66f4ca981ffa0b9ef5abf69a2502a93bd09e0e48acfd9ec2f271"
-    assert baseline["fields"]["editor_blocks"] == "31ca3e1e0bc55ea2ea9d6a3533c53c1e387d3612f27f29d431c428fb4070fc84"
-    assert baseline["fields"]["reading_order"] == "8c0b284f99fd07290100514d03a8b3b50110100ccdc4aeb45933885140eb23b8"
+    assert baseline["fields"]["links"] == "41dac2a70d775d8a4cbbaf468ca19ea5278d1cf90a4328d5b6abfaa79ef05e63"
+    assert baseline["fields"]["editor_blocks"] == "6abe4d12802d53fb1cde0abcf0a0a13c9f781b8d53f1d28c662e226210a8f610"
+    assert baseline["fields"]["reading_order"] == "f83f413d43f81ab3dc9d8b44992c64e44c1a66cec145278452d03d4b80fde806"

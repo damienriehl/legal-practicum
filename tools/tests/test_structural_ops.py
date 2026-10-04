@@ -236,5 +236,56 @@ class TestJsonBody(unittest.TestCase):
                           "Second paragraph."])
 
 
+class TestMoveSection(unittest.TestCase):
+    def setUp(self):
+        self.text, _ = sb.stamp_md_text(
+            '# Parent\n\n## A\n\nA body.\n\n### Child\n\nChild body.\n\n'
+            '## B\n\nB body.\n\n## C\n\nC body.\n\n# Other\n\n## D\n\nD body.', set())
+        self.ids = {raw: bid for tag, raw, bid in blocks_of(self.text)}
+
+    def test_down_and_up_keep_nested_blocks_and_bids(self):
+        moved = so.op_move_section(self.text, self.ids['A'], self.ids['B'])
+        self.assertEqual([raw for tag, raw, bid in blocks_of(moved)],
+                         ['Parent', 'B', 'B body.', 'A', 'A body.', 'Child',
+                          'Child body.', 'C', 'C body.', 'Other', 'D', 'D body.'])
+        self.assertEqual(sorted(bids_of(moved)), sorted(bids_of(self.text)))
+        so._verify(self.text, moved, added=set(), removed=set())
+        self.assertEqual(so.op_move_section(moved, self.ids['A'], self.ids['B']), self.text)
+
+    def test_last_section_moves_up(self):
+        moved = so.op_move_section(self.text, self.ids['C'], self.ids['B'])
+        self.assertLess(moved.index('## C'), moved.index('## B'))
+
+    def test_top_level_sections_keep_all_descendants(self):
+        moved = so.op_move_section(self.text, self.ids['Parent'], self.ids['Other'])
+        self.assertEqual([raw for tag, raw, bid in blocks_of(moved)],
+                         ['Other', 'D', 'D body.', 'Parent', 'A', 'A body.',
+                          'Child', 'Child body.', 'B', 'B body.', 'C', 'C body.'])
+        so._verify(self.text, moved, added=set(), removed=set())
+        self.assertEqual(so.op_move_section(moved, self.ids['Parent'], self.ids['Other']), self.text)
+
+    def test_only_child_cannot_move_to_another_parents_child(self):
+        text, _ = sb.stamp_md_text('# First\n\n## Only\n\n# Second\n\n## Also only', set())
+        ids = {raw: bid for tag, raw, bid in blocks_of(text)}
+        for source, target in [('Only', 'Also only'), ('Also only', 'Only')]:
+            with self.subTest(source=source), self.assertRaises(so.StructuralError):
+                so.op_move_section(text, ids[source], ids[target])
+
+    def test_invalid_targets_and_parent_boundaries(self):
+        for source, target in [('A', 'C'), ('A', 'D'), ('A', 'Parent'),
+                               ('A', 'Child'), ('A', 'A'), ('A', 'A body.'),
+                               ('Child', 'D'), ('D', 'C')]:
+            with self.subTest(source=source, target=target), self.assertRaises(so.StructuralError):
+                so.op_move_section(self.text, self.ids[source], self.ids[target])
+        with self.assertRaises(so.StructuralError):
+            so.op_move_section(self.text, self.ids['A'], 'ffffffff')
+
+    def test_final_section_without_newline_and_deep_heading_levels(self):
+        text, _ = sb.stamp_md_text('##### A\n\n###### Child\n\nText.\n\n##### B', set())
+        ids = {raw: bid for tag, raw, bid in blocks_of(text)}
+        moved = so.op_move_section(text, ids['A'], ids['B'])
+        self.assertEqual([raw for tag, raw, bid in blocks_of(moved)], ['B', 'A', 'Child', 'Text.'])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

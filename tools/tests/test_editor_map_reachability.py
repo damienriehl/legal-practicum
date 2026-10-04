@@ -40,6 +40,7 @@ NAVIGATIONAL_PAGES = (
     "matters/index.html",
     "skills/index.html",
     "firm/index.html",
+    "getting-started/index.html",
 )
 
 
@@ -78,9 +79,10 @@ class EditorMapReachabilityTest(unittest.TestCase):
                               f"{page} is linked from the site nav; /edit must resolve it")
 
     def test_authored_landing_pages_are_editable(self):
-        self.assertEqual(len(self.pages["index.html"]), 29)
+        self.assertEqual(len(self.pages["index.html"]), 32)
         self.assertEqual(len(self.pages["matters/index.html"]), 13)
         self.assertEqual(len(self.pages["firm/index.html"]), 33)
+        self.assertEqual(len(self.pages["getting-started/index.html"]), 13)
 
     def test_chat_surfaces_are_excluded(self):
         self.assertIn("chat/", bs.EDITOR_MAP_EXCLUDE_PREFIXES)

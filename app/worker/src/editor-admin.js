@@ -346,6 +346,7 @@ function renderStudentView(studentViewUrl) {
 function renderEditDoors() {
   const links = [
     ["Practicum home", "/edit/index.html"],
+    ["Getting started at your school", "/edit/getting-started/index.html"],
     ["Skills", "/edit/skills/index.html"],
     ["Matter library", "/edit/matters/index.html"],
     ["Modules", "/edit/modules/m1.html"],

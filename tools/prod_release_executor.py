@@ -39,7 +39,7 @@ BOUNDED_PROVIDER_ID_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 MAX_PRODUCTION_LEASE_MS = 15 * 60 * 1000
 SERVICE_USER_AGENT = "sonsteng-prod-release/1.0"
 WRANGLER_COMMAND = ("npx", "wrangler@4")
-STRUCTURAL_OPERATIONS = frozenset({"insert_after", "delete", "split", "merge", "move"})
+STRUCTURAL_OPERATIONS = frozenset({"insert_after", "delete", "split", "merge", "move", "move_section"})
 
 
 def _wrangler(*args):
@@ -147,9 +147,13 @@ class AcceptedOnlyMaterializer:
                     continue
                 if operation.get("group_id"):
                     structural_groups.add(operation["group_id"])
+                anchor = operation.get("source_ref") or source.get("source_ref") or ""
+                target = operation.get("op_arg")
+                if operation.get("op") == "move_section" and re.fullmatch(r"[0-9a-f]{8}", target or ""):
+                    target = re.sub(r"b[0-9a-f]{8}$", "b" + target, anchor)
                 structural_refs.update(ref for ref in (
                     source.get("source_ref"), operation.get("source_ref"),
-                    operation.get("op_arg")) if isinstance(ref, str) and ref)
+                    target) if isinstance(ref, str) and ref)
         holds = {}
         for source in sources:
             for operation in source.get("operations") or []:

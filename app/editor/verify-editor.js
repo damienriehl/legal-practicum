@@ -871,6 +871,33 @@ async function run() {
       stMoveBody.op === 'move' && stMoveBody.source_ref === REF5 && stMoveBody.op_arg === REF6,
       'op_arg=' + String(stMoveBody.op_arg).slice(-12));
 
+    const sectionControls = await page.evaluate(() => {
+      function has(i, dir) { return !!document.querySelector('.eb-tools[data-eb-for="' + i + '"] .eb-act--section-' + dir); }
+      return has(9, 'down') && !has(9, 'up') && has(12, 'up') && has(12, 'down') &&
+        has(13, 'up') && !has(13, 'down') && !has(11, 'up') && !has(11, 'down') &&
+        !has(15, 'up') && !has(15, 'down');
+    });
+    assert('ST section controls respect siblings and parent boundaries', sectionControls);
+    const sectionLabels = await page.evaluate(() => {
+      var up = document.querySelector('.eb-tools[data-eb-for="12"] .eb-act--section-up');
+      var down = document.querySelector('.eb-tools[data-eb-for="12"] .eb-act--section-down');
+      return [up, down].every(function (button) {
+        return button.querySelector('.eb-act__label').textContent === button.getAttribute('aria-label') &&
+          button.title.indexOf('Damien approves it first') >= 0;
+      }) && up.getAttribute('aria-label') === 'Move section up' &&
+        down.getAttribute('aria-label') === 'Move section down';
+    });
+    assert('ST section controls carry plain labels and the approval hint', sectionLabels);
+    await page.click('.eb-tools[data-eb-for="9"] .eb-act--section-down');
+    await page.waitForFunction(() => window.__MOCK_CTRL__.last().op === 'move_section');
+    const sectionDown = await page.evaluate(() => window.__MOCK_CTRL__.last());
+    assert('ST section down sends adjacent sibling bid', sectionDown.op === 'move_section' && sectionDown.op_arg === 'bbbbbbbb' &&
+      sectionDown.source_ref === 'data/harness/sections.md#baaaaaaaa');
+    await page.click('.eb-tools[data-eb-for="12"] .eb-act--section-up');
+    await page.waitForFunction(() => window.__MOCK_CTRL__.last().op_arg === 'aaaaaaaa');
+    const sectionUp = await page.evaluate(() => window.__MOCK_CTRL__.last());
+    assert('ST section up sends move_section with previous sibling bid', sectionUp.op === 'move_section');
+
     // A pending structural item NEVER paints its payload into the anchor block.
     await page.evaluate((ref) => window.SonstengEditor.applyPending([
       { block_index: 5, source_ref: ref, status: 'pending', kind: 'insert_after',
