@@ -1229,7 +1229,7 @@ export async function productionTransitionEndpoint(request, env, auth) {
   return result.ok ? json(result) : editError(result.reason || "conflict", "Release transition rejected.", 409);
 }
 
-// Metadata only. The existing digest consumes suggestions, not error events.
+// Metadata only: error records feed the existing admin digest.
 function logMeta(fields) {
   try { console.log(JSON.stringify({ t: Date.now(), ...fields })); } catch {}
 }
@@ -1251,6 +1251,18 @@ export async function clientErrorEndpoint(request, env, auth) {
   const gate = await env.BUDGET.getByName("global-v1").claimAssessmentRequest(
     "editor-client-error:" + attributionLabel(auth.editor), 30);
   if (!gate.ok) return editError("rate_limited", "Please wait before reporting again.", 429);
+  await editorStub(env).recordClientError({ kind: body.kind, page: body.page,
+    status: body.status, attribution: attributionLabel(auth.editor) });
   logMeta({ ev: "editor_client_error", kind: body.kind, page: body.page, status: body.status });
   return json({ ok: true });
+}
+
+// ---- GET /edit/v1/client-errors (admin; bounded metadata only) ---------------
+export async function clientErrorsEndpoint(request, env, auth) {
+  if (!auth?.scopes?.admin?.granted) return editError("forbidden", "Admin scope required.", 403);
+  const raw = new URL(request.url).searchParams.get("since");
+  const since = raw === null ? 0 : Number(raw);
+  if ((raw !== null && !/^\d+$/.test(raw)) || !Number.isSafeInteger(since) || since < 0)
+    return editError("validation_error", "since must be epoch milliseconds.", 400);
+  return json({ ok: true, items: await editorStub(env).listClientErrors(since) });
 }

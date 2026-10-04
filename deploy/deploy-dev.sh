@@ -12,6 +12,10 @@ PROJECT=sonsteng          # explicit Compose project name — MUST be unique on 
                           #  --remove-orphans here.)
 BRANCH="${1:-main}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+if [ "$#" -eq 0 ]; then
+  BRANCH=origin/main
+  git -C "$ROOT" fetch origin main
+fi
 STAGE="$(mktemp -d)"; trap 'rm -rf "$STAGE"' EXIT
 
 echo "→ staging '$BRANCH' from $ROOT"

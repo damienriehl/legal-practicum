@@ -42,9 +42,9 @@ def test_editor_liveness_copy_names_the_editing_site_not_public_prod():
     guide = (ROOT / "docs/editor-guide-for-john.md").read_text()
 
     assert "Your edits appear on the editing site automatically (~2 min)." in editor
-    assert "Your edits appear on the editing site automatically (~2 min)." in guide
-    assert "Available on DEV — waiting for Publisher" in guide
-    assert "approval alone does not publish it" in guide
+    assert "You're editing the practicum. Click EDIT beside any paragraph to change it. Changes save on their own." in guide
+    assert "on its way to the editing site" in guide
+    assert "Damien reviews changes before they reach the public" in guide
 
 
 def test_dev_deploy_permissions_do_not_depend_on_operator_umask():

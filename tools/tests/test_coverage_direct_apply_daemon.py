@@ -219,6 +219,7 @@ def test_invalid_guard_preserves_retry_state_and_never_runs_engine(tmp_path, gua
     {"failure_reason":"fetch_failed","fetch_rc":0},
     {"failure_reason":"fetch_failed","fetch_rc":True},
     {"fetch_rc":1}, {"fetch_stderr":"private"},
+    {"fast_forwarded":1}, {"fast_forwarded":"true"},
 ])
 def test_checkout_status_rejects_inconsistent_metadata(configuration):
     with pytest.raises(ValueError):

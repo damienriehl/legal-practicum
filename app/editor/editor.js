@@ -1131,13 +1131,25 @@
     });
   }
 
+  function collapseSourceWhitespace(el) {
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    var node, first = null, last = null;
+    while ((node = walker.nextNode())) {
+      node.nodeValue = node.nodeValue.replace(/[ \t\r\n\f]+/g, ' ');
+      if (!first) first = node;
+      last = node;
+    }
+    if (first) first.nodeValue = first.nodeValue.replace(/^[ \t\r\n\f]+/, '');
+    if (last) last.nodeValue = last.nodeValue.replace(/[ \t\r\n\f]+$/, '');
+  }
+
   function makeEditable(s, focus) {
     if (!s.editable) return;
     // Redlines are review chrome, never editable prose. Restore the canonical
     // block before exposing contenteditable so deleted text cannot be saved.
     if (s._reviewRendered) { restoreOriginal(s); s._reviewRendered = false; }
-    if (s.state === ST.IDLE) setBlockText(s, (s.dirty ? s.snapshot : s.el.textContent).replace(/\s+/g, ' ').trim());
     try { s.el.setAttribute('contenteditable', 'plaintext-only'); } catch (e) { s.el.setAttribute('contenteditable', 'true'); }
+    if (s.state === ST.IDLE && !s.dirty) collapseSourceWhitespace(s.el);
     s.el.setAttribute('role', 'textbox');
     s.el.setAttribute('aria-label', 'Editable paragraph' + (s.kind ? '' : ''));
     if (focus) { try { s.el.focus(); } catch (e) {} enterEdit(s); }
@@ -1151,8 +1163,7 @@
     if (!s.suggestionId) s.suggestionId = uuid();   // R2 mint ONCE per edit-session
     hideNote(s); hideReauth(s);
     reconcileDraft(s);                              // R8 re-poll on (re)entry
-    // Reconciliation may restore a draft after makeEditable cleaned the source.
-    setBlockText(s, normalizeWs(s.el.textContent));
+    if (!s.dirty) collapseSourceWhitespace(s.el);
     if (s.shared && !IS_ADMIN) showNote(s, 'This wording also appears on other pages.');
     showBar(s);
     log('EDIT enter ref=' + s.ref + ' id=' + (s.suggestionId || '').slice(0, 8));

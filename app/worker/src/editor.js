@@ -21,7 +21,7 @@ import {
 } from "./assessment-endpoints.js";
 import { serveAsset } from "./editor-assets.js";
 import {
-  clientErrorEndpoint, suggestEndpoint, systemSuggestEndpoint, pendingEndpoint, reviewJsonEndpoint,
+  clientErrorsEndpoint, clientErrorEndpoint, suggestEndpoint, systemSuggestEndpoint, pendingEndpoint, reviewJsonEndpoint,
   scopeEndpoint, scopedRequestEndpoint, scopedRequestsEndpoint,
   scopedClaimEndpoint, scopedResolveEndpoint, groupStatusEndpoint,
   decideEndpoint, digestEndpoint, claimEndpoint, finalizeEndpoint, reviewBackfillEndpoint,
@@ -178,6 +178,8 @@ export async function editorFetch(request, env, ctx) {
   }
 
   // ---- /edit/v1/* JSON endpoints --------------------------------------------
+  if (path === "/edit/v1/client-errors" && request.method === "GET")
+    return wrap(await clientErrorsEndpoint(request, env, auth));
   if (path === "/edit/v1/client-error" && request.method === "POST")
     return wrap(await clientErrorEndpoint(request, env, auth));
   if (path === "/edit/v1/suggest" && request.method === "POST")

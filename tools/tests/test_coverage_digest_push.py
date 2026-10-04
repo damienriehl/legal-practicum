@@ -24,6 +24,7 @@ def test_real_file_url_to_cli_digest_does_not_write_state_or_publish(tmp_path, m
              'source_ref': f'data/matters/m{i:02d}/facts.md#b', 'new_text': 'private fixture prose'} for i in range(8)]
     (tmp_path / 'review').write_text(json.dumps({'items': rows}))
     monkeypatch.setenv(digest.ENV_API_BASE, tmp_path.as_uri())
+    monkeypatch.setattr(digest, 'fetch_client_errors', lambda *_a: [])
     state = tmp_path / 'state.json'
     assert digest.main(['--dry-run', '--state-file', str(state)]) == 0
     output = capsys.readouterr().out

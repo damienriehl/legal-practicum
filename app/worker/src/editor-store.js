@@ -43,6 +43,8 @@ export class EditorStore extends DurableObject {
   heartbeatAgeS() { return this.core.heartbeatAgeS(); }
   listForEditor(editor, page) { return this.core.listForEditor(editor, page); }
   listForPage(page) { return this.core.listForPage(page); }
+  recordClientError(input) { return this.core.recordClientError(input); }
+  listClientErrors(since) { return this.core.listClientErrors(since); }
   listAll() { return this.core.listAll(); }
   decide(args) { return this.core.decide(args); }
   markDrift(id) { return this.core.markDrift(id); }

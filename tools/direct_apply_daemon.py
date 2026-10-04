@@ -44,7 +44,8 @@ upstream, or an invalid result refuses the whole transaction before mutation.
 The refusal heartbeats unhealthy, sends a metadata-only ntfy alert, and leaves
 accepted rows / revert journal state intact for a later tick. The guard fetches
 only the selected branch's exact upstream and fails closed if that bounded fetch
-does not succeed; it never advances the local deploy branch.
+does not succeed. A clean checkout strictly behind its upstream is fast-forwarded
+with a bounded ff-only merge before the transaction is permitted.
 
 Python 3, stdlib only. Every side effect (review fetch, engine run, rebuild,
 deploy, deploy guard, heartbeat, notify, clock) is injectable so the
@@ -374,13 +375,17 @@ class DeployCheckoutStatus:
     fetch_rc: int | None = None
     fetch_stderr: str = ""
     upstream_fallback: bool = False
+    fast_forwarded: bool = False
 
     def __post_init__(self):
+        if not isinstance(self.fast_forwarded, bool):
+            raise ValueError("fast_forwarded must be a boolean")
         if (self.behind is not None and
                 (not isinstance(self.behind, int) or
                  isinstance(self.behind, bool) or self.behind < 0)):
             raise ValueError("behind must be a nonnegative integer or None")
-        if self.failure_reason not in (None, "fetch_failed"):
+        if self.failure_reason not in (None, "fetch_failed", "dirty_checkout",
+                                       "diverged", "fast_forward_failed"):
             raise ValueError("unsupported deploy-checkout failure reason")
         if self.failure_reason is not None and self.behind is not None:
             raise ValueError("a failed status cannot carry a behind count")
@@ -414,6 +419,7 @@ class DeployCheckoutStatus:
             "behind": self.behind,
             "upstream_fallback": self.upstream_fallback,
             "fetch_rc": self.fetch_rc,
+            "fast_forwarded": self.fast_forwarded,
         }
 
 
@@ -422,18 +428,19 @@ def checkout_deploy_status(
         fetch=None, fetch_timeout=DEPLOY_GUARD_FETCH_TIMEOUT):
     """Return whether every local ref consumed by a deploy is current.
 
-    ``deploy-dev.sh`` archives the configured local branch, while revert Worker
-    deploys bundle the checkout and the apply engine bases its deploy worktree on
+    ``deploy-dev.sh`` archives the explicitly configured local branch, while
+    revert Worker deploys bundle the checkout and the apply engine bases its worktree on
     HEAD. The configured and checked-out branch must therefore be identical. That
     exact branch is compared with its own freshly fetched upstream. Any inability
-    to prove a zero behind count fails closed. ``git`` and ``fetch`` are injectable
-    for hermetic unit tests.
+    to prove a clean checkout with zero ahead and behind counts fails closed.
+    ``git`` and ``fetch`` are injectable for hermetic unit tests.
     """
     git = git or (lambda args: _git(args, repo_root))
     fetch = fetch or (lambda args: _fetch_git(args, repo_root, fetch_timeout))
 
     def compare(local_ref):
         upstream_fallback = False
+        fast_forwarded = False
         try:
             rc, _ = git(["show-ref", "--verify", "--quiet", local_ref])
             if rc != 0:
@@ -507,9 +514,49 @@ def checkout_deploy_status(
             behind = int(output.strip())
             if behind < 0:
                 raise ValueError("negative behind count")
+
+            rc, head_ref = git(["symbolic-ref", "--quiet", "HEAD"])
+            if rc != 0 or head_ref.strip() != local_ref:
+                return DeployCheckoutStatus(
+                    behind if behind > 0 else None,
+                    upstream_fallback=upstream_fallback)
+
+            rc, output = git(["status", "--porcelain", "--untracked-files=all"])
+            if rc != 0:
+                return DeployCheckoutStatus(upstream_fallback=upstream_fallback)
+            if output.strip():
+                return DeployCheckoutStatus(
+                    failure_reason="dirty_checkout", upstream_fallback=upstream_fallback)
+            rc, output = git(
+                ["rev-list", "--count", "%s..%s" % (upstream_ref, local_ref)])
+            if rc != 0:
+                return DeployCheckoutStatus(upstream_fallback=upstream_fallback)
+            ahead = int(output.strip())
+            if ahead < 0:
+                raise ValueError("negative ahead count")
+            if ahead > 0:
+                return DeployCheckoutStatus(
+                    failure_reason="diverged", upstream_fallback=upstream_fallback)
+            if behind > 0:
+                try:
+                    rc, _ = git(["merge", "--ff-only", upstream_ref])
+                    if rc != 0:
+                        raise ValueError("fast-forward failed")
+                    fast_forwarded = True
+                    rc, output = git(
+                        ["rev-list", "--count", "%s..%s" % (local_ref, upstream_ref)])
+                    behind = int(output.strip())
+                    if rc != 0 or behind != 0:
+                        raise ValueError("fast-forward did not reach upstream")
+                except Exception:
+                    return DeployCheckoutStatus(
+                        failure_reason="fast_forward_failed",
+                        upstream_fallback=upstream_fallback,
+                        fast_forwarded=fast_forwarded)
         except Exception:
             return DeployCheckoutStatus(upstream_fallback=upstream_fallback)
-        return DeployCheckoutStatus(behind, upstream_fallback=upstream_fallback)
+        return DeployCheckoutStatus(
+            behind, upstream_fallback=upstream_fallback, fast_forwarded=fast_forwarded)
 
     try:
         deploy_ref = "refs/heads/" + branch
@@ -818,6 +865,10 @@ def notify_deploy_refusal(status, *, topic_resolver=None, publish=None):
                 "refresh the guarded deploy ref's upstream (git fetch rc %d). "
                 "No deploy ran. Repair upstream access, then let a later tick retry."
                 % status.fetch_rc)
+    elif status.failure_reason in ("dirty_checkout", "diverged", "fast_forward_failed"):
+        body = ("The home-box apply daemon refused to deploy (%s). "
+                "No deploy ran. Repair the checkout, then let a later tick retry."
+                % status.failure_reason)
     else:
         body = ("The home-box apply daemon refused to deploy because it could not prove "
                 "that every guarded deploy ref is current with its recorded upstream. "
@@ -997,6 +1048,8 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
             detail = "guarded deploy ref is behind upstream by %d commit(s)" % status.behind
         elif status.failure_reason == "fetch_failed":
             detail = "guarded deploy ref upstream fetch failed (rc %d)" % status.fetch_rc
+        elif status.failure_reason in ("dirty_checkout", "diverged", "fast_forward_failed"):
+            detail = "guarded deploy checkout refused (%s)" % status.failure_reason
         else:
             detail = "guarded deploy ref or upstream is unresolvable"
         print("[daemon] deploy REFUSED: %s. No mutation or deploy ran; retry state preserved."

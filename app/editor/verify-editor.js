@@ -118,7 +118,10 @@ async function run() {
 
   // John's role is injected exactly as it is by the Worker.
   for (const width of [1280, 390]) {
-    const john = await browser.newPage();
+    const ctx = await (browser.createBrowserContext
+      ? browser.createBrowserContext()
+      : browser.createIncognitoBrowserContext());
+    const john = await ctx.newPage();
     await john.setViewport({ width, height: 844 });
     await john.setRequestInterception(true);
     john.on('request', req => {
@@ -130,8 +133,18 @@ async function run() {
     });
     await john.goto(HARNESS, { waitUntil: 'load' });
     await john.waitForFunction(() => window.SonstengEditor && window.SonstengEditor.ready() >= 4);
-    await john.evaluate(() => { localStorage.removeItem('sonsteng-type-lg'); localStorage.removeItem('sonsteng_type_lg'); });
+    await john.evaluate(() => {
+      localStorage.removeItem('sonsteng-type-lg');
+      localStorage.removeItem('sonsteng_type_lg');
+      // Start with clean draft storage in this pass's isolated context.
+      for (const storage of [localStorage, sessionStorage]) {
+        for (const key of Object.keys(storage)) {
+          if (key.startsWith('sonsteng_edit_draft:')) storage.removeItem(key);
+        }
+      }
+    });
     await john.reload({ waitUntil: 'load' });
+    await john.waitForFunction(() => window.SonstengEditor && window.SonstengEditor.ready() >= 4);
     const ui = await john.evaluate(() => ({
       banner: window.SonstengEditor.bannerText(), large: document.documentElement.classList.contains('type-lg'),
       links: document.querySelectorAll('.editor-banner__history, .editor-banner__student').length,
@@ -144,16 +157,38 @@ async function run() {
     await john.evaluate(() => Array.from(document.querySelectorAll('.editor-banner button')).find(b => b.textContent === 'Help').click());
     assert('J R4 help without configured contact at ' + width,
       await john.$eval('.editor-help', n => !n.hidden && n.textContent.includes('Leave a comment - Damien reads every one.')));
-    await john.click('.editor-banner .segmented-toggle button:first-child');
+    await john.waitForSelector('.editor-banner .segmented-toggle button:first-child', { visible: true });
+    await john.evaluate(() => document.querySelector('.editor-banner .segmented-toggle button:first-child').click());
     await john.reload({ waitUntil: 'load' });
     assert('J R4 remembers standard type at ' + width, await john.evaluate(() => !document.documentElement.classList.contains('type-lg')));
     const cleanEntry = await john.evaluate(() => {
       const original = window.SonstengEditor.block(1).originalText;
-      document.querySelector('[data-eb-index="1"]').textContent = original.replace(/ /g, ' \n   ');
+      const paragraph = document.querySelector('[data-eb-index="1"]');
+      paragraph.textContent = original.replace(/ /g, ' \n   ');
       window.SonstengEditor.focusBlock(1);
-      return window.SonstengEditor.blockText(1);
+      return { text: paragraph.textContent, dirty: window.SonstengEditor.block(1).dirty };
     });
-    assert('J R3 edit entry collapses source line breaks at ' + width, !/[\n\r]/.test(cleanEntry));
+    await john.evaluate(() => document.querySelector('button[aria-label="Done editing this paragraph"]').click());
+    const cleanEntryCalls = await john.evaluate(() => window.__MOCK_CTRL__.server().calls);
+    assert('J R3 edit entry collapses source line breaks at ' + width,
+      !cleanEntry.text.includes('\n') && !cleanEntry.text.includes('  ') &&
+      !cleanEntry.dirty && cleanEntryCalls === 0,
+      JSON.stringify(cleanEntry));
+    await john.evaluate(() => {
+      const paragraph = document.querySelector('[data-eb-index="5"]');
+      const link = document.createElement('a');
+      link.href = '#fixture-link';
+      link.textContent = paragraph.textContent;
+      paragraph.replaceChildren(link);
+      window.SonstengEditor.focusBlock(5);
+    });
+    await john.evaluate(() => document.querySelector('button[aria-label="Done editing this paragraph"]').click());
+    const unchangedLink = await john.evaluate(() => ({
+      link: !!document.querySelector('[data-eb-index="5"] a'),
+      calls: window.__MOCK_CTRL__.server().calls
+    }));
+    assert('J F1 unchanged link survives edit and Done without a send at ' + width,
+      unchangedLink.link && unchangedLink.calls === 0);
     await john.evaluate(() => window.SonstengEditor.focusBlock(4));
     assert('J R4 shared wording warning appears only while editing at ' + width,
       await john.evaluate(() => window.SonstengEditor.noteText(4) === 'This wording also appears on other pages.'));
@@ -187,10 +222,11 @@ async function run() {
     assert('J R5 signed-out report contains metadata only at ' + width,
       expired.reports.length === 1 && expired.reports[0].kind === 'signed-out' &&
       Object.keys(expired.reports[0]).sort().join(',') === 'kind,page,status');
-    await john.click('.eb-reauth button');
+    await john.waitForSelector('.eb-reauth button', { visible: true });
+    await john.evaluate(() => document.querySelector('.eb-reauth button').click());
     await john.waitForFunction(() => window.SonstengEditor && /Draft survives/.test(window.SonstengEditor.block(1).snapshot));
     assert('J R2 sign-in button reload restores draft at ' + width, true);
-    await john.close();
+    await ctx.close();
   }
 
   /* ======================= DESKTOP (Windows-ish 1280) ==================== */

@@ -100,7 +100,7 @@ run_offline_redteam_probe() {
 }
 
 run_editor_client() {
-  run_node app/editor/verify-editor.js | grep -E "ASSERTION SUMMARY|FAIL "
+  (unset NODE_OPTIONS NODE_PATH; timeout 600 "$NODE_BIN" app/editor/verify-editor.js) | grep -E "ASSERTION SUMMARY|FAIL "
   return "${PIPESTATUS[0]}"
 }
 

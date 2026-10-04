@@ -16,6 +16,17 @@ function node(tag = 'div') {
     addEventListener(k, fn) { events[k] = fn; }, focus() {},
   };
 }
+function textNode(value) {
+  return { nodeType: 3, nodeValue: value, get textContent() { return this.nodeValue; } };
+}
+function textBlock(tag = 'p') {
+  const block = node(tag);
+  Object.defineProperty(block, 'textContent', {
+    get() { return this.children.map(child => child.textContent).join(''); },
+    set(value) { this.children.length = 0; this.appendChild(textNode(value)); }
+  });
+  return block;
+}
 function harness({ role = 'editor', contact = '', stored = {}, blockedStorage = false } = {}) {
   const body = node('body'), root = node('html'), requests = [], timers = new Map();
   let clock = 0, reloads = 0;
@@ -24,6 +35,19 @@ function harness({ role = 'editor', contact = '', stored = {}, blockedStorage = 
   const document = {
     body, documentElement: root, readyState: 'loading',
     createElement: node, createElementNS: (ns, tag) => node(tag), addEventListener() {},
+    createTreeWalker(root, whatToShow) {
+      assert.equal(whatToShow, 4);
+      const texts = [];
+      function visit(parent) {
+        for (const child of parent.children || []) {
+          if (child.nodeType === 3) texts.push(child);
+          else visit(child);
+        }
+      }
+      visit(root);
+      let index = 0;
+      return { nextNode() { return texts[index++] || null; } };
+    },
     getElementById(id) { return id === 'editor-map-data' ? { textContent: JSON.stringify({ page: 'index.html', viewer_role: role, help_contact: contact, student_view_url: 'https://example.org/platform/', blocks: [] }) } : null; },
   };
   const window = { addEventListener() {}, requestAnimationFrame() {}, crypto: null };
@@ -31,7 +55,7 @@ function harness({ role = 'editor', contact = '', stored = {}, blockedStorage = 
     Object.defineProperty(window, name, { get() { if (blockedStorage) throw new Error('disabled'); return storage; } });
   }
   const context = {
-    window, document, location: { pathname: '/edit/index.html', reload() { reloads++; } }, TextEncoder,
+    window, document, NodeFilter: { SHOW_TEXT: 4 }, location: { pathname: '/edit/index.html', reload() { reloads++; } }, TextEncoder,
     setTimeout(fn) { timers.set(++clock, fn); return clock; }, clearTimeout(id) { timers.delete(id); }, setInterval() {},
     fetch: async (url, opts) => { requests.push({ url, opts }); return { ok: true, status: 200, json: async () => ({}) }; },
   };
@@ -43,7 +67,7 @@ function harness({ role = 'editor', contact = '', stored = {}, blockedStorage = 
   return { context, window, client: window.testClient, memory, body, root, requests, timers, get reloads() { return reloads; } };
 }
 function session(h, text = 'Source\n    paragraph.') {
-  const block = node('p'); block.textContent = text; block.parentNode = h.body;
+  const block = textBlock(); block.textContent = text; block.parentNode = h.body;
   const s = h.client.makeSession({ index: 0, source_ref: 'data/copy/test.json#body.b12345678', kind: 'prose', original_text: text, original_hash: 'hash' }, block, true, false);
   s._status = node('span');
   return s;
@@ -66,6 +90,9 @@ test('R2 opaque Access redirect and 401 save drafts, cancel timers, and show one
     assert.equal(panel.children[0].textContent, "You've been signed out. Your words are saved.");
     assert.equal(panel.children[1].textContent, 'Sign in again');
     assert.equal(panel.children[2].textContent, "We'll email you a link - just click it.");
+    h.client.makeEditable(s, true);
+    h.client.finishEditing();
+    assert.equal(s.dirty, true);
     panel.children[1].events.click(); assert.equal(h.reloads, 1);
     assert.equal(h.requests[0].opts.redirect, 'manual');
     const draft = [...h.memory.entries()].find(([k]) => k.startsWith('sonsteng_edit_draft:'));
@@ -79,26 +106,66 @@ test('R2 opaque Access redirect and 401 save drafts, cancel timers, and show one
     assert.deepEqual(report, { kind: 'signed-out', page: 'index.html', status: 401 });
   }
 });
-test('R3 edit entry collapses source whitespace and whitespace-only Done sends nothing', async () => {
+test('R3 edit entry collapses source text nodes in place and whitespace-only Done sends nothing', () => {
   const h = harness(), s = session(h);
+  const sourceNode = s.el.children[0];
   h.client.wireBlock(s);
   h.client.makeEditable(s, true);
   assert.equal(s.el.textContent, 'Source paragraph.');
+  assert.equal(s.el.children[0], sourceNode);
+  assert.equal(sourceNode.nodeValue, 'Source paragraph.');
+  assert.equal(s.dirty, false);
   assert.equal(h.window.SonstengEditor.normalize(s.originalText), h.window.SonstengEditor.normalize(s.el.textContent));
-  s.el.textContent = '  Source\n    paragraph.  ';
+  sourceNode.nodeValue = '  Source\n    paragraph.  ';
   s.el.events.input();
   assert.equal(s.dirty, false);
   h.client.finishEditing();
+  assert.equal(s.el.children[0], sourceNode);
   assert.equal(h.requests.length, 0);
+  assert.equal(s.dirty, false);
 });
-test('R3 entering a restored draft collapses its whitespace before editing', () => {
-  const h = harness(), s = session(h);
-  s.dirty = true; s.snapshot = 'Restored\n    draft wording'; s.suggestionId = 'restored-id';
-  h.memory.set('sonsteng_edit_draft:index.html|' + s.ref, JSON.stringify({
-    original_hash: s.originalHash, new_text: s.snapshot, suggestion_id: s.suggestionId
-  }));
-  h.client.makeEditable(s, true);
-  assert.equal(s.el.textContent, 'Restored draft wording');
+test('F1 edit entry and unchanged Done preserve inline links without sending', () => {
+  const h = harness(), block = textBlock(), link = textBlock('a');
+  const leading = textNode('  Source\n    '), linked = textNode('paragraph\t  text');
+  const trailing = textNode('.\n  ');
+  link.setAttribute('href', '/guide');
+  link.appendChild(linked);
+  block.appendChild(leading); block.appendChild(link); block.appendChild(trailing);
+  Object.defineProperty(block, 'innerHTML', {
+    get() { return this.children.map(child => child === link
+      ? '<a href="' + link.attrs.href + '">' + link.textContent + '</a>'
+      : child.textContent).join(''); },
+    set() { assert.fail('Edit entry and unchanged Done must not rewrite innerHTML'); }
+  });
+  block.parentNode = h.body;
+  const s = h.client.makeSession({ index: 0, source_ref: 'linked', kind: 'prose',
+    original_text: block.textContent, original_hash: 'hash' }, block, true, false);
+  s._status = node('span');
+  h.client.wireBlock(s); h.client.makeEditable(s, true);
+  const collapsed = 'Source <a href="/guide">paragraph text</a>.';
+  assert.equal(block.innerHTML, collapsed);
+  assert.equal(block.textContent, 'Source paragraph text.');
+  assert.equal(block.children.length, 3);
+  assert.equal(block.children[0], leading);
+  assert.equal(block.children[1], link);
+  assert.equal(block.children[2], trailing);
+  assert.equal(link.children[0], linked);
+  assert.equal(leading.nodeValue, 'Source ');
+  assert.equal(linked.nodeValue, 'paragraph text');
+  assert.equal(trailing.nodeValue, '.');
+  assert.equal(s.dirty, false);
+  assert.equal('contenteditable' in block.attrs, true);
+  h.client.finishEditing();
+  assert.equal(block.innerHTML, collapsed);
+  assert.equal(block.children.length, 3);
+  assert.equal(block.children[0], leading);
+  assert.equal(block.children[1], link);
+  assert.equal(block.children[2], trailing);
+  assert.equal(link.children[0], linked);
+  assert.equal(link.attrs.href, '/guide');
+  assert.equal('contenteditable' in block.attrs, false);
+  assert.equal(h.requests.length, 0);
+  assert.equal(s.dirty, false);
 });
 test('R4 author bar, help contact, type defaults and preferences; admin keeps tools', () => {
   for (const options of [{}, { contact: 'Contact Damien through the office' }, { blockedStorage: true },

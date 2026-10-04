@@ -495,11 +495,47 @@ export class EditorStoreCore {
     this._ensureColumn("production_noop_applications", "match", "TEXT NOT NULL DEFAULT 'exact'");
     this._ensureColumn("production_review_revisions", "source_original_text", "TEXT");
     this._ensureColumn("production_review_revisions", "source_proposed_text", "TEXT");
+    this._migrateClientErrors();
     this._backfillReviewOperations();
     this.sql.exec(`INSERT OR IGNORE INTO production_published_operation_sources
       (operation_id,source_ref,release_id,candidate_sha,published_at)
       SELECT operation_id,source_ref,release_id,candidate_sha,published_at
       FROM production_published_operations`);
+  }
+
+  _migrateClientErrors() {
+    const migrationId = "client-errors-v1";
+    if (this._one("SELECT id FROM editor_schema_migrations WHERE id=?", migrationId)) return;
+    this.transactionSync(() => {
+      this.sql.exec(`CREATE TABLE IF NOT EXISTS client_errors (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL,
+        kind TEXT NOT NULL, page TEXT NOT NULL, status INTEGER NOT NULL,
+        attribution TEXT NOT NULL
+      ); CREATE INDEX IF NOT EXISTS client_errors_at ON client_errors(at);`);
+      this.sql.exec("INSERT INTO editor_schema_migrations (id,applied_at) VALUES (?,?)",
+        migrationId, this.now());
+    });
+  }
+
+  recordClientError({ kind, page, status, attribution }) {
+    return this.transactionSync(() => {
+      // Strictly increasing timestamps keep the timestamp-only digest cursor
+      // lossless when several reports arrive in the same millisecond.
+      const last = this._one("SELECT MAX(at) AS at FROM client_errors");
+      const at = Math.max(this.now(), (last?.at || 0) + 1);
+      this.sql.exec("INSERT INTO client_errors (at,kind,page,status,attribution) VALUES (?,?,?,?,?)",
+        at, kind, page, status, attribution);
+      this.sql.exec("DELETE FROM client_errors WHERE at < ?", this.now() - 30 * 86400000);
+      this.sql.exec(`DELETE FROM client_errors WHERE id IN (
+        SELECT id FROM client_errors ORDER BY at DESC,id DESC LIMIT -1 OFFSET 1000)`);
+      return { ok: true };
+    });
+  }
+
+  listClientErrors(since) {
+    // Oldest first: a bounded page must never skip unconsumed errors.
+    return this._all(`SELECT at,kind,page,status,attribution FROM client_errors
+      WHERE at > ? ORDER BY at ASC,id ASC LIMIT 200`, since);
   }
 
   _backfillReviewOperations() {

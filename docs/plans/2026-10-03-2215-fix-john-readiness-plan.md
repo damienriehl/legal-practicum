@@ -39,6 +39,7 @@ monthly re-sign-in painless (U2) and records the cap for Damien.
 | J2 | P2 | Two Large Type controls (the bar's STANDARD/LARGE TYPE and the page's "A+ LARGE TYPE"). |
 | J4 | P2 | "SHARED TEXT" labels across headings are jargon. |
 | J12 | P1 | Client-side editor failures (401, network, CSRF, conflict) never reach Damien. |
+| J13 | P0 | The direct-apply daemon refuses every tick while its checkout is behind `origin/main`, and nothing fast-forwards it. Every merge to `main` therefore stalls John's auto-apply ("Auto-apply paused") until an operator updates the checkout by hand. On 2026-10-03 it was 4 commits behind; the orchestrator fast-forwarded it. `deploy-dev.sh` defaults to the same stale local `main`. |
 | J1 | P2 | The Access sign-in page is small Cloudflare-branded text with a random hostname and no explanation. The code email also carries a "finish logging in" link, simpler than typing six digits. |
 
 ## Product Contract
@@ -74,6 +75,10 @@ Applies to non-admin editor slots (John, Roger). Damien's admin view keeps its t
   so the home-box ntfy digest can alert Damien. Reuse existing alert plumbing; add no new secret.
 - R6 (J1). Customize the Access login design text to explain the step in plain words
   (Cloudflare configuration, done by the orchestrator through the authorized Cloudflare API).
+- R8 (J13). Before its freshness guard, the daemon fast-forwards its checkout with
+  `git merge --ff-only` from the fetched upstream when the tree is clean and the branch matches.
+  It still refuses (and alerts) when the tree is dirty, the branch diverged, or the fast-forward
+  fails. `deploy-dev.sh` with no argument deploys `origin/main` after a fetch, not the local ref.
 - R7. Update `docs/editor-guide-for-john.md` to match the new UI exactly, and add the John path to
   the persona harness so a deploy cannot silently change what he sees.
 
@@ -84,6 +89,8 @@ Applies to non-admin editor slots (John, Roger). Damien's admin view keeps its t
 - U2 (Codex worker B). R2, R3, R4, R5 in `app/editor/`, `app/worker/src/editor-inject.js`,
   `editor-endpoints.js`, `editor.css`, with tests in `app/worker/test/` and
   `app/editor/verify-editor.js`.
+- U4 (Codex worker C). R8 in `tools/direct_apply_daemon.py` and `deploy/deploy-dev.sh`, with
+  tests beside the existing daemon freshness tests.
 - U3 (orchestrator). R6 via the Cloudflare API; R7 docs; deploy the DEV Worker; re-walk live.
 
 ## Verification Contract
@@ -96,3 +103,16 @@ shows the sign-in panel instead of looping; edit mode shows clean text; John's b
 
 Merged on `main`; DEV Worker and static site deployed; the second live walk passes; the guide
 matches the UI; Damien gets the note to send.
+
+
+## Follow-ups
+
+- F2 (R5/J12) done: `/edit/v1/client-error` now persists metadata-only errors
+  after the existing atomic BudgetCounter gate (30 reports/day). The migrated
+  `client_errors` table retains at most 1000 rows and prunes records older than
+  30 days on insert. Admin-only `/edit/v1/client-errors?since=<epoch ms>` returns
+  the oldest 200 new records. `tools/digest_push.py` consumes them through the
+  existing ntfy digest, alerts even when suggestions are unchanged, and persists
+  its high-water mark after successful publication. No paragraph text or new
+  secret is used. Signed-out telemetry remains best-effort: expired Access can
+  also block the authenticated reporting endpoint.
