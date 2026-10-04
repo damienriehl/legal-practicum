@@ -3083,7 +3083,7 @@ def build_firm_dashboard(corpus):
   <span><span class="label">STATUS</span> <span class="chip">ALL MATTERS</span></span>
   <button type="button" class="viz-toggle mono" id="viz-patterns" aria-pressed="false" title="Overlay line patterns on chart fills (accessibility / print)">PATTERNS</button>
   <p class="viz-note" style="margin:0"{snapshot_note_eb}>{snapshot_note}</p>
-  <a href="../templates/index.html#tpl-running-the-firm-with-technology">{technology_exercise_title}</a>
+  <p class="viz-note" style="margin:0">Exercise: <a href="../templates/index.html#tpl-running-the-firm-with-technology">{technology_exercise_title}</a></p>
 </div>
 {defs}
 

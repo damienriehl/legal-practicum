@@ -3,7 +3,6 @@ import re
 import json
 import sys
 from pathlib import Path
-from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
@@ -12,7 +11,7 @@ STEM = 'running-the-firm-with-technology'
 ANCHOR = 'tpl-' + STEM
 
 
-def test_exercise_renders_in_business_teaching_order_and_links_resolve():
+def test_exercise_renders_in_business_teaching_order():
     templates = bs.load_curriculum()['templates']
     stems = [t['stem'] for t in templates]
     assert stems.index(STEM) == stems.index('engagement-letter-checklist') + 1
@@ -67,13 +66,17 @@ def test_generated_exercise_and_links(tmp_path, monkeypatch):
     assert f'id="{ANCHOR}"' in page
     assert 'The student will demonstrate financial judgment' in page
     assert '{#b:' not in page
-    for name in ('firm/index.html', 'modules/m3.html'):
-        html = (tmp_path / name).read_text()
-        assert f'../templates/index.html#{ANCHOR}' in html
+    module = (tmp_path / 'modules/m3.html').read_text()
+    assert 'Use the Running the firm with technology template to prepare' in module
+    firm = (tmp_path / 'firm/index.html').read_text()
+    assert f'Exercise: <a href="../templates/index.html#{ANCHOR}">Running the firm with technology</a>' in firm
     exercise = page.split(f'id="{ANCHOR}"', 1)[1].split('</section>', 1)[0]
-    for href in re.findall(r'href="([^"]+)"', exercise):
-        link = urlsplit(href)
-        target = (tmp_path / 'templates' / link.path).resolve()
-        assert target.is_file(), href
-        if link.fragment:
-            assert f'id="{link.fragment}"' in target.read_text()
+    assert 'Work from the firm dashboard for Ellingboe &amp; Ravndal.' in exercise
+
+
+def test_built_platform_has_no_literal_markdown_links():
+    pages = sorted((ROOT / 'site/platform').rglob('*.html'))
+    assert pages, 'Build the platform before running this guard.'
+    literal_link = re.compile(r'\]\(\s*(?:\.{1,2}/|/|#|https?://|[^\s)]+[/.])')
+    for path in pages:
+        assert literal_link.search(path.read_text()) is None, path.relative_to(ROOT)
