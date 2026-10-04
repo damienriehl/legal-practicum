@@ -497,6 +497,8 @@
   var ICON_TRASH = ['M4 7h16', 'M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2', 'M6.5 7l.8 12a1 1 0 0 0 1 .9h7.4a1 1 0 0 0 1-.9l.8-12', 'M10 11v6', 'M14 11v6'];
   var ICON_UP = ['M12 19V5', 'M6 11l6-6 6 6'];
   var ICON_DOWN = ['M12 5v14', 'M6 13l6 6 6-6'];
+  var ICON_SECTION_UP = ['M6 11l6-6 6 6', 'M6 19l6-6 6 6'];
+  var ICON_SECTION_DOWN = ['M6 5l6 6 6-6', 'M6 13l6 6 6-6'];
 
   /* ---------- structural operations (U4) -----------------------------------
      Add / remove / move whole paragraphs. Each is a suggestion of a structural
@@ -801,19 +803,23 @@
     });
   }
 
+  function isHeadingBlock(s) {
+    return !!s.headingLevel || /^H[1-6]$/.test(s.el.tagName);
+  }
+
   function sectionSibling(s, dir) {
-    if (!/^H[1-6]$/.test(s.el.tagName) || !/(\.|#)b[0-9a-f]{8}$/.test(s.ref)) return null;
+    if (!isHeadingBlock(s) || !/(\.|#)b[0-9a-f]{8}$/.test(s.ref)) return null;
     var candidates = outermostCandidates(document.querySelector('main'));
     var level = s.headingLevel || parseInt(s.el.tagName.slice(1), 10);
     var start = candidates.indexOf(s.el);
     if (start < 0) return null;
     for (var i = start + dir; i >= 0 && i < candidates.length; i += dir) {
       var node = candidates[i];
-      if (!/^H[1-6]$/.test(node.tagName)) continue;
       var peer = null;
       for (var key in byIndex) {
         if (byIndex[key].el === node) { peer = byIndex[key]; break; }
       }
+      if (!(peer && isHeadingBlock(peer)) && !/^H[1-6]$/.test(node.tagName)) continue;
       var otherLevel = (peer && peer.headingLevel) || parseInt(node.tagName.slice(1), 10);
       if (otherLevel > level) continue;
       if (otherLevel < level) return null;
@@ -1022,25 +1028,25 @@
       for (var pk = 0; pk < peers.length; pk++) {
         if (peers[pk].source_ref === s.ref) { pi = pk; break; }
       }
-      if (pi >= 2) {
+      if (!isHeadingBlock(s) && pi >= 2) {
         t.appendChild(actButton(s, 'up', 'Move up', ICON_UP,
           'move this paragraph one place earlier (Damien approves it first)',
           function () { requestMove(s, -1); }));
       }
-      if (pi >= 0 && pi + 1 < peers.length) {
+      if (!isHeadingBlock(s) && pi >= 0 && pi + 1 < peers.length) {
         t.appendChild(actButton(s, 'down', 'Move down', ICON_DOWN,
           'move this paragraph one place later (Damien approves it first)',
           function () { requestMove(s, 1); }));
       }
     }
-    if (s.editable && s.kind === 'prose' && /^H[1-6]$/.test(s.el.tagName)) {
+    if (s.editable && s.kind === 'prose' && isHeadingBlock(s)) {
       if (sectionSibling(s, -1)) {
-        t.appendChild(actButton(s, 'section-up', 'Move section up', ICON_UP,
+        t.appendChild(actButton(s, 'section-up', 'Move section up', ICON_SECTION_UP,
           'move this section one place earlier (Damien approves it first)',
           function () { requestSectionMove(s, -1); }));
       }
       if (sectionSibling(s, 1)) {
-        t.appendChild(actButton(s, 'section-down', 'Move section down', ICON_DOWN,
+        t.appendChild(actButton(s, 'section-down', 'Move section down', ICON_SECTION_DOWN,
           'move this section one place later (Damien approves it first)',
           function () { requestSectionMove(s, 1); }));
       }
