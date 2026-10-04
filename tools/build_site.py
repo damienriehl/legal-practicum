@@ -1931,7 +1931,7 @@ def build_skills(corpus):
   <div class="ext-header section-head">
     <p class="eyebrow" style="color:var(--claret)">EXTENSION · NOT PART OF THE SURVEYED 26</p>
     <h2 id="ext-h">Extension skills for evolving technology</h2>
-    <p class="matter-card__premise">Added for the centaur layer; kept visually and structurally
+    <p class="matter-card__premise">Added for responsible use of technology; kept visually and structurally
     separate from the surveyed canon.</p>
   </div>
   {ext}

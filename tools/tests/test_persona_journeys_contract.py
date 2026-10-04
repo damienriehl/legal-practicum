@@ -209,7 +209,7 @@ def test_repaired_browser_journey_contracts_are_pinned() -> None:
 
     assert journeys["pitch-public-navigation"]["viewports"] == ["desktop"]
     assert any(
-        step.get("kind") == "text" and step.get("selector") == "#skills" and step.get("text") == "The empirical proof"
+        step.get("kind") == "text" and step.get("selector") == "#students" and step.get("text") == "What students come to law school for"
         for step in journeys["pitch-public-navigation"]["steps"]
     )
     phone_nav = journeys["pitch-phone-nav-hidden"]

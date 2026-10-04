@@ -21,22 +21,34 @@ ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "site"
 PAGE_SIZE_CEILING = 250_000
 AUTHOR_SURNAMES = ("Sonsteng", "Riehl", "Haydock")
+AUTHOR_FIRST_NAMES = ("John", "Damien", "Roger")
+EXPECTED_SECTION_IDS = (
+    "already", "students", "every-student", "practicum", "people", "contents",
+    "gains", "free", "questions", "react",
+)
+EXPECTED_PILLAR_LABELS = (
+    "You already teach this way", "What students come to law school for",
+    "For every student", "Midstate and Rogers", "People first; technology is the tool",
+    "Book, curriculum, and platform", "What your school gains",
+    "Free to use, with optional help", "Questions deans ask",
+)
 EXPECTED_PROOF_SUMMARIES = (
+    "THE PROOF · learning by doing",
     "THE PROOF · 19,077 attorneys surveyed",
-    "THE PROOF · ~1,438 assessed points",
-    "THE PROOF · 70-point client-development gap",
-    "THE PROOF · diagnosis, method, and open resource",
-    "THE PROOF · 3 layers, 1 open whole",
-    "THE PROOF · 24/7 first-pass feedback",
+    "THE PROOF · practice inside the course",
+    "THE PROOF · prepare, perform, integrate",
+    "THE PROOF · faculty supervision and first-pass feedback",
     "THE PROOF · all 26 skills mapped",
+    "THE PROOF · compare cost per credit",
     "THE PROOF · CC BY 4.0 content + MIT code",
-    "THE PROOF · 8 decision prompts captured in one place",
+    "THE PROOF · start with what you already do well",
+    "THE PROOF · reactions captured in one place",
 )
 EXPECTED_LENGTH_LABELS = ("One week", "Three weeks", "Full semester")
 EXPECTED_VIEWPORT_CONTENT = "width=device-width, initial-scale=1"
 
 _AUTHOR_RE = re.compile(
-    r"\b(?:" + "|".join(re.escape(name) for name in AUTHOR_SURNAMES) + r")\b",
+    r"\b(?:" + "|".join(re.escape(name) for name in (*AUTHOR_SURNAMES, *AUTHOR_FIRST_NAMES)) + r")\b",
     re.IGNORECASE,
 )
 _STATISTIC_RE = re.compile(r"(?<!\w)\d")
@@ -163,6 +175,53 @@ def _is_content_text(node: Text, has_main: bool) -> bool:
     # HTML5 permits omitted html/body tags.  The current hand-authored pitch
     # uses that form, so the document root is the content fallback.
     return True
+
+
+def visible_text(parser: PageParser) -> str:
+    """Reader-facing copy, including closed proofs and accessible UI labels."""
+    def visible(element: Element) -> bool:
+        return not any(
+            ancestor.tag in _HIDDEN_TAGS | {"head"}
+            or "hidden" in ancestor.attrs
+            or ancestor.attrs.get("aria-hidden") == "true"
+            for ancestor in _ancestors(element)
+        )
+
+    parts = [node.value for node in parser.text_nodes if visible(node.parent)]
+    # Include labels a reader encounters without counting labels that duplicate
+    # their element's text (e.g. Comments). Skill-ref technical IDs are not prose.
+    for element in parser.elements:
+        if not visible(element):
+            continue
+        for attribute in ("placeholder", "alt", "aria-label"):
+            value = element.attrs.get(attribute, "")
+            if value and not value.startswith("Skills: SK-") and value != _descendant_text(element).strip():
+                parts.append(value)
+    return " ".join(" ".join(parts).split())
+
+
+def visible_counts(parser: PageParser) -> tuple[int, int]:
+    text = visible_text(parser)
+    return (len(re.findall(r"\b[\w~$%]+(?:[-'’][\w]+)*\b", text)),
+            len(re.findall(r"\bAI\b", text, re.IGNORECASE)))
+
+
+def _pitch_language_errors(parser: PageParser) -> list[str]:
+    text = visible_text(parser)
+    errors = []
+    word_count, ai_count = visible_counts(parser)
+    if word_count > 2_400:
+        errors.append(f"pitch visible text has {word_count:,} words; maximum is 2,400")
+    if ai_count > 8:
+        errors.append(f"pitch visible text has {ai_count} standalone AI mentions; maximum is 8")
+    forbidden = r"\b(?:centaur|human\s*\+\s*ai|broken\s+promise|renaissance,?\s+realized|magnum\s+opus|jury|critiques?|diversity|trusted\s+advisors?)\b"
+    for match in re.finditer(forbidden, text, re.IGNORECASE):
+        errors.append(f"pitch forbidden visible wording: {match.group()}")
+    for element in parser.elements:
+        if element.tag in {"h1", "h2", "h3", "h4", "li"} or set(element.attrs.get("class", "").split()) & {"lede", "eyebrow", "kicker"}:
+            if re.match(r"\s*AI\b", _descendant_text(element), re.IGNORECASE):
+                errors.append("pitch must not put AI first in a heading, list or tagline")
+    return errors
 
 
 def _inside_proof(node: Text, proof_blocks: set[int]) -> bool:
@@ -352,12 +411,13 @@ def _content_errors(parser: PageParser) -> list[str]:
         # prose.  Names elsewhere in the page's content remain prohibited.
         if not any(element.tag == "cite" for element in _ancestors(node.parent)):
             for match in _AUTHOR_RE.finditer(node.value):
-                surname = next(
+                author_name = next(
                     name
-                    for name in AUTHOR_SURNAMES
+                    for name in (*AUTHOR_SURNAMES, *AUTHOR_FIRST_NAMES)
                     if name.casefold() == match.group(0).casefold()
                 )
-                errors.append(f"line {node.line}: author surname in body prose: {surname}")
+                label = "surname" if author_name in AUTHOR_SURNAMES else "name"
+                errors.append(f"line {node.line}: author {label} in body prose: {author_name}")
         if not _inside_proof(node, proof_blocks) and _STATISTIC_RE.search(node.value):
             excerpt = " ".join(node.value.split())
             if len(excerpt) > 80:
@@ -508,8 +568,14 @@ def _pitch_contract_errors(parser: PageParser, source: str) -> list[str]:
 
     sections = [element for element in parser.elements if element.tag == "section"]
     summaries: list[str] = []
-    if len(sections) != 9:
-        errors.append("pitch requires exactly nine major sections")
+    if len(sections) != len(EXPECTED_SECTION_IDS):
+        errors.append("pitch requires exactly ten major sections")
+    if tuple(section.attrs.get("id") for section in sections) != EXPECTED_SECTION_IDS:
+        errors.append("pitch sections do not match the approved persuasion spine")
+    pillars = [element.attrs.get("data-k") for element in parser.elements
+               if "fbrow" in element.attrs.get("class", "").split()]
+    if tuple(pillars) != EXPECTED_PILLAR_LABELS:
+        errors.append("pitch reaction pillars do not match the approved list")
 
     for section in sections:
         proofs = [
@@ -558,11 +624,10 @@ def _pitch_contract_errors(parser: PageParser, source: str) -> list[str]:
 
     errors.extend(_drawer_focus_errors(parser, source))
 
-    if len(sections) >= 2:
-        first_ids = [section.attrs.get("id") for section in sections[:2]]
-        if first_ids != ["problem", "practicum"]:
-            errors.append("pitch must open with the problem, then the Midstate demonstration")
-        demonstration = _descendant_text(sections[1])
+    demonstration_section = next((section for section in sections
+                                  if section.attrs.get("id") == "practicum"), None)
+    if demonstration_section is not None:
+        demonstration = _descendant_text(demonstration_section)
         for term in ("Midstate", "SPEU", "Pat Rogers"):
             if term not in demonstration:
                 errors.append(f"pitch demonstration must name {term}")
@@ -603,21 +668,7 @@ def _pitch_contract_errors(parser: PageParser, source: str) -> list[str]:
         if not all(label in length_text for label in EXPECTED_LENGTH_LABELS):
             errors.append(f"line {fields[2].line}: matter cover omits a proposed length option")
 
-    text = " ".join(
-        node.value
-        for node in parser.text_nodes
-        if _is_content_text(node, any(element.tag == "main" for element in parser.elements))
-        and not any(
-            ancestor.tag == "article"
-            and "matter-cover" in ancestor.attrs.get("class", "").split()
-            for ancestor in _ancestors(node.parent)
-        )
-    )
-    word_count = len(re.findall(r"\b[\w~$%]+(?:[-'’][\w]+)*\b", text))
-    if not 1_808 <= word_count <= 2_137:
-        errors.append(
-            f"pitch authored prose has {word_count:,} words; expected 1,808–2,137"
-        )
+    errors.extend(_pitch_language_errors(parser))
     return errors
 
 

@@ -9,8 +9,8 @@
       "binding": "steps",
       "steps": [
         {"op": "goto", "path": "/"},
-        {"op": "assert", "kind": "text", "selector": "h1", "text": "Training the next generation", "check": 1},
-        {"op": "assert", "kind": "a11yName", "selector": "h1", "expected": "Training the next generation of lawyers.", "check": 1},
+        {"op": "assert", "kind": "text", "selector": "h1", "text": "Good in theory.", "check": 1},
+        {"op": "assert", "kind": "a11yName", "selector": "h1", "expected": "Good in theory. Better in practice. Practice ready.", "check": 1},
         {"op": "assert", "kind": "a11yRole", "selector": "h1", "expected": "heading", "check": 1}
       ]
     },
@@ -24,7 +24,7 @@
         {"op": "goto", "path": "/"},
         {"op": "click", "selector": "details.proof summary"},
         {"op": "assert", "kind": "attr", "selector": "details.proof", "attr": "open", "value": "", "check": 1},
-        {"op": "assert", "kind": "text", "selector": "details.proof[open] .reveal", "text": "19,077 Minnesota attorneys", "check": 2}
+        {"op": "assert", "kind": "text", "selector": "details.proof[open] .reveal", "text": "We are teaching for tomorrow, not yesterday.", "check": 2}
       ]
     },
     {
@@ -136,7 +136,7 @@
         {"op": "goto", "path": "/"},
         {"op": "assert", "kind": "attr", "selector": "#proofToggle", "attr": "aria-expanded", "value": "false", "check": 1},
         {"op": "click", "selector": "#proofToggle"},
-        {"op": "assert", "kind": "selector", "selector": "details.proof[open]", "count": 9, "check": 2},
+        {"op": "assert", "kind": "selector", "selector": "details.proof[open]", "count": 10, "check": 2},
         {"op": "assert", "kind": "text", "selector": "#proofToggle", "text": "Collapse all sections", "check": 2},
         {"op": "click", "selector": "#proofToggle"},
         {"op": "assert", "kind": "attr", "selector": "#proofToggle", "attr": "aria-expanded", "value": "false", "check": 3},
@@ -153,15 +153,15 @@
       "steps": [
         {"op": "goto", "path": "/"},
         {"op": "assert", "kind": "selector", "selector": "nav .navlinks a", "count": 9, "check": 1},
-        {"op": "click", "name": "The Evidence"},
-        {"op": "waitFor", "url": "#skills"},
-        {"op": "assert", "kind": "url", "url": "#skills", "check": 2},
-        {"op": "assert", "kind": "text", "selector": "#skills", "text": "The empirical proof", "check": 2},
-        {"op": "click", "name": "Open"},
-        {"op": "waitFor", "url": "#where"},
-        {"op": "assert", "kind": "text", "selector": "#where", "text": "Given away, so it outlives us.", "check": 3},
-        {"op": "focus", "name": "Open"},
-        {"op": "assert", "kind": "focusOn", "name": "Open", "check": 4}
+        {"op": "click", "name": "Your students"},
+        {"op": "waitFor", "url": "#students"},
+        {"op": "assert", "kind": "url", "url": "#students", "check": 2},
+        {"op": "assert", "kind": "text", "selector": "#students", "text": "What students come to law school for", "check": 2},
+        {"op": "click", "name": "Materials"},
+        {"op": "waitFor", "url": "#contents"},
+        {"op": "assert", "kind": "text", "selector": "#contents", "text": "What is in it", "check": 3},
+        {"op": "focus", "name": "Materials"},
+        {"op": "assert", "kind": "focusOn", "name": "Materials", "check": 4}
       ]
     },
     {
@@ -186,7 +186,7 @@
         {"op": "goto", "path": "/"},
         {"op": "assert", "kind": "selector", "selector": "html", "noHorizontalOverflow": true, "check": 1},
         {"op": "assert", "kind": "selector", "selector": ".hero-cta", "visible": true, "check": 2},
-        {"op": "assert", "kind": "selector", "selector": "details.proof summary", "count": 9, "check": 2},
+        {"op": "assert", "kind": "selector", "selector": "details.proof summary", "count": 10, "check": 2},
         {"op": "click", "selector": "#cOpen"},
         {"op": "assert", "kind": "selector", "selector": "#cClose", "visible": true, "check": 3},
         {"op": "assert", "kind": "selector", "selector": "#cActiveText", "check": 3}
@@ -290,7 +290,7 @@
         {"op": "click", "selector": "button[data-target=\"viz1-tbl\"]"},
         {"op": "assert", "kind": "attr", "selector": "button[data-target=\"viz1-tbl\"]", "attr": "aria-expanded", "value": "true", "check": 2},
         {"op": "goto", "path": "/platform/templates/"},
-        {"op": "assert", "kind": "selector", "selector": ".template-doc", "count": 9, "check": 3},
+        {"op": "assert", "kind": "selector", "selector": ".template-doc", "count": 10, "check": 3},
         {"op": "assert", "kind": "text", "selector": "#tpl-time-sheet", "text": "Weekly Time Sheet", "check": 3},
         {"op": "assert", "kind": "selector", "selector": ".breadcrumb a", "check": 4}
       ]

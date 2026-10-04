@@ -125,10 +125,10 @@ def test_cli_aggregates_violations_and_continues_to_valid_page(tmp_path, capsys)
 
 @pytest.mark.parametrize('original,replacement,expected', [
     ('<main id="main" tabindex="-1">', '<main id="different" tabindex="-1">', 'one main landmark'),
-    ('<section id="skills">', '<section></section><section id="skills">', 'exactly nine major sections'),
+    ('<section id="students" class="">', '<section></section><section id="students" class="">', 'exactly ten major sections'),
     ('<details class="proof">', '<details class="proof" open>', 'closed by default'),
     (pitch.EXPECTED_PROOF_SUMMARIES[1], pitch.EXPECTED_PROOF_SUMMARIES[0], 'summaries must be unique'),
-    ('id="problem"', 'id="different"', 'must open with the problem'),
+    ('id="already"', 'id="different"', 'approved persuasion spine'),
     ('Midstate', 'Otherstate', 'demonstration must name Midstate'),
     ('SPEU', 'Union', 'demonstration must name SPEU'),
     ('Pat Rogers', 'Someone Else', 'demonstration must name Pat Rogers'),
@@ -162,11 +162,11 @@ def test_skip_link_after_main_is_rejected(tmp_path):
     assert 'pitch Skip to content link must precede the main landmark' in pitch._pitch_contract_errors(pitch._parse(page), source)
 
 
-def test_short_pitch_reports_word_count_and_structure_through_public_api(tmp_path):
-    page = write_page(tmp_path, '<main><script>querySelectorAll(\'details.proof\')</script><p>Brief.</p></main>')
+def test_oversize_pitch_reports_word_count_and_structure_through_public_api(tmp_path):
+    page = write_page(tmp_path, '<main><script>querySelectorAll(\'details.proof\')</script><p>' + 'Practice ' * 2401 + '</p></main>')
     errors = pitch.verify_page(page)
-    assert any('authored prose has 1 words' in error for error in errors)
-    assert any('exactly nine major sections' in error for error in errors)
+    assert any('visible text has 2,401 words' in error for error in errors)
+    assert any('exactly ten major sections' in error for error in errors)
 
 
 def test_unterminated_javascript_function_is_not_a_valid_focus_contract():
