@@ -757,6 +757,7 @@ CURRICULUM_TEMPLATES = [
     ("what-to-expect",             "What to expect",               "ORIENTATION"),
     ("time-sheet",                 "Weekly Time Sheet",            "TIME & BILLING"),
     ("engagement-letter-checklist","Engagement-Letter Checklist",  "CLIENT INTAKE"),
+    ("running-the-firm-with-technology", "Running the firm with technology", "FIRM MANAGEMENT"),
     ("client-questionnaire",       "Client Questionnaire",         "CLIENT INTAKE"),
     ("client-interview-plan",      "Client-Interview Plan",        "FACT DEVELOPMENT"),
     ("ssnp",                       "Strategic Settlement & Negotiation Plan", "NEGOTIATION"),
@@ -3082,6 +3083,7 @@ def build_firm_dashboard(corpus):
   <span><span class="label">STATUS</span> <span class="chip">ALL MATTERS</span></span>
   <button type="button" class="viz-toggle mono" id="viz-patterns" aria-pressed="false" title="Overlay line patterns on chart fills (accessibility / print)">PATTERNS</button>
   <p class="viz-note" style="margin:0"{snapshot_note_eb}>{snapshot_note}</p>
+  <a href="../templates/index.html#tpl-running-the-firm-with-technology">{technology_exercise_title}</a>
 </div>
 {defs}
 
@@ -3112,6 +3114,8 @@ def build_firm_dashboard(corpus):
            provenance_after=esc(provenance_after), provenance_after_eb=provenance_after_eb,
            provenance_path_locked=provenance_path_locked,
            snapshot_note=esc(snapshot_note), snapshot_note_eb=snapshot_note_eb,
+           technology_exercise_title=esc(next(t[1] for t in CURRICULUM_TEMPLATES
+                                             if t[0] == "running-the-firm-with-technology")),
            downloads_eyebrow=esc(downloads_eyebrow), downloads_eyebrow_eb=downloads_eyebrow_eb,
            downloads_heading=esc(downloads_heading), downloads_heading_eb=downloads_heading_eb,
            note=esc(ident.get("letterhead_note", "")), kpis="".join(kpis), defs=_pattern_defs(),
