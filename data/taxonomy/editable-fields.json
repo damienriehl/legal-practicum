@@ -210,7 +210,7 @@
       "source_ref": "data/taxonomy/skills.json#skills.28.name",
       "family": "skill_name",
       "record_id": "SK-LP-20",
-      "authored_text": "Centaur workflow judgment"
+      "authored_text": "Judgment in technology-supported work"
     },
     {
       "source_ref": "data/taxonomy/skills.json#skills.29.name",
@@ -4476,7 +4476,7 @@
       "source_ref": "data/taxonomy/folio-crosswalk.json#tasks.100.note",
       "family": "no_folio_note",
       "record_id": "TSK-101",
-      "authored_text": "Centaur delegation judgment is an AI-era skill not modeled in FOLIO."
+      "authored_text": "Judgment in delegating tasks to technology is an extension skill not modeled in FOLIO."
     },
     {
       "source_ref": "data/taxonomy/folio-crosswalk.json#tasks.101.note",

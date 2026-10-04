@@ -47,7 +47,7 @@ def test_pitch_has_one_click_nav_and_inline_delivery_cost_routes():
     href = 'href="cost-per-credit.html"'
     assert html.count(href) >= 2
     assert re.search(r'<nav[\s\S]*?href="cost-per-credit\.html"', html)
-    assert re.search(r'class="ledger"[\s\S]*?href="cost-per-credit\.html"', html)
+    assert re.search(r'id="gains"[\s\S]*?href="cost-per-credit\.html"', html)
 
 
 def test_four_comparator_cost_inputs_start_blank_with_units_and_ranges():

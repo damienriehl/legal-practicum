@@ -22,19 +22,8 @@ EXPECTED_PROOF_SUMMARIES = list(verify_pitch.EXPECTED_PROOF_SUMMARIES)
 
 
 def content_word_count(parser: verify_pitch.PageParser) -> int:
-    """Count pitch prose, including closed disclosures but excluding data cards."""
-    has_main = any(element.tag == "main" for element in parser.elements)
-    text = " ".join(
-        node.value
-        for node in parser.text_nodes
-        if verify_pitch._is_content_text(node, has_main)
-        and not any(
-            ancestor.tag == "article"
-            and "matter-cover" in ancestor.attrs.get("class", "").split()
-            for ancestor in verify_pitch._ancestors(node.parent)
-        )
-    )
-    return len(re.findall(r"\b[\w~$%]+(?:[-'\u2019][\w]+)*\b", text))
+    """Count all reader-facing pitch text, including disclosures and cards."""
+    return verify_pitch.visible_counts(parser)[0]
 
 
 def proof_contract_errors(path: Path) -> list[str]:
@@ -237,7 +226,7 @@ def test_transfer_weight_does_not_increase_violation_count(page: Path):
     assert "verify_pitch: 1 violation(s)" in result.stderr
 
 
-def test_pitch_has_nine_closed_unique_direct_child_proofs_with_exact_summaries():
+def test_pitch_has_ten_closed_unique_direct_child_proofs_with_exact_summaries():
     assert proof_contract_errors(ROOT / "site/index.html") == []
 
 
@@ -307,9 +296,9 @@ def test_pitch_accessibility_contract_mutations_are_caught(
     assert expected_error in "\n".join(verify_pitch.verify_page(path))
 
 
-def test_pitch_authored_prose_retains_55_to_65_percent_of_baseline():
+def test_pitch_visible_text_meets_persuasion_word_budget():
     count = content_word_count(verify_pitch._parse(ROOT / "site/index.html"))
-    assert 1_808 <= count <= 2_137
+    assert count <= 2_400
 
 
 def test_statistics_tables_and_citations_are_inside_their_section_proof():
@@ -471,14 +460,14 @@ def test_comments_drawer_focus_management_allows_javascript_whitespace(tmp_path:
     ) == []
 
 
-def test_pitch_opens_problem_then_midstate_demonstration():
+def test_pitch_follows_persuasion_spine_and_keeps_midstate_demonstration():
     parser = verify_pitch._parse(ROOT / "site/index.html")
     section_ids = [
         element.attrs.get("id")
         for element in parser.elements
         if element.tag == "section"
     ]
-    assert section_ids[:2] == ["problem", "practicum"]
+    assert tuple(section_ids) == verify_pitch.EXPECTED_SECTION_IDS
     demonstration = next(
         element for element in parser.elements
         if element.tag == "section" and element.attrs.get("id") == "practicum"
@@ -598,7 +587,7 @@ def test_pitch_reaction_notes_and_groups_are_named_by_unique_headings():
     parser = verify_pitch._parse(ROOT / "site/index.html")
     rows = [element for element in parser.elements
             if "fbrow" in element.attrs.get("class", "").split()]
-    assert len(rows) == 8
+    assert len(rows) == 9
     heading_ids = []
     names = []
     for row in rows:
@@ -618,7 +607,7 @@ def test_pitch_reaction_notes_and_groups_are_named_by_unique_headings():
         assert group.attrs.get("aria-labelledby") == heading_id
         heading_ids.append(heading_id)
         names.append(note.attrs["name"])
-    assert len(set(heading_ids)) == len(set(names)) == 8
+    assert len(set(heading_ids)) == len(set(names)) == 9
 
 
 def test_pitch_reaction_pressed_state_tracks_selection_and_isolated_rows():
@@ -636,7 +625,7 @@ function button(){
     classList:{add(c){classes.add(c);},remove(c){classes.delete(c);},
       contains(c){return classes.has(c);}}};
 }
-const rows = Array.from({length:8},()=>{
+const rows = Array.from({length:9},()=>{
   const buttons=[];
   const opts={appendChild(b){buttons.push(b);},querySelectorAll(){return buttons;}};
   const textarea={addEventListener(){}};
@@ -663,8 +652,105 @@ rows.forEach((row,index)=>{
     rows.slice(0,index).forEach(other=>check(other,1));
   }
 });
-assert.equal(updates,32);
+assert.equal(updates,36);
 """
     result = subprocess.run(["node", "-e", harness + script + assertions],
                             capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr
+
+
+def test_pitch_visible_text_obeys_r3_r4():
+    assert verify_pitch._pitch_language_errors(verify_pitch._parse(ROOT / "site/index.html")) == []
+
+
+@pytest.mark.parametrize("copy", ["centaur", "Human&nbsp;+&nbsp;AI", "broken promise",
+    "Renaissance, realized", "Magnum Opus", "jury", "critique", "diversity", "trusted advisors"])
+def test_r4_detects_visible_wording_across_markup(tmp_path, copy):
+    page = tmp_path / "copy.html"
+    page.write_text("<main><p>" + copy + "</p></main>")
+    assert verify_pitch._pitch_language_errors(verify_pitch._parse(page))
+
+
+def test_r3_counts_visible_copy_and_ignores_scripts(tmp_path):
+    page = tmp_path / "copy.html"
+    page.write_text("<style>centaur AI</style><script>Human + AI</script>" +
+                    "<main><p>Practice with " + "AI " * 9 + "</p></main>")
+    assert any("9 standalone AI" in error for error in
+               verify_pitch._pitch_language_errors(verify_pitch._parse(page)))
+    page.write_text('<main><h2>AI tools</h2></main>')
+    assert any("must not put AI first" in error for error in
+               verify_pitch._pitch_language_errors(verify_pitch._parse(page)))
+
+
+def test_pitch_assessment_form_matches_canonical_headings_and_scale():
+    content = json.loads((ROOT / "data/curriculum/assessment-instrument.json").read_text())["content"]
+    parser = verify_pitch._parse(ROOT / "site/index.html")
+    form = next(e for e in parser.elements if e.attrs.get("id") == "assessment-form")
+    rows = [e for e in parser.elements if "data-dimension" in e.attrs
+            and form in tuple(verify_pitch._ancestors(e.parent))]
+    assert [e.attrs["data-dimension"] for e in rows] == [d["id"] for d in content["dimensions"]]
+    headings = [next(c for c in row.children if isinstance(c, verify_pitch.Element) and c.tag == "th")
+                for row in rows]
+    assert [verify_pitch._descendant_text(e).strip() for e in headings] == [d["heading"] for d in content["dimensions"]]
+    scale = next(e for e in parser.elements if e.attrs.get("id") == "assessment-scale")
+    bands = [c for c in scale.children if isinstance(c, verify_pitch.Element) and c.tag == "li"]
+    assert [(int(e.attrs["value"]), verify_pitch._descendant_text(e).strip()) for e in bands] == [
+        (b["score"], b["descriptor"]) for b in content["scale"]["bands"]]
+    assert [int(e.attrs["value"]) for e in bands] == list(range(content["scale"]["minimum"], content["scale"]["maximum"] + 1))
+
+
+@pytest.mark.parametrize("name", ["John", "Damien", "Roger"])
+def test_author_first_name_in_body_prose_fails(page: Path, name: str):
+    page.write_text(
+        VALID_PAGE.replace(
+            "Students learn by doing the work of lawyers.",
+            f"Send your reactions to {name}.",
+        ), encoding="utf-8",
+    )
+    assert f"author name in body prose: {name}" in messages(page)
+
+
+def test_pitch_type_controls_switch_and_restore_preference():
+    source = (ROOT / "site/index.html").read_text(encoding="utf-8")
+    script = source.split("// Self-contained type preference; no external assets or requests.", 1)[1].split(
+        "// proof disclosures:", 1
+    )[0]
+    harness = r"""
+const assert = require('node:assert/strict');
+for (const stored of ['0', '1', null]) {
+  const buttons = {};
+  let enabled = false;
+  let preference = stored;
+  const localStorage = {
+    getItem(key){assert.equal(key, 'sonsteng-type-lg'); return preference;},
+    setItem(key,value){assert.equal(key, 'sonsteng-type-lg'); preference=value;}
+  };
+  const document = {
+    documentElement:{classList:{toggle(name,value){assert.equal(name,'type-lg');enabled=value;}}},
+    getElementById(id){return buttons[id] ||= {
+      attrs:{}, events:{}, setAttribute(k,v){this.attrs[k]=v;},
+      addEventListener(k,v){this.events[k]=v;}
+    };}
+  };
+"""
+    assertions = r"""
+  function check(large){
+    assert.equal(enabled,large);
+    assert.equal(buttons['type-large'].attrs['aria-pressed'],String(large));
+    assert.equal(buttons['type-standard'].attrs['aria-pressed'],String(!large));
+    assert.equal(preference,large?'1':'0');
+  }
+  check(stored==='1');
+  buttons['type-large'].events.click(); check(true);
+  buttons['type-standard'].events.click(); check(false);
+}
+"""
+    result = subprocess.run(["node", "-e", harness + script + assertions],
+                            capture_output=True, text=True, check=False)
+    assert result.returncode == 0, result.stderr
+
+
+def test_cost_page_visible_text_obeys_r3_r4():
+    assert verify_pitch._pitch_language_errors(
+        verify_pitch._parse(ROOT / "site/cost-per-credit.html")
+    ) == []
