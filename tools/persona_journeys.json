@@ -290,7 +290,7 @@
         {"op": "click", "selector": "button[data-target=\"viz1-tbl\"]"},
         {"op": "assert", "kind": "attr", "selector": "button[data-target=\"viz1-tbl\"]", "attr": "aria-expanded", "value": "true", "check": 2},
         {"op": "goto", "path": "/platform/templates/"},
-        {"op": "assert", "kind": "selector", "selector": ".template-doc", "count": 6, "check": 3},
+        {"op": "assert", "kind": "selector", "selector": ".template-doc", "count": 9, "check": 3},
         {"op": "assert", "kind": "text", "selector": "#tpl-time-sheet", "text": "Weekly Time Sheet", "check": 3},
         {"op": "assert", "kind": "selector", "selector": ".breadcrumb a", "check": 4}
       ]

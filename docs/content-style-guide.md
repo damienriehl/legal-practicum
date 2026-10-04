@@ -126,6 +126,7 @@ Aim for realistic lengths; the depth floor is a minimum, not a target.
 ## 9. Platform vocabulary
 
 - Learner-facing educational copy uses **assessment and feedback**, never “grading.” Factual domain terms such as “creamery grader,” a road grade, or a statute that grades an offense remain accurate.
+- **Feedback tone:** Lead with what works and how to keep doing it; give specific next steps, stay formative, and never call work "good" or "bad".
 - Name the combined planning instrument exactly **Planning Guide and Checklist**.
 - AI is the default speaker. Label prerecorded demonstrations accurately; a scripted sample is not a live AI client.
 - Assessment, debrief, and critique return to the requesting learner. Alumni are not assessors or notification recipients.

@@ -748,20 +748,23 @@ def load_corpus():
 # --------------------------------------------------------------------------- #
 # Curriculum handbook layer — volume prose + deliverable templates
 # --------------------------------------------------------------------------- #
-# The six course deliverable templates, in teaching order. Each is authored as
+# The course templates, in teaching order. Each is authored as
 # clean markdown under data/curriculum/templates/ and rendered by the generator
 # onto a single print-friendly platform/templates/ page (see build_templates).
 CURRICULUM_TEMPLATES = [
+    ("what-to-expect",             "What to expect",               "ORIENTATION"),
     ("time-sheet",                 "Weekly Time Sheet",            "TIME & BILLING"),
     ("engagement-letter-checklist","Engagement-Letter Checklist",  "CLIENT INTAKE"),
+    ("client-questionnaire",       "Client Questionnaire",         "CLIENT INTAKE"),
     ("client-interview-plan",      "Client-Interview Plan",        "FACT DEVELOPMENT"),
     ("ssnp",                       "Strategic Settlement & Negotiation Plan", "NEGOTIATION"),
     ("learning-portfolio",         "Learning Portfolio",           "REFLECTION"),
     ("reflective-report",          "Reflective Report",            "REFLECTION"),
+    ("end-of-course-reflection-questionnaire", "End-of-Course Reflection Questionnaire", "REFLECTION"),
 ]
 
 def load_curriculum():
-    """Load the three volume-prose files (m1/m2/m3.md) and the six deliverable
+    """Load the three volume-prose files (m1/m2/m3.md) and the course
     templates as raw markdown. Missing files degrade gracefully to ''."""
     volumes = {}
     for code in ("M1", "M2", "M3"):
@@ -1890,7 +1893,7 @@ def build_skills(corpus):
 <section aria-labelledby="ext-h">
   <div class="ext-header section-head">
     <p class="eyebrow" style="color:var(--claret)">EXTENSION · NOT PART OF THE SURVEYED 26</p>
-    <h2 id="ext-h">Extension skills for evolving technology and AI</h2>
+    <h2 id="ext-h">Extension skills for evolving technology</h2>
     <p class="matter-card__premise">Added for the centaur layer; kept visually and structurally
     separate from the surveyed canon.</p>
   </div>
