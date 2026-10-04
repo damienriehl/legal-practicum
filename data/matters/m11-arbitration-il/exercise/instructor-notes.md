@@ -37,7 +37,7 @@
 - Client interview + debrief: ~90 min. {#b:02b15b83}
 - Witness interviews + chronology: ~90 min. {#b:6b9da266}
 - Theory/forum workshop: ~60–75 min. {#b:0316805c}
-- Statement-of-the-case drafting: out-of-class, ~4–6 hrs; in-class critique ~45 min. {#b:13785d6d}
+- Statement-of-the-case drafting: out-of-class, ~4–6 hrs; in-class feedback ~45 min. {#b:13785d6d}
 - Hearing simulation + settlement counseling: ~120 min. {#b:a958b4b6}
 
 ## Discussion questions {#b:577f4f32}

@@ -27,7 +27,7 @@ EXPECTED_PROOF_SUMMARIES = (
     "THE PROOF · 70-point client-development gap",
     "THE PROOF · diagnosis, method, and open resource",
     "THE PROOF · 3 layers, 1 open whole",
-    "THE PROOF · 24/7 first-pass critique",
+    "THE PROOF · 24/7 first-pass feedback",
     "THE PROOF · all 26 skills mapped",
     "THE PROOF · CC BY 4.0 content + MIT code",
     "THE PROOF · 8 decision prompts captured in one place",

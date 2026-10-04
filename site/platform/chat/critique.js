@@ -22,7 +22,7 @@
   var cfg = {
     matter_id: Q.get('matter') || '',
     packet: Q.get('packet') || '',
-    title: Q.get('title') || 'Deliverable Critique',
+    title: Q.get('title') || 'Deliverable Feedback',
     apiParam: Q.get('api') || '',
     bypass: Q.get('bypass') || ''
   };
@@ -151,7 +151,7 @@
     refs.typeStd = bStd; refs.typeLg = bLg;
 
     var rh = el('div', 'running-head');
-    rh.appendChild(el('span', null, (cfg.matter_id ? cfg.matter_id.toUpperCase() + ' · ' : '') + 'GALLEY PROOF · CRITIQUE'));
+    rh.appendChild(el('span', null, (cfg.matter_id ? cfg.matter_id.toUpperCase() + ' · ' : '') + 'GALLEY PROOF · FEEDBACK'));
     rh.appendChild(el('span', 'rh-spacer'));
     rh.appendChild(el('span', 'rh-right', 'FIRST-PASS REVIEW'));
     wrap.appendChild(rh);
@@ -170,7 +170,7 @@
     var warn = el('div', 'paste-warn');
     warn.setAttribute('role', 'note');
     warn.appendChild(el('span', 'label', 'BEFORE YOU PASTE'));
-    warn.appendChild(el('p', null, 'Do not paste confidential client information or personally identifying details (PII). Use the synthetic practicum matter facts only. Your text is sent to the grading model to produce the critique and is not stored on our servers.'));
+    warn.appendChild(el('p', null, 'Do not paste confidential client information or personally identifying details (PII). Use the synthetic practicum matter facts only. Your text is sent to the grading model to produce the feedback and is not stored on our servers.'));
     wrap.appendChild(warn);
 
     var paste = el('form', 'paste'); paste.setAttribute('novalidate', '');
@@ -181,7 +181,7 @@
     paste.appendChild(ta);
     var prow = el('div', 'paste__row');
     var count = el('span', 'paste__count'); count.id = 'char-count'; count.setAttribute('aria-live', 'polite');
-    var submit = el('button', 'btn', 'Submit for critique'); submit.type = 'submit';
+    var submit = el('button', 'btn', 'Submit for feedback'); submit.type = 'submit';
     prow.appendChild(count); prow.appendChild(submit);
     paste.appendChild(prow);
     wrap.appendChild(paste);
@@ -227,7 +227,7 @@
     var text = refs.ta.value;
     refs.mount.textContent = '';
     if (!text.trim()) {
-      var notice = oversizeOrNotice('Nothing to critique yet', 'Paste a draft deliverable above, then submit.');
+      var notice = oversizeOrNotice('Nothing to review yet', 'Paste a draft deliverable above, then submit.');
       refs.ta.focus({ preventScroll: true });
       notice.scrollIntoView({ block: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
       return;
@@ -251,7 +251,7 @@
     var byok = window.SonstengBYOK && window.SonstengBYOK.get();
     if (byok) body.byok = byok;   // {provider, api_key, model?} — never logged/rendered
     api('/v1/critique', { body: body }).then(function (out) {
-      busy = false; refs.submit.disabled = false; refs.submit.textContent = 'Submit for critique';
+      busy = false; refs.submit.disabled = false; refs.submit.textContent = 'Submit for feedback';
       refs.mount.textContent = '';
       if (out.ok && out.data && out.data.scorecard) {
         // criteria_labels: {criterion_id: name} — sibling of scorecard in the
@@ -277,13 +277,13 @@
           try { sessionStorage.removeItem(K_SESS); } catch (x) {}
           oversizeOrNotice('Session expired', 'Your review session lapsed. Submit again and it will reconnect — your draft is still in the box above.');
         } else {
-          oversizeOrNotice('Couldn’t complete the critique', e.message || 'The grader didn’t respond just now. Please try again in a moment.');
+          oversizeOrNotice('Couldn’t complete the feedback', e.message || 'The grader didn’t respond just now. Please try again in a moment.');
         }
       }
     }, function () {
-      busy = false; refs.submit.disabled = false; refs.submit.textContent = 'Submit for critique';
+      busy = false; refs.submit.disabled = false; refs.submit.textContent = 'Submit for feedback';
       refs.mount.textContent = '';
-      oversizeOrNotice('Couldn’t reach the grader', 'The critique server didn’t answer. Check your connection or API address and try again.');
+      oversizeOrNotice('Couldn’t reach the grader', 'The feedback server didn’t answer. Check your connection or API address and try again.');
     });
     });
   }
@@ -353,7 +353,7 @@
       refs.mount.appendChild(rr);
     }
 
-    var spend = el('p', 'spend-note', 'ONE CRITIQUE · COUNTS AGAINST TODAY’S DEMO BUDGET');
+    var spend = el('p', 'spend-note', 'ONE FEEDBACK SESSION · COUNTS AGAINST TODAY’S DEMO BUDGET');
     refs.mount.appendChild(spend);
 
     try { galley.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) {}

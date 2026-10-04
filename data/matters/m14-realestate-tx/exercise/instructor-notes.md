@@ -33,7 +33,7 @@ This is a three-variable transactional negotiation (access, severed minerals, se
 - Client interview + debrief: ~90 min. {#b:71305199}
 - Title-triage workshop: ~60 min. {#b:255dc14d}
 - Negotiation-strategy build (SSNP): ~75 min. {#b:084b8b52}
-- Drafting deal terms: out-of-class, ~4–6 hrs; in-class critique ~45 min. {#b:319ef632}
+- Drafting deal terms: out-of-class, ~4–6 hrs; in-class feedback ~45 min. {#b:319ef632}
 - Negotiation simulation + counseling: ~120 min. {#b:9d0322e4}
 
 ## Discussion questions {#b:49da8c5c}

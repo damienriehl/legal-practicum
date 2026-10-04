@@ -1890,7 +1890,7 @@ def build_skills(corpus):
 <section aria-labelledby="ext-h">
   <div class="ext-header section-head">
     <p class="eyebrow" style="color:var(--claret)">EXTENSION · NOT PART OF THE SURVEYED 26</p>
-    <h2 id="ext-h">AI-era extension set</h2>
+    <h2 id="ext-h">Extension skills for evolving technology and AI</h2>
     <p class="matter-card__premise">Added for the centaur layer; kept visually and structurally
     separate from the surveyed canon.</p>
   </div>
@@ -2377,7 +2377,7 @@ def build_one_packet(corpus, m, man):
     interview_html = """
   <section class="part no-print" id="interview" aria-labelledby="interview-h">
     <div class="part__head"><span class="part__num" aria-hidden="true">☎</span>
-      <h2 id="interview-h">Interviews &amp; critique</h2></div>
+      <h2 id="interview-h">Interviews &amp; feedback</h2></div>
     <p>Conduct your simulated interviews through the persona engine. The client is yours to
     interview; the represented persona is the Rule 4.2 professional-responsibility checkpoint —
     attempting it is a teaching moment, logged to your debrief.
@@ -2385,7 +2385,7 @@ def build_one_packet(corpus, m, man):
     {rows}
     <div class="cta-row">
       {sample}
-      <a class="btn" href="{crit}">Submit a deliverable for critique</a>
+      <a class="btn" href="{crit}">Submit a deliverable for feedback</a>
     </div>
   </section>""".format(rows="".join(persona_rows), crit=esc(critique_href(rel, m)), sample=sample_cta)
 

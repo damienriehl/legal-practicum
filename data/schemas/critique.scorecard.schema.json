@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://legalpracticum.org/spine/schemas/critique.scorecard.schema.json",
-  "title": "Critique Scorecard",
-  "description": "Typed output of the /critique endpoint: a criterion-by-criterion, point-weighted first-pass critique of a pasted deliverable against a matter's rubric (Sonsteng revise-against-the-rubric loop).",
+  "title": "Feedback Scorecard",
+  "description": "Typed output of the /critique endpoint: criterion-by-criterion, point-weighted first-pass feedback on a pasted deliverable against a matter's rubric (Sonsteng revise-against-the-rubric loop).",
   "version": "1.0.0",
   "type": "object",
   "additionalProperties": false,

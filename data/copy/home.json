@@ -4,7 +4,7 @@
   "page": "home",
   "identity": {
     "title": "Legal Practicum",
-    "byline": "John O. Sonsteng · Damien Riehl · Roger S. Haydock",
+    "byline": "John O. Sonsteng · Damien A. Riehl · Roger S. Haydock",
     "host": "Hosted by Damien Riehl"
   },
   "hero": {
@@ -60,7 +60,7 @@
       "centaur": {
         "meta": "ABOUT THE METHOD",
         "title": "The centaur layer",
-        "description": "Every exercise here ships with a machine-readable rubric and a revise-and-repeat loop — the two halves of a human+AI (“centaur”) pedagogy. AI is the default speaker and gives the first-pass assessment and feedback with unlimited reps; scarce faculty time is reserved for the high-value coaching only a human can give. The simulated client interviews, rubric critiques, and firm dashboard below are that layer, live."
+        "description": "Every exercise here ships with a machine-readable rubric and a revise-and-repeat loop — the two halves of a human+AI (“centaur”) pedagogy. AI is the default speaker and gives the first-pass assessment and feedback with unlimited reps; scarce faculty time is reserved for the high-value coaching only a human can give. The simulated client interviews, rubric feedback, and firm dashboard below are that layer, live."
       }
     }
   }

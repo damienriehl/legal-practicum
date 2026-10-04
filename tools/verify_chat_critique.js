@@ -193,7 +193,7 @@ async function exerciseRegressions(browser) {
         const rect = notice.getBoundingClientRect();
         return rect.top >= 0 && rect.bottom <= innerHeight && document.activeElement.id === 'deliverable';
       });
-      assert(await page.$eval('.oversize', el => el.textContent.includes('Nothing to critique yet')), 'F14 visible empty notice');
+      assert(await page.$eval('.oversize', el => el.textContent.includes('Nothing to review yet')), 'F14 visible empty notice');
     }
     await open('?view=chat&scenario=turnstile_interactive');
     assert(await page.$eval('#cf-turnstile', el => !el.hasAttribute('aria-hidden') && !!el.getAttribute('aria-label')), 'F8 accessible check');
