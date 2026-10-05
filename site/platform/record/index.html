@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; font-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'">
+<title>My practice record — Legal Practicum</title>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../platform.css">
+<link rel="stylesheet" href="record.css">
+<script src="../assets/type-preference.js"></script>
+<script src="../platform.js" defer></script>
+<script src="record-core.js" defer></script>
+<script src="record-storage.js" defer></script>
+<script src="record.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to practice record</a>
+<header class="masthead">
+  <div class="masthead__inner">
+    <a class="masthead__brand" href="../index.html">LEGAL PRACTICUM</a>
+    <span class="masthead__docket mono">PRACTICE RECORD</span>
+    <button type="button" class="type-toggle mono" id="type-toggle" aria-pressed="false" title="Toggle large type">A+ LARGE TYPE</button>
+  </div>
+</header>
+<nav class="breadcrumb" aria-label="Breadcrumb"><a href="../index.html">Home</a><span class="sep" aria-hidden="true">/</span><span>Practice record</span></nav>
+<main id="main" class="wrap record-app" tabindex="-1">
+<h1>My practice record</h1>
+<p class="lede">Recognize the practice and revision that shape your learning.</p>
+<section id="disclosure" class="notice" aria-labelledby="privacy-title">
+<h2 id="privacy-title">Choose where this browser keeps your records</h2>
+<p>Records are never sent to this site or a server. They stay on this device unless you export them. Only the date, matter, activity and summary scores are kept. Persistent storage lasts until you clear it; avoid it on shared devices. Session storage lasts for this tab. Memory lasts only on this page.</p>
+<div id="storage-choices"></div>
+</section>
+<p id="storage-status" role="status" aria-live="polite"></p>
+<section id="record" hidden>
+<h2>Practice milestones</h2>
+<p>Each milestone recognizes effort and progress in your own practice. Three matters or three feedback skill areas mark breadth. A later saved pass for the same matter and activity marks revision; a higher score on the same scale marks improvement. Saving the same feedback twice does not represent a new pass.</p>
+<ul id="milestones"></ul>
+<h2>Saved practice</h2>
+<p id="empty"></p><div id="entries"></div>
+<div class="actions">
+<button type="button" id="export-json">Export JSON</button>
+<button type="button" id="export-csv">Export CSV</button>
+<button type="button" id="print">Print for my Learning Portfolio</button>
+<button type="button" id="clear">Clear all records</button>
+</div>
+<section id="clear-confirmation" hidden aria-labelledby="clear-title">
+<h2 id="clear-title">Clear this practice record?</h2>
+<p>Export first if you may need these entries. Clearing removes every entry in the selected storage.</p>
+<button type="button" id="clear-yes">Clear every entry</button>
+<button type="button" id="clear-cancel">Keep my record</button>
+</section>
+<details><summary>Restore from JSON</summary>
+<p>Import replaces the selected record after preview. Export the current record first to keep a backup. Maximum 1 MB.</p>
+<label>Practice record JSON <input id="import-file" type="file" accept="application/json,.json"></label>
+<button type="button" id="preview-import">Validate and preview</button>
+<p id="import-preview" role="status"></p>
+<button type="button" id="apply-import" hidden>Replace with this import</button>
+</details>
+<p><a href="../templates/index.html#tpl-learning-portfolio">Learning Portfolio template</a></p>
+</section>
+</main></body></html>

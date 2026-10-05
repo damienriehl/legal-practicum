@@ -342,6 +342,7 @@
       margin.appendChild(card);
     });
 
+    if (window.PracticeRecordStorage) window.PracticeRecordStorage.attach(margin, cfg.matter_id, cfg.title, 'written critique', sc);
     galley.appendChild(margin);
     refs.mount.appendChild(galley);
 

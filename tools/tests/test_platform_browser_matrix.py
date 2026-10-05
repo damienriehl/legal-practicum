@@ -119,6 +119,6 @@ def test_semantic_heading_repairs_preserve_the_existing_visible_words():
     # Literal-link repairs change authored editor copy; the exercise lead-in
     # changes visible text. Page identities, headings, and reading order stay fixed.
     baseline = json.loads((TOOLS / "tests/fixtures/platform-semantic-baseline.json").read_text())
-    assert baseline["fields"]["links"] == "ff748a4f874edff14a2512b90b9190e34ba648f87a4f17c61bf500fa006b9b41"
-    assert baseline["fields"]["editor_blocks"] == "cd47e1979be52ab1c145e59b1738d99408cca6c17a3b97689e4e5da94e483298"
-    assert baseline["fields"]["reading_order"] == "341fcb4553eee9ff23fbf78d17044e5eceac876558c3b4e049b4de9cba3a6114"
+    assert baseline["fields"]["links"] == "9379febbd27da39b3019b89ef880ce771c6c608aeb6d0065a9b3d976c68c01c4"
+    assert baseline["fields"]["editor_blocks"] == "6d84247ee7e52e83c603d9e0095d0526f5a9471156c9c5770a04c08daa2fff59"
+    assert baseline["fields"]["reading_order"] == "7f121b12173e33e84f513e9abe6ae705bf76b97095421b1297f5537f76323f91"

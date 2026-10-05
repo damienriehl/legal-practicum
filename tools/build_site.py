@@ -43,6 +43,7 @@ import student_archives
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "data")
 APP_CHAT = os.path.join(ROOT, "app", "chat")
+APP_RECORD = os.path.join(ROOT, "app", "record")
 APP_HOURS = os.path.join(ROOT, "app", "hours")
 SITE = os.path.join(ROOT, "site")
 OUT = os.path.join(SITE, "platform")          # generation root
@@ -1550,6 +1551,12 @@ def build_home(corpus):
       <p class="matter-card__premise"{firm_description_eb}>{firm_description}</p>
       <span class="arrow-link">Open the ledger</span>
     </a>
+    <a class="card" href="record/index.html">
+      <span class="label">PRACTICE</span>
+      <h3>My practice record</h3>
+      <p>Recognize practice and revision in a record kept on your device.</p>
+      <span class="arrow-link">View my practice record</span>
+    </a>
     <a class="card" href="hours/index.html">
       <p class="card__meta">LOCAL-FIRST · PRIVATE BY DEFAULT</p>
       <h3>Weekly hours log</h3>
@@ -1748,8 +1755,9 @@ def build_templates(corpus):
         <h2 id="{a}-h">{ttl}</h2>
       </div>
     </div>
-    <div class="prose">{body}</div>
-  </section>""".format(a=anchor, n=num, kicker=esc(t["kicker"]),
+    <div class="prose">{body}</div>{record_link}
+  </section>""".format(record_link=('\n    <p><a href="../record/index.html">Open My practice record</a></p>'
+                                if t["stem"] == "learning-portfolio" else ""), a=anchor, n=num, kicker=esc(t["kicker"]),
                        ttl=esc(t["title"]),
                        body=markdown(t["md"], src=data_relpath(CURRICULUM_DIR, "templates", t["stem"] + ".md"))))
 
@@ -4064,6 +4072,7 @@ def main(argv):
     write_platform_assets()
     copy_chat_app()
     copy_hours_app()
+    copy_static_app(APP_RECORD, "record", lambda name: name.startswith("verify-"))
 
     build_home(corpus)
     build_getting_started(corpus)
