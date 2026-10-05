@@ -305,6 +305,8 @@ if [ "$WANT_BROWSER" = "1" ]; then
     run "interview + critique matrix"            run_node tools/verify_chat_critique.js
     run "cost-per-credit interactions"           run_node tools/verify_cost_per_credit.js
     run "cost-per-credit accessibility"          run_node tools/a11y_audit.js "file://$ROOT/site/cost-per-credit.html"
+    run "brochure and firms layout + Letter print" run_node tools/verify_brochure_firms.js
+    run "brochure and firms accessibility"        run_node tools/a11y_audit.js "file://$ROOT/site/brochure.html" "file://$ROOT/site/firms.html"
     # ALWAYS runs. It used to be skipped unless TARGET_URL named an /edit URL with
     # a ?t= token — which meant that once the Access door retires those tokens
     # (plan KD1) the gate could never run again and would sit permanently
@@ -332,6 +334,8 @@ if [ "$WANT_BROWSER" = "1" ]; then
     skip "interview + critique" "no reachable X display"
     skip "cost-per-credit"     "no reachable X display"
     skip "cost accessibility"  "no reachable X display"
+    skip "brochure and firms layout + Letter print" "no reachable X display"
+    skip "brochure and firms accessibility" "no reachable X display"
     skip "persona journeys (local browser leg)" "no reachable X display"
   fi
 else
@@ -346,6 +350,8 @@ else
   skip "interview + critique" "--no-browser"
   skip "cost-per-credit"     "--no-browser"
   skip "cost accessibility"  "--no-browser"
+  skip "brochure and firms layout + Letter print" "--no-browser"
+  skip "brochure and firms accessibility" "--no-browser"
   skip "persona journeys (local browser leg)" "--no-browser"
 fi
 
