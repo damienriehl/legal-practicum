@@ -87,3 +87,16 @@ Validation: Phase 1 six phases PASS; Phase 2 eight verify-only phases PASS, each
 Release checks: opening and closing queue proofs PASS, frontier {0, unblocked}; OQ-8 page keys 73/73 against both prior SHAs, personas 59 / fact_map 59 / rubrics 20 identical; OQ-10 generated Worker inputs agree, tree clean; CAS readbacks and all-surface proof daea1e1; exact prior pair restored and intended new pair reactivated, each with inspector readback
 Note: ledger-backfill-20260925 recorded once before attempt 2 for 11 legacy DEV apply batches, all ancestors of 0159c11; not re-run; history reverts remain on hold. Step 8 static deployment retried after restrictive inherited modes caused DEV 403/404 from 19:13:45 to 19:16:30 UTC; retry with umask 022 passed before DEV Worker change; production unaffected. Apply, editorial, and digest timers active/enabled; prod-release inactive/disabled; first apply tick no-op. See docs/uat/editor-publisher-matrix.md for attempt history.
 ```
+
+```
+Date (UTC): 2026-10-05 02:31–02:46
+Candidate SHA: ac3d9fbc0c13838db6e982112cbcc25b6e0ac183 (main after PR #101; includes #98 firm exercise, #99 persuasion pitch, #100 literal-link fix, #101 brochure and firms page)
+Previous Worker version / Pages deployment: 52f259e1-dc1f-4141-ae1d-7212c1d51b40 / 1e41693a-624a-4b7d-9363-c77baf04947d (source daea1e165f1ab56d3eeac22de3bb08ceab572726)
+New Worker version / Pages deployment: c2aac993-92b6-48fb-9903-0ecedbf9da1e / 444c4a5c (https://444c4a5c.sonsteng.pages.dev)
+Worker provenance: 204 + candidate SHA (attempt 2 of bounded retry); /v1/session 403 Turnstile gate as expected
+Pages provenance: 200 + candidate SHA on /, /platform/, /brochure, /firms, /platform/templates/, /platform/firm/, /cost-per-credit
+DEV/production parity: SAME except spine-build metadata on /, /platform/, /brochure, /firms, /platform/templates/ (0 differing lines otherwise)
+Operator: orchestrating agent under Damien's explicit 2026-10-04 instruction ("Please push to prod") and the 2026-09-02 pre-user authority
+Validation: full preflight 25/25 on a clean isolated checkout at the candidate SHA after fresh site, persona, instructor, history and editor-data generation; production dry run clean with no Access-hostname route
+Release checks: tracked tree clean at origin/main after restoring the build stamp; no schema or configuration changes; Publisher release daemon remains config-off and its timer disabled
+```
