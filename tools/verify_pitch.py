@@ -224,6 +224,32 @@ def _pitch_language_errors(parser: PageParser) -> list[str]:
     return errors
 
 
+def _companion_language_errors(parser: PageParser, name: str) -> list[str]:
+    """The brochure and firms page share the approved pitch's plain voice."""
+    text = visible_text(parser)
+    words, ai_count = visible_counts(parser)
+    errors = []
+    if ai_count:
+        errors.append(f"{name} visible text has {ai_count} standalone AI mentions; maximum is 0")
+    forbidden = (
+        r"\b(?:centaur|magnum\s+opus|jury|critiques?|diversity|revolutionary|"
+        r"unlock|leverage|seamless|game[-\s]changing)\b"
+    )
+    for match in re.finditer(forbidden, text, re.IGNORECASE):
+        errors.append(f"{name} forbidden visible wording: {match.group()}")
+    for node in parser.text_nodes:
+        ancestors = tuple(_ancestors(node.parent))
+        if any(element.tag in _HIDDEN_TAGS | {"head"} for element in ancestors):
+            continue
+        if any("byline" in element.attrs.get("class", "").split() for element in ancestors):
+            continue
+        if _AUTHOR_RE.search(node.value):
+            errors.append(f"line {node.line}: {name} author names belong only in the byline")
+    if name == "firms" and not 400 <= words <= 700:
+        errors.append(f"firms visible text has {words} words; expected 400–700")
+    return errors
+
+
 def _inside_proof(node: Text, proof_blocks: set[int]) -> bool:
     return any(id(element) in proof_blocks for element in _ancestors(node.parent))
 
@@ -700,6 +726,8 @@ def verify_page(path: str | Path) -> list[str]:
     errors.extend(_link_errors(page, parser))
     errors.extend(_asset_errors(parser))
     errors.extend(_content_errors(parser))
+    if page.name in {"brochure.html", "firms.html"}:
+        errors.extend(_companion_language_errors(parser, page.stem))
     is_pitch = (
         page.resolve() == (SITE / "index.html").resolve()
         or "querySelectorAll('details.proof')" in source
@@ -749,6 +777,9 @@ def main(argv: list[str] | None = None) -> int:
             for error in errors:
                 print(f"{page}: {error}", file=sys.stderr)
         else:
+            if page.name in {"brochure.html", "firms.html"}:
+                words, ai_count = visible_counts(_parse(page))
+                print(f"{page}: visible words: {words}; AI count: {ai_count}")
             print(f"PASS {page}")
     if failures:
         print(f"verify_pitch: {failures} violation(s)", file=sys.stderr)
