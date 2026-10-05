@@ -62,7 +62,9 @@
        reads its token before minting a session. onload fires window.
        onloadTurnstileCallback (defined in chat.js). async+defer: non-blocking. -->
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback&render=explicit" async defer></script>
-  <script src="byok.js"></script>
+  <script src="../record/record-core.js"></script>
+<script src="../record/record-storage.js"></script>
+<script src="byok.js"></script>
   <script src="chat.js"></script>
 </body>
 </html>

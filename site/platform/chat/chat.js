@@ -1042,6 +1042,7 @@
       d.appendChild(rf);
     }
 
+    if (!cfg.sample && window.PracticeRecordStorage) window.PracticeRecordStorage.attach(d, cfg.matter_id, cfg.title, 'interview', sc);
     mount.appendChild(d);
     try { d.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) {}
   }

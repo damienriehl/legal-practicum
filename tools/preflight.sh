@@ -298,6 +298,7 @@ if [ "$WANT_BROWSER" = "1" ]; then
     run "editor client (background)"             run_editor_client
     run "accessibility audit (0 FAIL required)"  run_node tools/a11y_audit.js
     run "platform layout matrix"                 run_node tools/verify_platform_layout.js
+    run "practice record client behavior"        run_node app/record/verify-record.js
     run "weekly-hours client behavior"           run_node app/hours/verify-hours.js
     run "catalog client behavior"                run_node tools/verify_catalog_client.js
     run "Publisher authorization client"         run_node tools/verify_publisher_client.mjs
@@ -327,6 +328,7 @@ if [ "$WANT_BROWSER" = "1" ]; then
     skip "accessibility audit"  "no reachable X display"
     skip "rail placement"       "no reachable X display"
     skip "platform layout"      "no reachable X display"
+    skip "practice record client" "no reachable X display"
     skip "weekly-hours client"  "no reachable X display"
     skip "catalog client"       "no reachable X display"
     skip "Publisher client"     "no reachable X display"
@@ -343,6 +345,7 @@ else
   skip "accessibility audit"  "--no-browser"
   skip "rail placement"       "--no-browser"
   skip "platform layout"      "--no-browser"
+  skip "practice record client" "--no-browser"
   skip "weekly-hours client"  "--no-browser"
   skip "catalog client"       "--no-browser"
   skip "Publisher client"     "--no-browser"
