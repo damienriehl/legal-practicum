@@ -100,3 +100,16 @@ Operator: orchestrating agent under Damien's explicit 2026-10-04 instruction ("P
 Validation: full preflight 25/25 on a clean isolated checkout at the candidate SHA after fresh site, persona, instructor, history and editor-data generation; production dry run clean with no Access-hostname route
 Release checks: tracked tree clean at origin/main after restoring the build stamp; no schema or configuration changes; Publisher release daemon remains config-off and its timer disabled
 ```
+
+```
+Date (UTC): 2026-10-05 (second release of the day)
+Candidate SHA: 82273eb4d4170019d493c5bb7e78a38f3ac8c9c2 (main after PR #103, local-first practice record, L32 phase 1)
+Previous Worker version / Pages deployment: c2aac993-92b6-48fb-9903-0ecedbf9da1e / 444c4a5c-1566-42dd-a8c4-fe85f91072c7 (source ac3d9fbc0c13838db6e982112cbcc25b6e0ac183)
+New Worker version / Pages deployment: e0a95636-6e23-42be-81d9-35eba693fe6a / a5d3f538 (https://a5d3f538.sonsteng.pages.dev)
+Worker provenance: 204 + candidate SHA on attempt 1; /v1/session 403 Turnstile gate as expected
+Pages provenance: 200 + candidate SHA on /, /platform/, /platform/record/, /platform/chat/critique, /brochure, /firms (matched on attempt 2)
+DEV/production parity: SAME except spine-build metadata on /, /platform/, /platform/record/, /platform/chat/critique
+Operator: orchestrating agent under Damien's 2026-10-05 answer "Ship to PROD" (Cockpit sonsteng-magnum-opus-2026-10-05-0346-l32-recognition, qid ship-phase1) and the 2026-09-02 pre-user authority
+Validation: full preflight 26/26 on a clean isolated checkout at the candidate SHA after fresh generation; production dry run clean
+Release checks: tracked tree clean at origin/main after restoring the build stamp; no schema or configuration changes; no new server-side student data (records stay in the browser); Publisher release daemon remains config-off and its timer disabled
+```
