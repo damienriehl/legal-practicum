@@ -47,6 +47,15 @@ only the selected branch's exact upstream and fails closed if that bounded fetch
 does not succeed. A clean checkout strictly behind its upstream is fast-forwarded
 with a bounded ff-only merge before the transaction is permitted.
 
+EPISODE ALERTING: refusal and failure pushes are deduplicated per episode. The
+first tick of a condition pushes; while it persists the daemon still heartbeats
+unhealthy and exits non-zero every tick, but pushes again only as a reminder once
+per APPLY_ALERT_REMINDER_HOURS (default 6). A different refusal reason (or a
+different failed-id set) is a new episode. When the guard next permits a
+transaction one "recovered" push follows. Episode state lives in
+alert-episodes.json beside the daemon state file; unreadable state fails toward
+alerting.
+
 Python 3, stdlib only. Every side effect (review fetch, engine run, rebuild,
 deploy, deploy guard, heartbeat, notify, clock) is injectable so the
 orchestration is unit-testable with no network, no subprocess, and no live model
@@ -87,10 +96,13 @@ ENV_DEPLOY_BRANCH = "APPLY_DEPLOY_BRANCH"  # canonical branch to publish; defaul
 ENV_STATE_FILE = "SONSTENG_APPLY_STATE"   # override the daemon state path
 ENV_IDLE_MIN = "APPLY_EDITORIAL_IDLE_MIN"  # session-end idle threshold (min); default 30
 ENV_OBSERVER_TOKEN = "SONSTENG_PROD_OBSERVER_BEARER"  # dedicated read-only PROD bearer
+ENV_ALERT_REMINDER_HOURS = "APPLY_ALERT_REMINDER_HOURS"  # persistent-alert reminder; default 6
 
 DEFAULT_DEPLOY_BRANCH = "main"  # canonical since the 2026-07-24 merge of feat/canonical-docs
 SERVICE_USER_AGENT = "sonsteng-apply-daemon/1.0"
 DEFAULT_IDLE_MINUTES = 30
+DEFAULT_ALERT_REMINDER_HOURS = 6
+ALERT_STATE_FILENAME = "alert-episodes.json"
 DEPLOY_GUARD_FETCH_TIMEOUT = 30
 FETCH_STDERR_LIMIT = 500
 
@@ -154,6 +166,114 @@ def save_state(path, state):
     with open(tmp, "w", encoding="utf-8") as fh:
         json.dump(state, fh, indent=2, sort_keys=True)
     os.replace(tmp, path)
+
+
+# --------------------------------------------------------------------------- #
+# Alert episodes — a persistent condition (the stale-checkout refusal, a failure
+# that repeats every tick) pushes ONCE, then at most one reminder per reminder
+# window, plus one recovery push when it clears. Lives in its own small file next
+# to the daemon state so a refusal tick still never rewrites retry-critical state.
+# Any read problem fails TOWARD alerting: unreadable state == no open episode.
+# --------------------------------------------------------------------------- #
+def alert_state_path(state_path):
+    return os.path.join(os.path.dirname(state_path) or ".", ALERT_STATE_FILENAME)
+
+
+def alert_reminder_interval():
+    raw = os.environ.get(ENV_ALERT_REMINDER_HOURS)
+    try:
+        hours = float(raw) if raw else DEFAULT_ALERT_REMINDER_HOURS
+    except ValueError:
+        hours = DEFAULT_ALERT_REMINDER_HOURS
+    if not hours > 0:
+        hours = DEFAULT_ALERT_REMINDER_HOURS
+    return datetime.timedelta(hours=hours)
+
+
+def _read_alert_state(path):
+    with open(path, "r", encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def load_alert_state(path):
+    try:
+        data = _read_alert_state(path)
+    except Exception:  # missing, corrupt, unreadable -> no open episode -> alert
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def save_alert_state(path, data):
+    """Atomic best-effort write. A failed write only means the next tick alerts
+    again (fail toward alerting), so it never raises into the daemon."""
+    with contextlib.suppress(Exception):
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+        fd, tmp = tempfile.mkstemp(prefix=".alert-episodes.", dir=os.path.dirname(path) or ".")
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                json.dump(data, fh, indent=2, sort_keys=True)
+                fh.flush()
+                os.fsync(fh.fileno())
+            os.replace(tmp, path)
+        except Exception:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp)
+            raise
+
+
+class AlertEpisodes:
+    """Per-channel episode bookkeeping. `single` channels hold one episode at a
+    time (a different key replaces it and alerts); multi channels track one
+    episode per key (e.g. per failed-id set)."""
+
+    def __init__(self, path, now, reminder):
+        self.path = path
+        self.now = now
+        self.reminder = reminder
+
+    def should_alert(self, channel, key, *, single):
+        data = load_alert_state(self.path)
+        episodes = data.get(channel)
+        if not isinstance(episodes, dict) or (single and key not in episodes):
+            episodes = {}
+        ep = episodes.get(key)
+        last = _parse_iso(ep.get("last_alert_ts")) if isinstance(ep, dict) else None
+        if last is None:
+            alert = True
+            ep = {"first_ts": self.now.isoformat(), "repeats": 0}
+        else:
+            elapsed = self.now - last
+            alert = elapsed < datetime.timedelta(0) or elapsed >= self.reminder
+            ep = dict(ep)
+            ep["repeats"] = int(ep.get("repeats") or 0) + 1
+        if alert:
+            ep["last_alert_ts"] = self.now.isoformat()
+        episodes[key] = ep
+        data[channel] = episodes
+        save_alert_state(self.path, data)
+        return alert
+
+    def clear(self, channel, keep=(), *, persisted_only=True):
+        """Drop the channel's episodes not in `keep`. Returns True when a recovery
+        push is warranted: any dropped episode, or with `persisted_only` only one
+        that repeated past its first alert (a one-off failure needs no all-clear)."""
+        data = load_alert_state(self.path)
+        episodes = data.get(channel)
+        if not isinstance(episodes, dict) or not episodes:
+            return False
+        dropped = {k: v for k, v in episodes.items() if k not in keep}
+        if not dropped:
+            return False
+        remaining = {k: v for k, v in episodes.items() if k in keep}
+        if remaining:
+            data[channel] = remaining
+        else:
+            data.pop(channel, None)
+        save_alert_state(self.path, data)
+        if not persisted_only:
+            return True
+        return any(isinstance(v, dict) and int(v.get("repeats") or 0) > 0
+                   for v in dropped.values())
 
 
 def _parse_iso(ts):
@@ -879,6 +999,23 @@ def notify_deploy_refusal(status, *, topic_resolver=None, publish=None):
                 tags="rotating_light,warning")
 
 
+def notify_recovery(kind, *, topic_resolver=None, publish=None):
+    """Best-effort, metadata-only all-clear for an episode that had alerted."""
+    topic_resolver = topic_resolver or digest_push.resolve_topic
+    publish = publish or digest_push.publish_ntfy
+    if kind == "deploy_refusal":
+        title = "Sonsteng apply deploy recovered"
+        body = ("The home-box apply daemon's deploy guard permitted a transaction "
+                "again. The earlier deploy refusal has cleared.")
+    else:
+        title = "Sonsteng apply daemon recovered"
+        body = ("The home-box apply daemon completed a healthy tick without "
+                "repeating the earlier failure alert.")
+    with contextlib.suppress(Exception):
+        publish(topic_resolver(), title, body, None, priority="default",
+                tags="white_check_mark")
+
+
 def notify_consistency(status, batch_id, *, topic_resolver=None, publish=None):
     """Best-effort, text-free U18 alert. Clean results need no interruption."""
     if status == "clean":
@@ -1000,7 +1137,8 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
         do_history=None, fetch_reverts=None, revert_exec=None, revert_resolve=None,
         revert_record=None,
         clean_site=None, do_deploy_worker=None, do_scoped=None,
-        legacy_u18=None, deploy_guard=None, deploy_refusal_notify=None):
+        legacy_u18=None, deploy_guard=None, deploy_refusal_notify=None,
+        recovery_notify=None, alert_state=None, alert_reminder=None):
     """Execute one daemon tick. Returns DaemonResult. All I/O is injectable; the
     production wiring is supplied by main().
 
@@ -1025,9 +1163,28 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
         lambda selected: checkout_deploy_status(branch=selected))
     deploy_refusal_notify = deploy_refusal_notify or notify_deploy_refusal
     editorial = editorial or (lambda bid: dispatch_editorial(bid))
+    recovery_notify = recovery_notify or notify_recovery
+    episodes = AlertEpisodes(alert_state or alert_state_path(state_path), now,
+                             alert_reminder or alert_reminder_interval())
 
     steps = []
     state = load_state(state_path)
+    raised_failures = set()
+
+    def failure_alert(kind, ids):
+        """notify_failure, gated per (kind, failed-id set) episode."""
+        key = kind + ":" + ",".join(sorted(str(i) for i in ids))
+        raised_failures.add(key)
+        if episodes.should_alert("failure", key, single=False):
+            notify(ids)
+        else:
+            steps.append(("notify_failure_suppressed", {"kind": kind, "count": len(ids)}))
+
+    def settle_failures():
+        """A healthy tick ends every failure episode it did not re-raise."""
+        if episodes.clear("failure", keep=raised_failures) and not raised_failures:
+            recovery_notify("failure")
+            steps.append(("notify_recovery", "failure"))
 
     def deploy_refusal(batch_id=""):
         """Fail closed without changing retry-critical apply/revert state."""
@@ -1044,11 +1201,17 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
             status = DeployCheckoutStatus()
         steps.append(("deploy_guard", status.metadata()))
         if status.deployable:
+            if episodes.clear("deploy_refusal", persisted_only=False):
+                recovery_notify("deploy_refusal")
+                steps.append(("notify_recovery", "deploy_refusal"))
             return None
         hb = heartbeat(False, 0)
         steps.append(("heartbeat", {"ok": False, "applied": 0}))
-        deploy_refusal_notify(status)
-        steps.append(("notify_deploy_refusal", status.metadata()))
+        if episodes.should_alert("deploy_refusal", status.reason, single=True):
+            deploy_refusal_notify(status)
+            steps.append(("notify_deploy_refusal", status.metadata()))
+        else:
+            steps.append(("notify_deploy_refusal_suppressed", status.metadata()))
         if status.reason.startswith("behind"):
             detail = "guarded deploy ref is behind upstream by %d commit(s)" % status.behind
         elif status.failure_reason == "fetch_failed":
@@ -1097,7 +1260,7 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
                 recorded = revert_record(detail, "record") if revert_record else {"sent":False}
                 if recorded.get("sent") is not True:
                     heartbeat(False, 0)
-                    notify([rid])
+                    failure_alert("revert_record", [rid])
                     return DaemonResult(0, "", "revert_record_failed", {}, False, steps)
                 if recorded.get("prod_base"):
                     detail["review_revision"] = revert_review_revision(detail, recorded["prod_base"])
@@ -1118,7 +1281,7 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
                 dok = dok and completed.get("sent") is True
                 heartbeat(dok, 0)
                 if not dok:
-                    notify([rid])
+                    failure_alert("revert_deploy", [rid])
                     if completion_refused:
                         # A semantic refusal will not heal by redeploying. Persist
                         # before continuing so subsequent ticks skip the request.
@@ -1141,7 +1304,7 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
                 if revert_resolve:
                     revert_resolve(rid, "failed")
                 heartbeat(False, 0)
-                notify([rid])
+                failure_alert("revert", [rid])
                 print("[daemon] revert %s FAILED (%s)." % (rid, detail), file=out)
 
     rows = fetch()
@@ -1172,6 +1335,7 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
         state["last_run_ts"] = ts
         if not dry_run:
             save_state(state_path, state)
+            settle_failures()
         print("[daemon] no accepted suggestions; no-op. editorial_due=%s"
               % editorial_due, file=out)
         return DaemonResult(0, "", "no_accepted", hb, editorial_due, steps)
@@ -1199,7 +1363,7 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
     if rc != 0:
         hb = heartbeat(False, 0)
         steps.append(("heartbeat", {"ok": False, "applied": 0}))
-        notify(accepted)  # IDs only, never content
+        failure_alert("apply", accepted)  # IDs only, never content
         steps.append(("notify_failure", accepted))
         print("[daemon] apply engine FAILED (rc=%d). alerted. tail:\n%s"
               % (rc, tail), file=out)
@@ -1213,7 +1377,7 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
     if not ok:
         hb = heartbeat(False, 0)
         steps.append(("heartbeat", {"ok": False, "applied": 0}))
-        notify(accepted)
+        failure_alert("rebuild", accepted)
         steps.append(("notify_failure", accepted))
         print("[daemon] rebuild FAILED after apply. alerted. tail:\n%s" % rtail, file=out)
         state["last_run_ts"] = ts
@@ -1234,7 +1398,7 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
     if not ok:
         hb = heartbeat(False, 0)
         steps.append(("heartbeat", {"ok": False, "applied": 0}))
-        notify(accepted)
+        failure_alert("deploy", accepted)
         steps.append(("notify_failure", accepted))
         print("[daemon] DEV deploy FAILED after apply. alerted. tail:\n%s" % dtail, file=out)
         state["last_run_ts"] = ts
@@ -1272,6 +1436,7 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
         with contextlib.suppress(Exception):
             legacy_u18.notify(summary["status"], batch_id)
     save_state(state_path, state)
+    settle_failures()
 
     print("[daemon] applied %d, rebuilt, deployed %s, heartbeat sent."
           % (len(accepted), branch), file=out)

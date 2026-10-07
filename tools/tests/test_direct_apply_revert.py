@@ -114,6 +114,7 @@ def _run_reverts(rec, **kw):
             fetch_reverts=rec.fetch_reverts, revert_exec=rec.revert_exec,
             revert_resolve=rec.revert_resolve, do_deploy_worker=rec.deploy_worker,
             revert_record=rec.revert_record,
+            recovery_notify=lambda _kind: None,  # hermetic: never a real ntfy push
         )
         defaults.update(kw)
         return dad.run(**defaults)
