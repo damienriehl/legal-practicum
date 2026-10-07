@@ -112,7 +112,7 @@ def reader_copy(source):
 
 
 def forbidden_old_wording(text, *, jury=False):
-    forms = r"\b(?:magnum\s+opus|the\s+opus|trusted\s+advisors|critiques?)\b"
+    forms = r"\b(?:magnum\s+opus|the\s+opus|trusted\s+advisors|critiques?|centaur|human\s*\+\s*ai)\b"
     if jury:
         forms += r"|\bjury\b"
     return re.search(forms, text, re.I)
@@ -132,6 +132,26 @@ class TestPlatformLanguageContract(unittest.TestCase):
         self.assertIsNone(forbidden_educational_grading(text))
         self.assertIn("assessment and feedback", text.lower())
         self.assertIn("Planning Guide and Checklist", text)
+
+    def test_authored_technology_language_uses_kd3_contract(self):
+        paths = [*Path(ROOT, "data/copy").glob("*.json"),
+                 *Path(ROOT, "data/curriculum").glob("*.md"),
+                 *Path(ROOT, "data/taxonomy").glob("*.json"),
+                 *Path(ROOT, "data/matters").glob("*/exercise/exercise.json")]
+        def leaves(value):
+            if isinstance(value, dict):
+                for child in value.values():
+                    yield from leaves(child)
+            elif isinstance(value, list):
+                for child in value:
+                    yield from leaves(child)
+            elif isinstance(value, str):
+                yield value
+        for path in paths:
+            with self.subTest(path=str(path)):
+                source = path.read_text()
+                text = " ".join(leaves(json.loads(source))) if path.suffix == ".json" else source
+                self.assertIsNone(re.search(r"\bcentaur\b|\bhuman\s*\+\s*ai\b", text, re.I))
 
     def test_generated_learner_surfaces_use_locked_vocabulary(self):
         learner_pages = [
@@ -189,7 +209,7 @@ class TestPlatformLanguageContract(unittest.TestCase):
 
     def test_mutation_canary_detects_old_reader_wording_and_preserves_domain_scope(self):
         pitch = Path(ROOT, "site/index.html").read_text()
-        for old in ("Magnum Opus", "The Opus", "trusted advisors", "jury", "critique", "critiques"):
+        for old in ("Magnum Opus", "The Opus", "trusted advisors", "jury", "critique", "critiques", "centaur", "Human + AI", "human+AI"):
             with self.subTest(old=old):
                 words, _ = reader_copy(pitch + "<p>" + old + "</p>")
                 self.assertIsNotNone(forbidden_old_wording(words, jury=True))
@@ -212,10 +232,10 @@ class TestPlatformLanguageContract(unittest.TestCase):
             words, _ = reader_copy(markup)
             self.assertIsNotNone(forbidden_old_wording(words, jury=True))
 
-    def test_ai_default_and_scripted_sample_are_both_accurately_labelled(self):
+    def test_technology_feedback_and_scripted_sample_are_both_accurately_labelled(self):
         home = json.loads(Path(ROOT, "data", "copy", "home.json").read_text(encoding="utf-8"))
         copy = json.dumps(home)
-        self.assertRegex(copy, r"AI is the default speaker")
+        self.assertIn("Technology gives the first-pass assessment and feedback, at any hour.", copy)
         self.assertRegex(copy, r"Scripted sample, not a live AI client")
         self.assertNotRegex(copy, r"(?i)(human|alumni).{0,40}speaker")
 

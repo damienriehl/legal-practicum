@@ -21,6 +21,13 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
+html.type-lg{font-size:20px}
+html.type-lg body{font-size:clamp(21px,1.3vw + 16px,25px)}
+.type-controls{display:flex;justify-content:flex-end;gap:8px;padding-top:12px}
+.type-controls button{font:inherit;font-size:.8rem;min-height:44px;padding:8px 12px;border:1px solid var(--ink-faint);border-radius:3px;background:var(--paper);color:var(--ink);cursor:pointer}
+.type-controls button[aria-pressed="true"]{background:var(--claret);color:var(--paper)}
+.type-controls button:focus-visible{outline:2px solid var(--claret);outline-offset:3px}
+@media print{.type-controls{display:none}}
 body{
   font-family:'Spectral',Georgia,'Times New Roman',serif;
   background:var(--paper); color:var(--ink); line-height:1.62;
@@ -154,6 +161,13 @@ section{padding:clamp(52px,9vh,104px) 0;position:relative}
 .crit .box b{font-family:'Fraunces',serif;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;display:block;margin-bottom:6px}
 .crit .ai b{color:var(--brass)}.crit .hu b{color:var(--claret)}
 
+/* static assessment example */
+.exhibit + h3{margin-top:28px}
+#assessment-form table{width:100%;border-collapse:collapse;font-size:.9rem}
+#assessment-form th,#assessment-form td{text-align:left;vertical-align:top;padding:.45rem;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+#assessment-form h4{margin-top:18px}
+#assessment-scale{padding-left:1.4em;margin-top:12px}
+
 /* roadmap */
 .road{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:6px}
 @media(max-width:820px){.road{grid-template-columns:1fr 1fr}}@media(max-width:480px){.road{grid-template-columns:1fr}}
@@ -262,21 +276,25 @@ details.proof>.wrap{padding-left:0;padding-right:0;margin-top:28px}
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="ribbon">Draft for discussion · prepared for the Legal Practicum faculty · 2026</div>
 <nav><div class="wrap">
-  <div class="brand">Legal Practicum<small>A Legal Education Renaissance</small></div>
+  <div class="brand">Legal Practicum<small>Practice ready</small></div>
   <div class="navlinks">
-    <a href="#problem">The Problem</a>
-    <a href="#practicum">The Demonstration</a>
-    <a href="#skills">The Evidence</a>
-    <a href="#work">The Work</a>
-    <a href="#opus">The Practicum</a>
-    <a href="#centaur">The Centaur</a>
-    <a href="#where">Open</a>
+    <a href="#already">Your teaching</a>
+    <a href="#students">Your students</a>
+    <a href="#practicum">See it work</a>
+    <a href="#people">People first</a>
+    <a href="#contents">Materials</a>
+    <a href="#gains">Your school</a>
+    <a href="#questions">Questions</a>
     <a href="#react">React</a>
     <a href="cost-per-credit.html">Cost</a>
   </div>
 </div></nav>
 
 <main id="main" tabindex="-1">
+<div class="type-controls wrap" role="group" aria-label="Text size">
+  <button type="button" id="type-standard" aria-pressed="true">Standard</button>
+  <button type="button" id="type-large" aria-pressed="false">Large Type</button>
+</div>
 <header class="hero"><div class="wrap stag">
   <svg class="seal" viewBox="0 0 100 100" aria-hidden="true">
     <circle cx="50" cy="50" r="48" fill="none" stroke="#a9822f" stroke-width="1"/>
@@ -288,46 +306,112 @@ details.proof>.wrap{padding-left:0;padding-right:0;margin-top:28px}
     <text x="50" y="56" text-anchor="middle" font-family="Fraunces,serif" font-size="20" font-weight="900" fill="#7c1e2b">S</text>
   </svg>
   <div class="kicker"><span class="eyebrow">Est. 2026</span><hr class="rule"></div>
-  <h1>Training the next generation<br>of <span class="em">lawyers.</span></h1>
-  <p class="lede">Training the next generation of lawyers as trusted legal advisors.</p>
+  <h1>Good in theory.<br>Better in practice.<br><span class="em">Practice ready.</span></h1>
+  <p class="lede">Your school can be a leader in innovative legal education, with graduates who are practice ready. The Legal Practicum combines the best of theory, knowledge, and practice with the ethical and effective use of ever-evolving technology.</p>
+  <p>Knowledge. Skills. The effective, appropriate use of evolving technology.</p>
+  <p>Training the next generation of lawyers as trusted legal advisors.</p>
   <a class="hero-cta" href="/platform/">Enter the Practicum — Explore the Scenarios</a>
+  <p><a href="brochure.html">Get the two-page brochure</a></p>
   <p class="by"><b>John&nbsp;O.&nbsp;Sonsteng</b> · <b>Damien&nbsp;A.&nbsp;Riehl</b> · <b>Roger&nbsp;S.&nbsp;Haydock</b> · Hosted by Damien Riehl · content CC BY 4.0 · code MIT</p>
 </div></header>
 
 <div class="proof-toggle-wrap wrap"><button type="button" class="proof-toggle" id="proofToggle" aria-expanded="false">Expand all sections</button></div>
-
-<!-- I — PROBLEM -->
-<section id="problem" class="band"><div class="wrap reveal">
-  <div class="sec-head"><span class="sec-num">I</span><div><span class="eyebrow">The broken promise</span><h2>Law school teaches <em>about</em> law. It rarely teaches lawyering.</h2></div></div>
-  <p class="lead-para">Graduates know doctrine, but the profession still must teach them how to serve a client.</p>
-</div><details class="proof"><summary>THE PROOF · 19,077 attorneys surveyed</summary><div class="wrap reveal">
-  <div class="cols">
-    <p class="lead-para dropcap">For fifty years, the Legal Practicum scholarship has documented a stubborn gap: graduates emerge fluent in doctrine yet unprepared to <em>practice</em> — to interview a client, take a deposition, negotiate, try a case. The scholarship didn't merely assert it; the Minnesota skills survey <em>measured</em> it. A 53-question instrument went to <b>19,077 Minnesota attorneys</b>; <b>1,398</b> responded, scoring each skill for importance against how prepared law school left them. The verdict was consistent, and unflattering — <a href="#skills">the evidence is below</a>.</p>
-    <div>
-      <div class="statline">
-        <div class="stat"><b>17</b><span>legal-practice skills surveyed</span></div>
-        <div class="stat"><b>9</b><span>practice-management skills</span></div>
-        <div class="stat"><b>1:1</b><span>apprenticeship — the proven cure, never scalable… until now</span></div>
-      </div>
-      <p class="muted" style="margin-top:18px">The remedy has always been known — repetition, performance, and immediate expert feedback (the apprenticeship the trades never abandoned). It simply never <em>scaled</em>: one master can only watch so many reps. That is the constraint AI just removed.</p>
-    </div>
-  </div>
-  <div class="pull"><q>It does not train students to be lawyers.</q><cite><em>A Legal Education Renaissance</em> (2007)</cite></div>
+<style>
+/* VII — coverage matrix + method triads */
+#coverage .cov-lead{max-width:66ch}
+#coverage .cov-note{font-style:italic;color:var(--ink-faint);font-size:.95rem;max-width:66ch;margin-top:12px}
+.covmap{display:grid;gap:1px;margin:22px 0 6px;border:1px solid var(--line);border-radius:5px;overflow:hidden;background:var(--line)}
+.covmap .ch,.covrow{display:grid;grid-template-columns:1.55fr 1.5fr .95fr 1.35fr;gap:16px;align-items:center;padding:12px 18px;background:rgba(255,255,255,.55)}
+.covmap .ch{background:rgba(124,30,43,.07);font-family:'Fraunces',serif;font-weight:600;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--claret)}
+.covrow .cs{font-family:'Fraunces',serif;font-weight:600;font-size:.99rem;color:var(--ink);line-height:1.25}
+.covrow .cs b{display:inline-block;min-width:1.5em;color:var(--brass);font-weight:700;font-size:.82rem}
+.covrow .ca,.covrow .cst,.covrow .cai{font-size:.9rem;color:var(--ink-soft);line-height:1.3}
+.covrow .cst{font-variant:small-caps;letter-spacing:.02em}
+.covrow .cai{color:var(--green);font-weight:600}
+@media(max-width:720px){
+  .covmap .ch{display:none}
+  .covrow{grid-template-columns:1fr;gap:6px;padding:15px 16px}
+  .covrow .ca::before{content:'Anchored in — ';color:var(--ink-faint);font-weight:400}
+  .covrow .cst::before{content:'Stage — ';color:var(--ink-faint);font-variant:normal}
+  .covrow .cai::before{content:'Technology — ';color:var(--ink-faint);font-weight:400}
+}
+/* method triad cluster cards */
+.cov .layer.tri{display:block}
+.tri-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;margin-bottom:6px}
+.tri-head h3{font-size:1.16rem;margin:0}
+.tri-sk{font-size:.8rem;color:var(--ink-faint);font-style:italic}
+.trirow{display:grid;grid-template-columns:132px 1fr;gap:18px;align-items:start;padding:12px 0;border-top:1px solid var(--line-soft)}
+@media(max-width:560px){.trirow{grid-template-columns:1fr;gap:4px}}
+.trilab{font-family:'Fraunces',serif;font-weight:700;font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;padding-top:3px}
+.trilab.son{color:var(--claret)}
+.trilab.imp{color:var(--brass)}
+.trilab.ai{color:var(--green)}
+.trirow p{font-size:.98rem;color:var(--ink-soft);margin:0;line-height:1.5}
+.trirow p b{color:var(--ink);font-weight:600}
+</style>
+<section id="already" class="band"><div class="wrap reveal">
+  <div class="sec-head"><span class="sec-num">I</span><div><h2>You already teach this way</h2></div></div>
+  <p class="lead-para">Your faculty already teach students by having them do the work.</p>
+</div><details class="proof"><summary>THE PROOF · learning by doing</summary><div class="wrap reveal">
+  <p>They write problems for exams, build skills exercises, and guide students through clinics. The Legal Practicum adds a complete, ready-to-run system to that work. Keep what works at your school. Give your faculty more ways to build on it.</p>
+  <div class="pull"><q>We are teaching for tomorrow, not yesterday.</q></div>
 </div></details></section>
 
-<!-- II — PRACTICUM -->
-<section id="practicum" class="band"><div class="wrap reveal">
-  <div class="sec-head"><span class="sec-num">II</span><div><span class="eyebrow">The worked demonstration</span><h2><em>Midstate and Rogers</em>: one matter, the whole method.</h2></div></div>
-  <p class="lead-para">Pat Rogers and SPEU enter an employment arbitration with Midstate. Students develop the record, question witnesses, negotiate, draft, argue, receive feedback, and revise — the practicum in one case.</p>
-</div><details class="proof"><summary>THE PROOF · ~1,438 assessed points</summary><div class="wrap reveal">
-  <p class="section-sub">Every course runs a three-step cycle</p>
-  <div class="timeline">
-    <div class="tl"><div class="yr">Step 01 · FSS-I</div><h3>Faculty Supervised Study I</h3><p>Independent pre-work — texts, casebooks, prepared materials. Competence is checked with short papers, essays, or an oral exercise before the room convenes.</p><div class="role">Prepare</div></div>
-    <div class="tl"><div class="yr">Step 02 · IRP</div><h3>Intensive Residential Practicum</h3><p>The core: face-to-face, small-group, faculty-guided real-world simulation. The reps that only happen live — argument, negotiation, trial.</p><div class="role">Perform</div></div>
-    <div class="tl"><div class="yr">Step 03 · FSS-II</div><h3>Faculty Supervised Study II</h3><p>A comprehensive applied assessment integrating the prep and the practicum — memos, problem discussion, the redlined re-write against the rubric.</p><div class="role">Integrate</div></div>
-  </div>
+<section id="students" class=""><div class="wrap reveal">
+  <div class="sec-head"><span class="sec-num">II</span><div><h2>What students come to law school for</h2></div></div>
+  <p class="lead-para">Your students come to law school to learn to be lawyers.</p>
+</div><details class="proof"><summary>THE PROOF · 19,077 attorneys surveyed</summary><div class="wrap reveal">
+  <p>Medicine, engineering, and architecture prepare practitioners through practice. Your students deserve that same connection between what they learn and what they will do.</p>
+  <p>The surveys of <b>19,077 attorneys</b> identify <b>26 skills: 17 lawyering and 9 practice-management skills</b>. They ask what matters in practice and where lawyers learned it. Lawyers reported learning many skills through their own experience and by observing other lawyers.</p>
+  <p>The surveys were conducted by mail at first, with the most recent conducted online.</p>
+  <p>The ABA's Standard 302 requires learning outcomes that include professional skills. Standard 303 requires at least six credit hours of experiential coursework. The surveys show which skills those outcomes should cover.</p>
+</div></details></section>
 
-  <p class="section-sub">The matters — twenty complete case files</p>
+<section id="every-student" class="band"><div class="wrap reveal">
+  <div class="sec-head"><span class="sec-num">III</span><div><h2>For every student, including the ones clinics miss</h2></div></div>
+  <p class="lead-para">Your practicum can reach students whose schedules keep them out of clinics and internships.</p>
+</div><details class="proof"><summary>THE PROOF · practice inside the course</summary><div class="wrap reveal">
+  <p>Students who work jobs or raise families may not be able to fit an outside placement into their week. Put practice inside the course. A broad spectrum of students can work through the same matters, receive feedback, and revise.</p>
+</div></details></section>
+
+<section id="practicum" class="band"><div class="wrap reveal">
+  <div class="sec-head"><span class="sec-num">IV</span><div><h2>See it work: Midstate and Rogers</h2></div></div>
+  <p class="lead-para">Pat Rogers and SPEU enter an employment arbitration with Midstate. Your students do the work of counsel.</p>
+</div><details class="proof"><summary>THE PROOF · prepare, perform, integrate</summary><div class="wrap reveal">
+  <p>They develop the record, question witnesses, negotiate, draft, and argue. They receive feedback and revise.</p>
+  <div class="timeline">
+    <div class="tl"><div class="yr">FSS-I · Prepare</div><h3>Faculty Supervised Study I</h3><p>Students read the materials and prepare. Short papers or an oral exercise check their understanding.</p></div>
+    <div class="tl"><div class="yr">IRP · Perform</div><h3>Intensive Residential Practicum</h3><p>Students work face to face in small groups, with faculty guiding the simulation.</p></div>
+    <div class="tl"><div class="yr">FSS-II · Integrate</div><h3>Faculty Supervised Study II</h3><p>Students apply what they learned in written analysis and revise against the rubric.</p></div>
+  </div>
+  <div class="exhibit">
+    <div class="lbl">Illustrative cross-examination and feedback · Midstate and Rogers</div>
+    <div class="q">"You didn't actually see the professor take a drink?"</div>
+    <div class="crit">
+      <div class="box ai"><b>First-pass feedback</b>You used a focused, leading question. Keep that focus. Try establishing the witness's position and line of sight first. Revise the sequence so each question rests on a fact in the record.</div>
+      <div class="box hu"><b>Faculty coaching</b>You are testing what the witness actually observed. Keep that aim. Review the statement and decide whether the answer will help your theory. Try the revised sequence aloud, then explain why you would ask the final question.</div>
+    </div>
+  </div>
+  <h3>Assessment and feedback you can see</h3>
+  <p>For written case analysis, students use these headings. Each receives a score on the same scale, with space for what works and what to try next.</p>
+  <div class="exhibit" id="assessment-form"><table><caption>Assessment and feedback form</caption><thead><tr><th scope="col">Heading</th><th scope="col">Score (1–7)</th><th scope="col">What works; next revision</th></tr></thead><tbody>
+    <tr data-dimension="governing_law"><th scope="row">Governing law</th><td>_______</td><td>________________</td></tr>
+    <tr data-dimension="strengths_and_weaknesses_both_sides"><th scope="row">Strengths and weaknesses of both sides</th><td>_______</td><td>________________</td></tr>
+    <tr data-dimension="issues"><th scope="row">Issues</th><td>_______</td><td>________________</td></tr>
+    <tr data-dimension="suggested_solutions"><th scope="row">Suggested solutions</th><td>_______</td><td>________________</td></tr>
+    <tr data-dimension="theory_and_themes"><th scope="row">Theory and themes</th><td>_______</td><td>________________</td></tr>
+    <tr data-dimension="elements_to_prevail"><th scope="row">Elements to prevail</th><td>_______</td><td>________________</td></tr>
+    <tr data-dimension="liabilities_and_remedies"><th scope="row">Liabilities and remedies</th><td>_______</td><td>________________</td></tr>
+  </tbody></table><h4>The seven-point scale</h4><ol id="assessment-scale">
+    <li value="1">No meaningful demonstration of the section&#x27;s required analysis.</li>
+    <li value="2">Only a minimal demonstration; the section remains substantially incomplete.</li>
+    <li value="3">The section does not yet demonstrate competence.</li>
+    <li value="4">Competent: the section provides an average, adequate demonstration of the required analysis.</li>
+    <li value="5">Competent and above average, while still redo-eligible by default.</li>
+    <li value="6">Strong, complete demonstration; the section is not redo-eligible by default.</li>
+    <li value="7">Rare, exceptional demonstration of the section&#x27;s required analysis.</li>
+  </ol></div>
+  <p class="section-sub">Choose a matter for your course</p>
   <div class="matter-grid">
     <article class="matter-cover" data-matter-id="m01"><a href="/platform/matters/m01-arbitration-meridian/"><span class="matter-num">M01 · Meridian</span><h4>Halden Regional Transit District v. Marceline Osgard and Meridian Alliance of Public Workers, Local 7 (Arbitration)</h4><span class="matter-shape">Employment arbitration</span><span class="matter-skills" aria-label="Skills: SK-LP-01, SK-LP-02, SK-LP-07, SK-LP-08, SK-LP-09, SK-LP-14"><i data-skill-ref="SK-LP-01"></i><i data-skill-ref="SK-LP-02"></i><i data-skill-ref="SK-LP-07"></i><i data-skill-ref="SK-LP-08"></i><i data-skill-ref="SK-LP-09"></i><i data-skill-ref="SK-LP-14"></i>6 mapped skills</span><span class="matter-length"><b>Suggested lengths:</b> One week · Three weeks · Full semester</span><span class="matter-open">Open matter <span aria-hidden="true">→</span></span></a></article>
     <article class="matter-cover" data-matter-id="m02"><a href="/platform/matters/m02-discipline-meridian/"><span class="matter-num">M02 · Meridian</span><h4>In re Petition for Disciplinary Action against Gregor A. Winterhalt, a Meridian Attorney</h4><span class="matter-shape">Attorney discipline</span><span class="matter-skills" aria-label="Skills: SK-LP-16, SK-LP-07, SK-LP-10, SK-LP-08, SK-LP-17, SK-LP-02"><i data-skill-ref="SK-LP-16"></i><i data-skill-ref="SK-LP-07"></i><i data-skill-ref="SK-LP-10"></i><i data-skill-ref="SK-LP-08"></i><i data-skill-ref="SK-LP-17"></i><i data-skill-ref="SK-LP-02"></i>6 mapped skills</span><span class="matter-length"><b>Suggested lengths:</b> One week · Three weeks · Full semester</span><span class="matter-open">Open matter <span aria-hidden="true">→</span></span></a></article>
@@ -350,258 +434,90 @@ details.proof>.wrap{padding-left:0;padding-right:0;margin-top:28px}
     <article class="matter-cover" data-matter-id="m19"><a href="/platform/matters/m19-dissolution-ca/"><span class="matter-num">M19 · CA</span><h4>In re the Marriage of Camille Beaumont and Andre Lassiter</h4><span class="matter-shape">Marriage dissolution</span><span class="matter-skills" aria-label="Skills: SK-LP-07, SK-LP-10, SK-LP-13, SK-LP-16, SK-LP-17"><i data-skill-ref="SK-LP-07"></i><i data-skill-ref="SK-LP-10"></i><i data-skill-ref="SK-LP-13"></i><i data-skill-ref="SK-LP-16"></i><i data-skill-ref="SK-LP-17"></i>5 mapped skills</span><span class="matter-length"><b>Suggested lengths:</b> One week · Three weeks · Full semester</span><span class="matter-open">Open matter <span aria-hidden="true">→</span></span></a></article>
     <article class="matter-cover" data-matter-id="m20"><a href="/platform/matters/m20-probate-fl/"><span class="matter-num">M20 · FL</span><h4>In re the Estate of Harold W. Prewitt</h4><span class="matter-shape">Wills &amp; probate contest</span><span class="matter-skills" aria-label="Skills: SK-LP-02, SK-LP-07, SK-LP-10, SK-LP-14, SK-LP-16, SK-LP-17"><i data-skill-ref="SK-LP-02"></i><i data-skill-ref="SK-LP-07"></i><i data-skill-ref="SK-LP-10"></i><i data-skill-ref="SK-LP-14"></i><i data-skill-ref="SK-LP-16"></i><i data-skill-ref="SK-LP-17"></i>6 mapped skills</span><span class="matter-length"><b>Suggested lengths:</b> One week · Three weeks · Full semester</span><span class="matter-open">Open matter <span aria-hidden="true">→</span></span></a></article>
   </div>
-
-  <div class="ledger">
-    <div class="lh">Measured, not impressionistic — the assessment chart</div>
-    <div class="statline" style="margin:6px 0 6px">
-      <div class="stat"><b>~1,438</b><span>points across the assessed record</span></div>
-      <div class="stat"><b>7</b><span>preliminary four-page memos</span></div>
-      <div class="stat"><b>325</b><span>points — the final trial alone</span></div>
-    </div>
-    <p class="muted" style="max-width:72ch;margin-top:8px">Eight representation agreements, eight client billing statements fed by weekly time sheets, briefs, pleadings, and thirteen time sheets all carry points. The seam the Centaur plugs into: any piece scored <b>below 6</b> may be re-written within a week against the same rubric — the profession's <em>rubric-and-repeat</em> loop, waiting only for feedback to become instant and infinite.</p>
-  </div>
 </div></details></section>
 
-<!-- III — THE EVIDENCE -->
-<section id="skills"><div class="wrap reveal">
-  <div class="sec-head"><span class="sec-num">III</span><div><span class="eyebrow">The empirical proof · the skills survey</span><h2>The skills that make a lawyer — and the ones school forgets.</h2></div></div>
-  <p class="lead-para muted">The widest gaps are in the practical skills clients and firms depend on every day.</p>
-</div><details class="proof"><summary>THE PROOF · 70-point client-development gap</summary><div class="wrap reveal">
-  <p class="lead-para muted" style="max-width:64ch">The surveys were conducted by mail at first, with the most recent conducted online. The Minnesota skills survey named the work of a practicing lawyer precisely: <b>17 legal-practice skills</b> and <b>9 law-practice-management skills</b>. For each, the survey asked the same four questions — is it important, were you prepared, could it be learned in school, and where did you actually learn it. Every skill was rated important. Most could be taught in school. Yet law-school curriculum was the leading source of training for only <b>7 of the 17</b> practice skills — and for <b>none</b> of the 9 management skills.</p>
-  <div class="statline survey-stats">
-    <div class="stat"><b>19,077</b><span>MN attorneys surveyed</span></div>
-    <div class="stat"><b>1,398</b><span>responses · 53 questions</span></div>
-    <div class="stat"><b>26</b><span>skills scored, four ways each</span></div>
-  </div>
-
-  <p class="gaphint">Importance vs. preparedness — the seven widest gaps</p>
-  <div class="gapchart">
-    <div class="gaprow lead">
-      <div class="gaphead"><span class="gname">Ability to obtain &amp; keep clients</span><span class="gapbadge">70-pt gap · the starkest</span></div>
-      <div class="metric"><span class="ml">Important</span><div class="track"><div class="fill imp" style="width:80.4%"></div></div><span class="mv">80.4%</span></div>
-      <div class="metric"><span class="ml">Prepared</span><div class="track"><div class="fill prep" style="width:10%"></div></div><span class="mv dim">10.0%</span></div>
-    </div>
-    <div class="gaprow">
-      <div class="gaphead"><span class="gname">Organization &amp; management of legal work</span><span class="gapbadge">54.5-pt gap</span></div>
-      <div class="metric"><span class="ml">Important</span><div class="track"><div class="fill imp" style="width:85.2%"></div></div><span class="mv">85.2%</span></div>
-      <div class="metric"><span class="ml">Prepared</span><div class="track"><div class="fill prep" style="width:30.7%"></div></div><span class="mv dim">30.7%</span></div>
-    </div>
-    <div class="gaprow">
-      <div class="gaphead"><span class="gname">Counseling clients</span><span class="gapbadge">47.3-pt gap</span></div>
-      <div class="metric"><span class="ml">Important</span><div class="track"><div class="fill imp" style="width:86.4%"></div></div><span class="mv">86.4%</span></div>
-      <div class="metric"><span class="ml">Prepared</span><div class="track"><div class="fill prep" style="width:39.1%"></div></div><span class="mv dim">39.1%</span></div>
-    </div>
-    <div class="gaprow">
-      <div class="gaphead"><span class="gname">Instilling others' confidence in you</span><span class="gapbadge">47-pt gap</span></div>
-      <div class="metric"><span class="ml">Important</span><div class="track"><div class="fill imp" style="width:89%"></div></div><span class="mv">89.0%</span></div>
-      <div class="metric"><span class="ml">Prepared</span><div class="track"><div class="fill prep" style="width:42%"></div></div><span class="mv dim">42.0%</span></div>
-    </div>
-    <div class="gaprow">
-      <div class="gaphead"><span class="gname">Drafting legal documents</span><span class="gapbadge">46-pt gap</span></div>
-      <div class="metric"><span class="ml">Important</span><div class="track"><div class="fill imp" style="width:91%"></div></div><span class="mv">91.0%</span></div>
-      <div class="metric"><span class="ml">Prepared</span><div class="track"><div class="fill prep" style="width:45%"></div></div><span class="mv dim">45.0%</span></div>
-    </div>
-    <div class="gaprow">
-      <div class="gaphead"><span class="gname">Understanding &amp; conducting litigation</span><span class="gapbadge">42.8-pt gap</span></div>
-      <div class="metric"><span class="ml">Important</span><div class="track"><div class="fill imp" style="width:71.5%"></div></div><span class="mv">71.5%</span></div>
-      <div class="metric"><span class="ml">Prepared</span><div class="track"><div class="fill prep" style="width:28.7%"></div></div><span class="mv dim">28.7%</span></div>
-    </div>
-    <div class="gaprow">
-      <div class="gaphead"><span class="gname">Negotiation</span><span class="gapbadge">42.6-pt gap</span></div>
-      <div class="metric"><span class="ml">Important</span><div class="track"><div class="fill imp" style="width:86.2%"></div></div><span class="mv">86.2%</span></div>
-      <div class="metric"><span class="ml">Prepared</span><div class="track"><div class="fill prep" style="width:43.6%"></div></div><span class="mv dim">43.6%</span></div>
-    </div>
-  </div>
-
-  <div class="blackout">
-    <h3>And the management blackout</h3>
-    <p class="muted" style="margin-bottom:12px">A law practice <em>is</em> a business — yet law school is credited as the leading trainer for <b>none</b> of the 9 management skills. Where curriculum shows up at all, it is in the low single digits: billing <b>7.9%</b>, marketing <b>3.9%</b>, capitalization <b>2.3%</b>.</p>
-    <div class="chips">
-      <span class="chip">Fee arrangements, pricing, billing</span><span class="chip">Human resources &amp; staff</span><span class="chip">Capitalization &amp; investment</span><span class="chip">Project &amp; time management</span><span class="chip">Planning &amp; budgeting</span><span class="chip">Marketing &amp; client development</span><span class="chip">Technology &amp; communications</span><span class="chip">Governance &amp; strategy</span><span class="chip">Interpersonal &amp; staff relations</span>
-    </div>
-  </div>
-  <div class="pull"><q>All 26 skills matter. School leads on seven.</q><cite>The 2018–19 Minnesota study · one of a longitudinal series (1997–99 · 2013 · 2018–19)</cite></div>
+<section id="people" class="band-ink"><div class="wrap reveal">
+  <div class="sec-head"><span class="sec-num">V</span><div><h2>People first; technology is the tool</h2></div></div>
+  <p class="lead-para">Your faculty teach judgment through work with people.</p>
+</div><details class="proof"><summary>THE PROOF · faculty supervision and first-pass feedback</summary><div class="wrap reveal">
+  <p>Clients, opposing counsel, and decision-makers give that work its purpose. Live conversation and faculty coaching remain at the center.</p>
+  <p>Students practice with technology under faculty supervision. It supplies more repetitions, first-pass feedback at any hour, and help preparing for the next live session. Your faculty set the objectives and decide what students have demonstrated.</p>
+  <p>Students check the record, verify sources, and protect client confidences. Evolving technology is a tool they learn to use responsibly.</p>
 </div></details></section>
 
-<!-- IV — THE WORK -->
-<section id="work" class="band"><div class="wrap reveal">
-  <div class="sec-head"><span class="sec-num">IV</span><div><span class="eyebrow">The life work — already a trilogy</span><h2>Fifty years, three acts, one argument.</h2></div></div>
-</div><details class="proof"><summary>THE PROOF · diagnosis, method, and open resource</summary><div class="wrap reveal">
-  <div class="timeline">
-    <div class="tl"><div class="yr">c. 2007</div><h3>A Legal Education Renaissance</h3><p>The diagnosis. A practical, client-centered model for 21st-century legal education — the manifesto the profession cited but never fully built.</p><div class="role">The Diagnosis</div></div>
-    <div class="tl"><div class="yr">2020 – 2025</div><h3>The Legal Practicum Method</h3><p>The solution, proven in a live classroom: the General Practice Skills Practicum — a working-law-firm simulation with real reps, memos, and assessed advocacy.</p><div class="role">The Solution</div></div>
-    <div class="tl"><div class="yr">Ongoing</div><h3>The Open Resource Tool</h3><p>Open-access exercises &amp; case files (Trialbook; the "Midstate" jurisdiction), run jointly by Mitchell Hamline's C-LAB and IGUL at Bahçeşehir University, Istanbul.</p><div class="role">The Commons</div></div>
-  </div>
-  <div class="pull" style="margin-top:34px"><q>The team — and the first centaur — already exist.</q><cite>Trialbook — a text <em>and</em> AI platform (Trialbook GPT · Opal)</cite></div>
-  <div class="ledger">
-    <div class="lh">Affordable by restructuring — not spending</div>
-    <p class="muted" style="max-width:70ch">The <em>Legal Education Renaissance</em> cost model is the disarming part: convert half the tenure-track lines to long-term teaching faculty and a school can hire <b>~two teachers for every line replaced</b> — <b>tripling teaching time at the same or lower cost.</b> AI first-pass assessment (Act V) then pushes capacity well past even that.</p>
-    <p class="muted" style="margin-top:12px"><a href="cost-per-credit.html"><b>Compare delivery cost per credit with your institution’s own figures →</b></a></p>
-  </div>
-</div></details></section>
-
-<!-- V — THE OPUS -->
-<section id="opus"><div class="wrap reveal">
-  <div class="sec-head"><span class="sec-num">V</span><div><span class="eyebrow">The consolidation</span><h2>What the Practicum <em>is</em>.</h2></div></div>
-</div><details class="proof"><summary>THE PROOF · 3 layers, 1 open whole</summary><div class="wrap reveal">
-  <div class="layers">
-    <div class="layer"><div class="n" aria-hidden="true">I</div><div><h3>The Book</h3><p>A canonical treatise consolidating the Legal Practicum scholarship — including restoration of the crown-jewel articles now surviving only as degraded scans. The intellectual core, made permanent.</p></div></div>
-    <div class="layer"><div class="n" aria-hidden="true">II</div><div><h3>The Curriculum</h3><p>The Skills Practicum, structured into teachable modules — skills, exercises, rubrics, and the Midstate case files — so any instructor, anywhere, can run it.</p></div></div>
-    <div class="layer"><div class="n" aria-hidden="true">III</div><div><h3>The Platform</h3><p>AI-assisted delivery that finally scales the 1:1 apprenticeship — unlimited reps, instant feedback, human judgment where it counts.</p></div></div>
-  </div>
-
-</div></details></section>
-
-<!-- VI — CENTAUR -->
-<section id="centaur" class="band-ink"><div class="wrap reveal">
-  <div class="sec-head"><span class="sec-num">VI</span><div><span class="eyebrow">The centaur model</span><h2>Human&nbsp;+&nbsp;AI. Neither alone.</h2></div></div>
-  <p class="lead-para muted" style="max-width:64ch;margin-bottom:26px">The apprenticeship works because of expert feedback. AI doesn't replace the expert — it multiplies the reps and handles the first pass, so the master's scarce attention lands where only judgment will do.</p>
-</div><details class="proof"><summary>THE PROOF · 24/7 first-pass feedback</summary><div class="wrap reveal">
-  <div class="flow">
-    <div class="step"><div class="k">Step 01</div><h3>The Rep</h3><p>The student performs — a cross, a memo, a negotiation, an argument — as many times as they want, on demand.</p><span class="who human">Student</span></div>
-    <div class="step"><div class="k">Step 02</div><h3>Instant Feedback</h3><p>AI assesses against the rubric in seconds: what worked, what didn't, what to try next. Unlimited, 24/7, judgment-free reps.</p><span class="who ai">AI · scales</span></div>
-    <div class="step"><div class="k">Step 03</div><h3>The Coaching</h3><p>Human faculty spend their scarce hours on what machines can't teach: judgment, ethics, strategy, presence — the "why."</p><span class="who human">Faculty · anchors</span></div>
-  </div>
-  <p class="eyebrow" style="margin:40px 0 10px">Illustrative — a single rep</p>
-  <div class="exhibit">
-    <div class="lbl">Exhibit · Cross-examination · <em>Midstate and Rogers</em></div>
-    <div class="q">"You never actually saw the light turn red — did you?"</div>
-    <div class="crit">
-      <div class="box ai"><b>AI · first-pass feedback</b>Leading form ✓. But you asked a conclusion the witness can deny — you handed back control. Break it into facts you can prove: position, sightline, distance. Never ask the ultimate question you can't compel.</div>
-      <div class="box hu"><b>Coach · judgment</b>Good instinct to save it for last. Now — <em>should</em> you even ask it? With this tribunal, let the facts imply the answer and sit down. That restraint is advocacy. Let's talk about reading the room.</div>
-    </div>
-  </div>
-</div></details></section>
-
-<!-- VII — COVERAGE -->
-<style>
-/* VII — coverage matrix + method triads */
-#coverage .cov-lead{max-width:66ch}
-#coverage .cov-note{font-style:italic;color:var(--ink-faint);font-size:.95rem;max-width:66ch;margin-top:12px}
-.covmap{display:grid;gap:1px;margin:22px 0 6px;border:1px solid var(--line);border-radius:5px;overflow:hidden;background:var(--line)}
-.covmap .ch,.covrow{display:grid;grid-template-columns:1.55fr 1.5fr .95fr 1.35fr;gap:16px;align-items:center;padding:12px 18px;background:rgba(255,255,255,.55)}
-.covmap .ch{background:rgba(124,30,43,.07);font-family:'Fraunces',serif;font-weight:600;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--claret)}
-.covrow .cs{font-family:'Fraunces',serif;font-weight:600;font-size:.99rem;color:var(--ink);line-height:1.25}
-.covrow .cs b{display:inline-block;min-width:1.5em;color:var(--brass);font-weight:700;font-size:.82rem}
-.covrow .ca,.covrow .cst,.covrow .cai{font-size:.9rem;color:var(--ink-soft);line-height:1.3}
-.covrow .cst{font-variant:small-caps;letter-spacing:.02em}
-.covrow .cai{color:var(--green);font-weight:600}
-@media(max-width:720px){
-  .covmap .ch{display:none}
-  .covrow{grid-template-columns:1fr;gap:6px;padding:15px 16px}
-  .covrow .ca::before{content:'Anchored in — ';color:var(--ink-faint);font-weight:400}
-  .covrow .cst::before{content:'Stage — ';color:var(--ink-faint);font-variant:normal}
-  .covrow .cai::before{content:'AI — ';color:var(--ink-faint);font-weight:400}
-}
-/* method triad cluster cards */
-.cov .layer.tri{display:block}
-.tri-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;margin-bottom:6px}
-.tri-head h3{font-size:1.16rem;margin:0}
-.tri-sk{font-size:.8rem;color:var(--ink-faint);font-style:italic}
-.trirow{display:grid;grid-template-columns:132px 1fr;gap:18px;align-items:start;padding:12px 0;border-top:1px solid var(--line-soft)}
-@media(max-width:560px){.trirow{grid-template-columns:1fr;gap:4px}}
-.trilab{font-family:'Fraunces',serif;font-weight:700;font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;padding-top:3px}
-.trilab.son{color:var(--claret)}
-.trilab.imp{color:var(--brass)}
-.trilab.ai{color:var(--green)}
-.trirow p{font-size:.98rem;color:var(--ink-soft);margin:0;line-height:1.5}
-.trirow p b{color:var(--ink);font-weight:600}
-</style>
-<section id="coverage" class="band cov"><div class="wrap reveal">
-  <div class="sec-head"><span class="sec-num">VII</span><div><span class="eyebrow">The coverage · every skill, mapped</span><h2>Every skill — <em>taught</em>, improved, and amplified.</h2></div></div>
-  <p class="lead-para muted cov-lead">The curriculum is designed backward from the whole job, so no practical competency is left to chance.</p>
+<section id="contents" class=""><div class="wrap reveal">
+  <div class="sec-head"><span class="sec-num">VI</span><div><h2>What is in it</h2></div></div>
+  <p class="lead-para">Your faculty get a collection by three authors, organized for teaching and practice.</p>
 </div><details class="proof"><summary>THE PROOF · all 26 skills mapped</summary><div class="wrap reveal">
-  <p class="lead-para muted cov-lead">The survey named the whole job — 17 practice skills, 9 management skills — and showed school leading on only seven. The Practicum is designed backward from that list: <b>every one of the 26 skills has a home in an exercise, a stage in the teaching cycle, and a human-anchored AI amplification.</b> Nothing is assumed; each skill is assessed work.</p>
-  <p class="cov-note">The method below is documented in the Legal Practicum articles and the live Skills Practicum. The <span style="color:var(--brass);font-style:normal;font-weight:600">improvements</span> and the <span style="color:var(--green);font-style:normal;font-weight:600">AI amplification</span> are our proposed layer over that proven method — never a replacement for it.</p>
-
-  <div class="statline" style="margin:26px 0 8px">
-    <div class="stat"><b>7/17 · 0/9</b><span>what school leads today</span></div>
-    <div class="stat"><b>17/17 · 9/9</b><span>what the Practicum reaches</span></div>
-    <div class="stat"><b>3</b><span>stages each skill passes · prepare · perform · integrate</span></div>
+  <div class="layers">
+    <div class="layer"><div class="n" aria-hidden="true">I</div><div><h3>The book</h3><p>Sets out the method: why learning by doing works, and how to run it in your courses.</p></div></div>
+    <div class="layer"><div class="n" aria-hidden="true">II</div><div><h3>The curriculum</h3><p>Modules, exercises, case files, and rubrics give your faculty a structure they can adapt.</p></div></div>
+    <div class="layer"><div class="n" aria-hidden="true">III</div><div><h3>The platform</h3><p>Simulated interviews and assessment and feedback support practice between live sessions.</p></div></div>
   </div>
-
-  <p class="gaphint">The 17 legal-practice skills — where the curriculum puts each one</p>
-  <div class="covmap">
-    <div class="ch"><span>Skill</span><span>Anchored in</span><span>Stage</span><span>AI amplification</span></div>
-    <div class="covrow"><span class="cs"><b>1</b>Diagnose &amp; plan solutions</span><span class="ca">Every matter · the 4-page case-analysis memo</span><span class="cst">Prepare</span><span class="cai">AI intake + issue-spot spar</span></div>
-    <div class="covrow"><span class="cs"><b>2</b>Legal analysis &amp; reasoning</span><span class="ca"><em>In re Halbrock</em> · briefs</span><span class="cst">All three</span><span class="cai">Reasoning spar · rubric critic</span></div>
-    <div class="covrow"><span class="cs"><b>3</b>Knowledge of substantive law</span><span class="ca"><em>Reagan</em> · tort doctrine</span><span class="cst">Prepare</span><span class="cai">Adaptive doctrine drills</span></div>
-    <div class="covrow"><span class="cs"><b>4</b>Knowledge of procedural law</span><span class="ca"><em>Reagan</em> · pleadings → verdict</span><span class="cst">Perform</span><span class="cai">Simulated docket + rule checks</span></div>
-    <div class="covrow"><span class="cs"><b>5</b>Library legal research</span><span class="ca"><em>Halbrock</em> / <em>SSHC</em> · authorities</span><span class="cst">Prepare</span><span class="cai">Citation-verify gate</span></div>
-    <div class="covrow"><span class="cs"><b>6</b>Computer legal research</span><span class="ca"><em>SSHC</em> · injunction memo</span><span class="cst">Prepare</span><span class="cai">Research spar, verified sources</span></div>
-    <div class="covrow"><span class="cs"><b>7</b>Factual (fact) gathering</span><span class="ca"><em>Midstate</em> · statements &amp; discovery</span><span class="cst">Perform</span><span class="cai">AI witnesses &amp; documents to mine</span></div>
-    <div class="covrow"><span class="cs"><b>8</b>Oral communication</span><span class="ca"><em>Midstate</em> · direct &amp; cross</span><span class="cst">Perform</span><span class="cai">AI witness + bench questioning</span></div>
-    <div class="covrow"><span class="cs"><b>9</b>Written communication</span><span class="ca">All · the 7 four-page memos</span><span class="cst">Integrate</span><span class="cai">Instant rubric redline</span></div>
-    <div class="covrow"><span class="cs"><b>10</b>Counseling</span><span class="ca"><em>Peters</em> · advice; <em>James</em> · plea</span><span class="cst">Perform</span><span class="cai">AI client to advise</span></div>
-    <div class="covrow"><span class="cs"><b>11</b>Instilling others' confidence</span><span class="ca">Firm sim · client letters</span><span class="cst">Perform</span><span class="cai">AI client trust signals</span></div>
-    <div class="covrow"><span class="cs"><b>12</b>Obtain &amp; keep clients</span><span class="ca">Firm sim · representation agreements</span><span class="cst">Integrate</span><span class="cai">Simulated intake &amp; pitch</span></div>
-    <div class="covrow"><span class="cs"><b>13</b>Negotiation</span><span class="ca"><em>Peters</em> · 3-way; <em>SSHC</em> · settlement</span><span class="cst">Perform</span><span class="cai">AI counterpart, any posture</span></div>
-    <div class="covrow"><span class="cs"><b>14</b>Understanding &amp; conducting litigation</span><span class="ca"><em>Reagan</em> · full-day trial</span><span class="cst">Perform</span><span class="cai">AI opposing counsel + judge panel</span></div>
-    <div class="covrow"><span class="cs"><b>15</b>Organization &amp; management of work</span><span class="ca">Firm sim · 13 time sheets, billing</span><span class="cst">Integrate</span><span class="cai">AI matter / PM assistant</span></div>
-    <div class="covrow"><span class="cs"><b>16</b>Professional &amp; ethical concerns</span><span class="ca"><em>In re Halbrock</em> · OLPR panel</span><span class="cst">All three</span><span class="cai">Dilemma simulator + coach</span></div>
-    <div class="covrow"><span class="cs"><b>17</b>Drafting legal documents</span><span class="ca"><em>Peters</em> · purchase agreement; all pleadings</span><span class="cst">Perform</span><span class="cai">Clause-level rubric feedback</span></div>
-  </div>
-  <p class="muted" style="font-size:.9rem;margin:10px 0 0">The 9 management skills — the blackout school leads on <em>none</em> of — live in cluster <b>F</b> below: the working-firm overlay of agreements, time sheets, and billing.</p>
-
-  <p class="muted" style="margin-top:24px">Across analysis, research, fact investigation, writing, oral advocacy, negotiation, counseling, firm management, and professional responsibility, the method keeps doctrine attached to live matters. AI adds private practice reps, verified research, rubric-anchored redlines, varied counterparties, and issue spotting; faculty retain judgment, ethics, strategy, and presence.</p>
-  <div class="pull"><q>School leads on seven. The Practicum — human-anchored, AI-amplified — reaches all twenty-six.</q><cite>The Legal Practicum method, faithfully extended · the improvements &amp; AI are the proposed layer</cite></div>
+  <p>Twenty matters connect doctrine to practice. All <b>26 surveyed skills</b> are mapped: <b>17 lawyering skills</b> and <b>9 practice-management skills</b>. Your students practice interviewing, research, writing, counseling, negotiation, and litigation. They also manage files, fees, time, and the business of a law practice.</p>
+  <p>The open exercises and case files grew from work run jointly by Mitchell Hamline's C-LAB and IGUL at Bahçeşehir University, Istanbul.</p>
+  <p><a href="/platform/skills/">See the full skills map</a> and <a href="/platform/modules/m1.html">explore the curriculum</a>.</p>
 </div></details></section>
 
-<!-- VIII — WHERE IT LIVES -->
-<section id="where"><div class="wrap reveal">
-  <div class="sec-head"><span class="sec-num">VIII</span><div><span class="eyebrow">Open by design · where it lives · the ask</span><h2>Given away, so it outlives us.</h2></div></div>
-  <p class="lead-para">Open licensing lets every school adopt, adapt, and strengthen the work.</p>
+<section id="gains" class="band"><div class="wrap reveal">
+  <div class="sec-head"><span class="sec-num">VII</span><div><h2>What your school gains</h2></div></div>
+  <p class="lead-para">Your school can make practice readiness a reason students choose you.</p>
+</div><details class="proof"><summary>THE PROOF · compare cost per credit</summary><div class="wrap reveal">
+  <ul>
+    <li><b>Leadership.</b> Offer a complete practicum that builds on your faculty's work.</li>
+    <li><b>Enrollment.</b> Show applicants who want to practice how they will learn the work.</li>
+    <li><b>Money.</b> Plan for low cost per credit without a large new round of hiring. <a href="cost-per-credit.html">Compare delivery costs using your school's figures.</a></li>
+    <li><b>Recognition.</b> Give faculty and students a place to show what they can do.</li>
+  </ul>
+</div></details></section>
+
+<section id="free" class=""><div class="wrap reveal">
+  <div class="sec-head"><span class="sec-num">VIII</span><div><h2>Free to use, with help when you want it</h2></div></div>
+  <p class="lead-para">Your school can use and adapt the materials without paying for access.</p>
 </div><details class="proof"><summary>THE PROOF · CC BY 4.0 content + MIT code</summary><div class="wrap reveal">
-  <div class="cols">
-    <div>
-      <p class="lead-para">The practicum is open by design: defined original educational content is available under <a href="https://creativecommons.org/licenses/by/4.0/"><strong>CC BY 4.0</strong></a>, while the software remains <a href="/platform/about/code-license.html"><strong>MIT-licensed</strong></a>. The exact content boundary, attribution form, and exclusions are in <a href="/platform/about/content-license.html"><strong>CONTENT-LICENSE.md</strong></a>. A movement to remake how lawyers are trained can't be locked in a paywall — it has to be free to copy, adapt to any jurisdiction, and improve.</p>
-      <p class="muted" style="margin-top:16px">Open also compounds: every school that adopts it adds exercises, feedback, and data back to the commons — the platform gets smarter as the field uses it.</p>
-    </div>
-    <div>
-      <div class="road">
-        <div class="ph"><div class="p">Phase 0</div><h3>This walkthrough</h3><p>Confirm direction with John &amp; Roger.</p></div>
-        <div class="ph"><div class="p">Phase 1</div><h3>Flagship slice</h3><p>Restore one crown-jewel article + build one centaur exercise end-to-end.</p></div>
-        <div class="ph"><div class="p">Phase 2</div><h3>The pilot</h3><p>Run it in a live Skills Practicum cohort; measure against the rubric.</p></div>
-        <div class="ph"><div class="p">Phase 3</div><h3>The commons</h3><p>Open-release the curriculum + platform for any school to adopt.</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="ask">
-    <h3>What we're asking of you today</h3>
-    <ul>
-      <li><b>Is this the right direction?</b> — the book, curriculum, and platform, the centaur model, open &amp; MIT.</li>
-      <li><b>What must be in the Book</b> — which articles &amp; ideas are the non-negotiable core of the canon?</li>
-      <li><b>The flagship</b> — which single skill or Midstate exercise should we build first, as the proof?</li>
-      <li><b>Names on the door</b> — how do you both want to be represented in a work that carries your legacy?</li>
-    </ul>
-  </div>
+  <p>Original educational materials are free under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. The code is free under the <a href="/platform/about/code-license.html">MIT license</a>. <a href="/platform/about/content-license.html">CONTENT-LICENSE.md</a> sets out the attribution requirements and exclusions. The work can outlive any one school or author.</p>
+  <p><a href="firms.html">For law firms and bar associations: train new lawyers with the same materials.</a></p>
+  <p>If your school wants hands-on help, paid implementation services can support faculty training, setup, and adapting matters. Choose the help you need.</p>
+  <p><a href="/platform/getting-started/">Start with a matter and a course.</a> Let your faculty try the cycle and shape it for your students.</p>
 </div></details></section>
 
-<!-- IX — REACT -->
+<section id="questions" class="band"><div class="wrap reveal">
+  <div class="sec-head"><span class="sec-num">IX</span><div><h2>Questions deans ask</h2></div></div>
+  <p class="lead-para">You can start with the faculty and courses you already have.</p>
+</div><details class="proof"><summary>THE PROOF · start with what you already do well</summary><div class="wrap reveal">
+  <div class="tl"><h3>Does it work?</h3><p><b>Yes.</b> Students learn through practice, feedback, and revision.</p></div>
+  <div class="tl"><h3>Can every school implement it?</h3><p><b>Yes.</b> Your faculty can adapt the materials to your courses.</p></div>
+  <div class="tl"><h3>Does it cost too much?</h3><p><b>No.</b> <a href="cost-per-credit.html">Check the cost per credit with your own figures.</a></p></div>
+  <div class="tl"><h3>Will it need many more faculty and administrators?</h3><p><b>No.</b> Use the course structure and tools with your existing faculty.</p></div>
+  <div class="tl"><h3>Can we start now?</h3><p><b>Yes.</b> The matters and platform are ready to explore.</p></div>
+  <div class="tl"><h3>Do we abandon what we already do well?</h3><p><b>Of course not.</b> Keep it and build on it.</p></div>
+  <div class="tl"><h3>Can faculty keep teaching the way they teach now?</h3><p><b>Absolutely.</b> Add exercises where they serve your course.</p></div>
+  <div class="tl"><h3>Will students benefit?</h3><p><b>Yes.</b> They get more chances to perform, receive feedback, and revise.</p></div>
+  <div class="tl"><h3>Will our graduates be practice ready?</h3><p><b>You betcha!</b> They will have practiced the work they came to learn.</p></div>
+</div></details></section>
+
 <section id="react" class="band"><div class="wrap reveal">
-  <div class="sec-head"><span class="sec-num">IX</span><div><span class="eyebrow">Capture reactions — walk through live</span><h2>Your read on each pillar.</h2></div></div>
-  <p class="muted">Every reaction and inline comment stays connected to the decision it informs.</p>
-</div><details class="proof"><summary>THE PROOF · 8 decision prompts captured in one place</summary><div class="wrap reveal">
-  <p class="muted" style="max-width:64ch;margin-bottom:24px">Two ways to give feedback as we walk through: tap a <b>✎ pencil</b> beside any section or card to leave a comment tied to that spot, and/or set an overall reaction per pillar below. Everything gathers in <b>✎ Comments</b> (bottom-right) → <b>Copy all for Damien</b> to paste back into the chat.</p>
+  <div class="sec-head"><span class="sec-num">X</span><div><h2>Your reactions shape the next step</h2></div></div>
+  <p class="lead-para">Tell us what fits your school and what needs work.</p>
+</div><details class="proof"><summary>THE PROOF · reactions captured in one place</summary><div class="wrap reveal">
+  <p>Tap a pencil beside a section to leave a comment, or choose a reaction below. Both gather in <b>✎ Comments</b>. Use <b>Copy all</b> to paste your notes into the chat. Nothing is sent automatically.</p>
   <div class="fb" id="fb">
-    <div class="fbrow" data-k="Vision &amp; why-now"><h3 id="fb-vision">Vision &amp; why-now</h3><div class="opts" role="group" aria-labelledby="fb-vision"></div><textarea name="vision-notes" aria-labelledby="fb-vision" placeholder="John / Roger's notes on the vision…"></textarea></div>
-    <div class="fbrow" data-k="The evidence (17+9 skills survey)"><h3 id="fb-evidence">The evidence — the skills survey</h3><div class="opts" role="group" aria-labelledby="fb-evidence"></div><textarea name="evidence-notes" aria-labelledby="fb-evidence" placeholder="Do the 17+9 skills &amp; the gap chart land right? Any numbers to refine?"></textarea></div>
-    <div class="fbrow" data-k="Book + curriculum + platform"><h3 id="fb-opus">Book, curriculum, and platform</h3><div class="opts" role="group" aria-labelledby="fb-opus"></div><textarea name="opus-notes" aria-labelledby="fb-opus" placeholder="Is the book+curriculum+platform framing right? What's missing?"></textarea></div>
-    <div class="fbrow" data-k="The Practicum structure"><h3 id="fb-practicum">The Practicum structure</h3><div class="opts" role="group" aria-labelledby="fb-practicum"></div><textarea name="practicum-notes" aria-labelledby="fb-practicum" placeholder="Skills, exercises, the firm-simulation model…"></textarea></div>
-    <div class="fbrow" data-k="Skills coverage (approach + improvements + AI)"><h3 id="fb-skills">The skills-coverage matrix</h3><div class="opts" role="group" aria-labelledby="fb-skills"></div><textarea name="skills-notes" aria-labelledby="fb-skills" placeholder="Does the all-26-skills map hold? Any skill mis-anchored, any improvement or AI amplification to change?"></textarea></div>
-    <div class="fbrow" data-k="The Centaur (human + AI) model"><h3 id="fb-centaur">The Centaur model</h3><div class="opts" role="group" aria-labelledby="fb-centaur"></div><textarea name="centaur-notes" aria-labelledby="fb-centaur" placeholder="Does the human-anchored AI model feel right?"></textarea></div>
-    <div class="fbrow" data-k="Open / MIT &amp; where it lives"><h3 id="fb-open">Open / MIT &amp; where it lives</h3><div class="opts" role="group" aria-labelledby="fb-open"></div><textarea name="open-notes" aria-labelledby="fb-open" placeholder="Institutional home, licensing, names on the door…"></textarea></div>
-    <div class="fbrow" data-k="The flagship first build"><h3 id="fb-flagship">The flagship — build first</h3><div class="opts" role="group" aria-labelledby="fb-flagship"></div><textarea name="flagship-notes" aria-labelledby="fb-flagship" placeholder="Which single skill / Midstate exercise do we prove first?"></textarea></div>
-    <div class="fbactions">
-      <span class="muted" style="font-size:.92rem">Your picks + every ✎ comment are copied together from <b>✎ Comments</b> (bottom-right).</span>
-    </div>
+    <div class="fbrow" data-k="You already teach this way"><h3 id="fb-already">You already teach this way</h3><div class="opts" role="group" aria-labelledby="fb-already"></div><textarea name="already-notes" aria-labelledby="fb-already" placeholder="Your notes on this section…"></textarea></div>
+    <div class="fbrow" data-k="What students come to law school for"><h3 id="fb-students">What students come to law school for</h3><div class="opts" role="group" aria-labelledby="fb-students"></div><textarea name="students-notes" aria-labelledby="fb-students" placeholder="Your notes on this section…"></textarea></div>
+    <div class="fbrow" data-k="For every student"><h3 id="fb-every-student">For every student</h3><div class="opts" role="group" aria-labelledby="fb-every-student"></div><textarea name="every-student-notes" aria-labelledby="fb-every-student" placeholder="Your notes on this section…"></textarea></div>
+    <div class="fbrow" data-k="Midstate and Rogers"><h3 id="fb-practicum">Midstate and Rogers</h3><div class="opts" role="group" aria-labelledby="fb-practicum"></div><textarea name="practicum-notes" aria-labelledby="fb-practicum" placeholder="Your notes on this section…"></textarea></div>
+    <div class="fbrow" data-k="People first; technology is the tool"><h3 id="fb-people">People first; technology is the tool</h3><div class="opts" role="group" aria-labelledby="fb-people"></div><textarea name="people-notes" aria-labelledby="fb-people" placeholder="Your notes on this section…"></textarea></div>
+    <div class="fbrow" data-k="Book, curriculum, and platform"><h3 id="fb-contents">Book, curriculum, and platform</h3><div class="opts" role="group" aria-labelledby="fb-contents"></div><textarea name="contents-notes" aria-labelledby="fb-contents" placeholder="Your notes on this section…"></textarea></div>
+    <div class="fbrow" data-k="What your school gains"><h3 id="fb-gains">What your school gains</h3><div class="opts" role="group" aria-labelledby="fb-gains"></div><textarea name="gains-notes" aria-labelledby="fb-gains" placeholder="Your notes on this section…"></textarea></div>
+    <div class="fbrow" data-k="Free to use, with optional help"><h3 id="fb-free">Free to use, with optional help</h3><div class="opts" role="group" aria-labelledby="fb-free"></div><textarea name="free-notes" aria-labelledby="fb-free" placeholder="Your notes on this section…"></textarea></div>
+    <div class="fbrow" data-k="Questions deans ask"><h3 id="fb-questions">Questions deans ask</h3><div class="opts" role="group" aria-labelledby="fb-questions"></div><textarea name="questions-notes" aria-labelledby="fb-questions" placeholder="Your notes on this section…"></textarea></div>
   </div>
 </div></details></section>
 </main>
 
 <footer><div class="wrap">
   <hr class="rule">
-  <p><b>Legal Practicum</b> — a Legal Education Renaissance, realized.</p>
+  <p><b>Legal Practicum</b> · Good in theory. Better in practice. Practice ready.</p>
   <p style="margin-top:8px;color:#8f8574"><b>John O. Sonsteng</b> · <b>Damien A. Riehl</b> · <b>Roger S. Haydock</b> · Hosted by Damien Riehl · <a href="/platform/about/content-license.html">CONTENT: CC BY 4.0</a> · <a href="/platform/about/code-license.html">CODE: MIT</a> · 2026</p>
 </div></footer>
 
@@ -660,13 +576,28 @@ details.proof>.wrap{padding-left:0;padding-right:0;margin-top:28px}
     <div id="cList"><p class="empty">No comments yet — tap a ✎ pencil beside any section or card.</p></div>
   </div>
   <footer>
-    <button class="btn" id="cCopy">Copy all for Damien</button>
+    <button class="btn" id="cCopy">Copy all</button>
     <span class="copied" id="cCopied">Copied ✓ — paste it into the chat</span>
   </footer>
 </aside>
 
 <script>
 (function(){
+  // Self-contained type preference; no external assets or requests.
+  var standardType=document.getElementById('type-standard');
+  var largeType=document.getElementById('type-large');
+  function setLargeType(on){
+    document.documentElement.classList.toggle('type-lg',on);
+    standardType.setAttribute('aria-pressed',String(!on));
+    largeType.setAttribute('aria-pressed',String(on));
+    try{localStorage.setItem('sonsteng-type-lg',on?'1':'0');}catch(e){}
+  }
+  var initialLargeType=false;
+  try{initialLargeType=localStorage.getItem('sonsteng-type-lg')==='1';}catch(e){}
+  setLargeType(initialLargeType);
+  standardType.addEventListener('click',function(){setLargeType(false);});
+  largeType.addEventListener('click',function(){setLargeType(true);});
+
   // proof disclosures: one control on screen, all evidence visible in print
   var proofs=Array.prototype.slice.call(document.querySelectorAll('details.proof'));
   var proofToggle=document.getElementById('proofToggle');

@@ -43,6 +43,7 @@ import student_archives
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "data")
 APP_CHAT = os.path.join(ROOT, "app", "chat")
+APP_RECORD = os.path.join(ROOT, "app", "record")
 APP_HOURS = os.path.join(ROOT, "app", "hours")
 SITE = os.path.join(ROOT, "site")
 OUT = os.path.join(SITE, "platform")          # generation root
@@ -757,6 +758,7 @@ CURRICULUM_TEMPLATES = [
     ("what-to-expect",             "What to expect",               "ORIENTATION"),
     ("time-sheet",                 "Weekly Time Sheet",            "TIME & BILLING"),
     ("engagement-letter-checklist","Engagement-Letter Checklist",  "CLIENT INTAKE"),
+    ("running-the-firm-with-technology", "Running the firm with technology", "FIRM MANAGEMENT"),
     ("client-questionnaire",       "Client Questionnaire",         "CLIENT INTAKE"),
     ("client-interview-plan",      "Client-Interview Plan",        "FACT DEVELOPMENT"),
     ("ssnp",                       "Strategic Settlement & Negotiation Plan", "NEGOTIATION"),
@@ -1549,6 +1551,12 @@ def build_home(corpus):
       <p class="matter-card__premise"{firm_description_eb}>{firm_description}</p>
       <span class="arrow-link">Open the ledger</span>
     </a>
+    <a class="card" href="record/index.html">
+      <span class="label">PRACTICE</span>
+      <h3>My practice record</h3>
+      <p>Recognize practice and revision in a record kept on your device.</p>
+      <span class="arrow-link">View my practice record</span>
+    </a>
     <a class="card" href="hours/index.html">
       <p class="card__meta">LOCAL-FIRST · PRIVATE BY DEFAULT</p>
       <h3>Weekly hours log</h3>
@@ -1747,8 +1755,9 @@ def build_templates(corpus):
         <h2 id="{a}-h">{ttl}</h2>
       </div>
     </div>
-    <div class="prose">{body}</div>
-  </section>""".format(a=anchor, n=num, kicker=esc(t["kicker"]),
+    <div class="prose">{body}</div>{record_link}
+  </section>""".format(record_link=('\n    <p><a href="../record/index.html">Open My practice record</a></p>'
+                                if t["stem"] == "learning-portfolio" else ""), a=anchor, n=num, kicker=esc(t["kicker"]),
                        ttl=esc(t["title"]),
                        body=markdown(t["md"], src=data_relpath(CURRICULUM_DIR, "templates", t["stem"] + ".md"))))
 
@@ -1930,7 +1939,7 @@ def build_skills(corpus):
   <div class="ext-header section-head">
     <p class="eyebrow" style="color:var(--claret)">EXTENSION · NOT PART OF THE SURVEYED 26</p>
     <h2 id="ext-h">Extension skills for evolving technology</h2>
-    <p class="matter-card__premise">Added for the centaur layer; kept visually and structurally
+    <p class="matter-card__premise">Added for responsible use of technology; kept visually and structurally
     separate from the surveyed canon.</p>
   </div>
   {ext}
@@ -3082,6 +3091,7 @@ def build_firm_dashboard(corpus):
   <span><span class="label">STATUS</span> <span class="chip">ALL MATTERS</span></span>
   <button type="button" class="viz-toggle mono" id="viz-patterns" aria-pressed="false" title="Overlay line patterns on chart fills (accessibility / print)">PATTERNS</button>
   <p class="viz-note" style="margin:0"{snapshot_note_eb}>{snapshot_note}</p>
+  <p class="viz-note" style="margin:0">Exercise: <a href="../templates/index.html#tpl-running-the-firm-with-technology">{technology_exercise_title}</a></p>
 </div>
 {defs}
 
@@ -3112,6 +3122,8 @@ def build_firm_dashboard(corpus):
            provenance_after=esc(provenance_after), provenance_after_eb=provenance_after_eb,
            provenance_path_locked=provenance_path_locked,
            snapshot_note=esc(snapshot_note), snapshot_note_eb=snapshot_note_eb,
+           technology_exercise_title=esc(next(t[1] for t in CURRICULUM_TEMPLATES
+                                             if t[0] == "running-the-firm-with-technology")),
            downloads_eyebrow=esc(downloads_eyebrow), downloads_eyebrow_eb=downloads_eyebrow_eb,
            downloads_heading=esc(downloads_heading), downloads_heading_eb=downloads_heading_eb,
            note=esc(ident.get("letterhead_note", "")), kpis="".join(kpis), defs=_pattern_defs(),
@@ -4060,6 +4072,7 @@ def main(argv):
     write_platform_assets()
     copy_chat_app()
     copy_hours_app()
+    copy_static_app(APP_RECORD, "record", lambda name: name.startswith("verify-"))
 
     build_home(corpus)
     build_getting_started(corpus)

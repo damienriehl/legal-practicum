@@ -73,14 +73,15 @@
     "modules/m1.html",
     "modules/m2.html",
     "modules/m3.html",
+    "record/index.html",
     "skills/index.html",
     "templates/index.html"
   ],
   "fields": {
-    "text": "cae0d92d07255009040053608b908fcfce3747558e29845ad99942858b229823",
-    "headings": "75fda5017338e5c86332d69d725bf7a5a8c3d5496a905e263cdb5ace3f8a5643",
-    "links": "41dac2a70d775d8a4cbbaf468ca19ea5278d1cf90a4328d5b6abfaa79ef05e63",
-    "editor_blocks": "6abe4d12802d53fb1cde0abcf0a0a13c9f781b8d53f1d28c662e226210a8f610",
-    "reading_order": "f83f413d43f81ab3dc9d8b44992c64e44c1a66cec145278452d03d4b80fde806"
+    "text": "532c5b3c00a04f4ee1ccef1e0bae3b3246e88a95c6d45c11a2daaab52a0fe13b",
+    "headings": "2ea7e4ed7f663557441aa2efe8ce4365f2de82f5bdc0d3d8351231592ac80daa",
+    "links": "9379febbd27da39b3019b89ef880ce771c6c608aeb6d0065a9b3d976c68c01c4",
+    "editor_blocks": "6d84247ee7e52e83c603d9e0095d0526f5a9471156c9c5770a04c08daa2fff59",
+    "reading_order": "7f121b12173e33e84f513e9abe6ae705bf76b97095421b1297f5537f76323f91"
   }
 }

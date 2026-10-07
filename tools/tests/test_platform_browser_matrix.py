@@ -113,7 +113,12 @@ def test_semantic_heading_repairs_preserve_the_existing_visible_words():
     # editor content, and reading order; existing page identities stay fixed.
     # U2 changes rubric text; U3 adds the getting-started page and home card,
     # advancing page identities, links, headings, editor blocks, and reading order.
+    # Both the firm technology exercise (PR #98) and the persuasion rewrite’s
+    # technology wording changed links, headings, and editor blocks; existing
+    # page identities stay fixed.
+    # Literal-link repairs change authored editor copy; the exercise lead-in
+    # changes visible text. Page identities, headings, and reading order stay fixed.
     baseline = json.loads((TOOLS / "tests/fixtures/platform-semantic-baseline.json").read_text())
-    assert baseline["fields"]["links"] == "41dac2a70d775d8a4cbbaf468ca19ea5278d1cf90a4328d5b6abfaa79ef05e63"
-    assert baseline["fields"]["editor_blocks"] == "6abe4d12802d53fb1cde0abcf0a0a13c9f781b8d53f1d28c662e226210a8f610"
-    assert baseline["fields"]["reading_order"] == "f83f413d43f81ab3dc9d8b44992c64e44c1a66cec145278452d03d4b80fde806"
+    assert baseline["fields"]["links"] == "9379febbd27da39b3019b89ef880ce771c6c608aeb6d0065a9b3d976c68c01c4"
+    assert baseline["fields"]["editor_blocks"] == "6d84247ee7e52e83c603d9e0095d0526f5a9471156c9c5770a04c08daa2fff59"
+    assert baseline["fields"]["reading_order"] == "7f121b12173e33e84f513e9abe6ae705bf76b97095421b1297f5537f76323f91"

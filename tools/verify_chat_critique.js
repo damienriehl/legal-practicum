@@ -82,6 +82,13 @@ async function exerciseInterview(page) {
     () => window.SonstengChat && window.SonstengChat.getTurns() === 1,
     {timeout: 15000}
   );
+  for (let i = 1; i < 6; i++) {
+    await page.evaluate(() => window.SonstengChat.send('What happened next?'));
+    await page.waitForFunction(n => window.SonstengChat.getTurns() === n, {}, i + 1);
+  }
+  await page.evaluate(() => [...document.querySelectorAll('button')].find(b => b.textContent.startsWith('Prepare debrief')).click());
+  await page.waitForSelector('[data-record-save]');
+  await exerciseRecordSave(page, 'interview');
   const reply = await page.$eval('#stream', (element) => element.textContent);
   if (!reply.includes('It was late')) throw new Error('mock interview outcome changed');
 }
@@ -94,9 +101,19 @@ async function exerciseCritique(page) {
   await page.click('.paste button[type=submit]');
   await page.waitForSelector('.crit-card', {timeout: 10000});
   const text = await page.$eval('#result-mount', (element) => element.textContent);
+  await exerciseRecordSave(page, 'written critique');
   if (!text.includes('Issue framing') || !text.includes('26 / 40')) {
     throw new Error('mock critique outcome changed');
   }
+}
+
+async function exerciseRecordSave(page, activity) {
+  await page.click('[data-record-save]');
+  await page.click('[data-record-mode="session"]');
+  const entries = await page.evaluate(() => JSON.parse(sessionStorage.getItem('sonsteng.practice-record.v1')).entries);
+  const entry = entries[entries.length - 1];
+  if (entry.activity !== activity || Object.keys(entry).sort().join(',') !== 'activity,date,matter_id,matter_title,scores') throw new Error('practice record save contract changed');
+  if (!await page.$('.practice-save a[href="../record/index.html"]')) throw new Error('saved record link missing');
 }
 
 async function verifyLargeType(page, initialLarge) {

@@ -1,0 +1,5 @@
+.record-app .notice,.record-app article,.record-app details{background:var(--surface-card);border:var(--rule) solid var(--line);padding:var(--sp-6);margin-block:var(--sp-6)}
+.record-app button{font:inherit;padding:.65rem .85rem;border:2px solid var(--claret);background:var(--paper);color:var(--claret);font-weight:700;cursor:pointer;margin:.25rem;min-height:44px;max-width:100%}
+.record-app button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.record-app h2{font-size:var(--fs-lg)}.record-app h3{font-size:var(--fs-md)}.record-app article{overflow-wrap:anywhere}.record-app input{max-width:100%;font:inherit}.record-app .actions{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
+@media print{.masthead,.breadcrumb,.skip-link,.record-app button,.record-app details,#disclosure,#storage-status,#clear-confirmation{display:none!important}.record-app article{break-inside:avoid}.record-app{max-width:100%}}

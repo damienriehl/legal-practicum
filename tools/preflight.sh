@@ -298,6 +298,7 @@ if [ "$WANT_BROWSER" = "1" ]; then
     run "editor client (background)"             run_editor_client
     run "accessibility audit (0 FAIL required)"  run_node tools/a11y_audit.js
     run "platform layout matrix"                 run_node tools/verify_platform_layout.js
+    run "practice record client behavior"        run_node app/record/verify-record.js
     run "weekly-hours client behavior"           run_node app/hours/verify-hours.js
     run "catalog client behavior"                run_node tools/verify_catalog_client.js
     run "Publisher authorization client"         run_node tools/verify_publisher_client.mjs
@@ -305,6 +306,8 @@ if [ "$WANT_BROWSER" = "1" ]; then
     run "interview + critique matrix"            run_node tools/verify_chat_critique.js
     run "cost-per-credit interactions"           run_node tools/verify_cost_per_credit.js
     run "cost-per-credit accessibility"          run_node tools/a11y_audit.js "file://$ROOT/site/cost-per-credit.html"
+    run "brochure and firms layout + Letter print" run_node tools/verify_brochure_firms.js
+    run "brochure and firms accessibility"        run_node tools/a11y_audit.js "file://$ROOT/site/brochure.html" "file://$ROOT/site/firms.html"
     # ALWAYS runs. It used to be skipped unless TARGET_URL named an /edit URL with
     # a ?t= token — which meant that once the Access door retires those tokens
     # (plan KD1) the gate could never run again and would sit permanently
@@ -325,6 +328,7 @@ if [ "$WANT_BROWSER" = "1" ]; then
     skip "accessibility audit"  "no reachable X display"
     skip "rail placement"       "no reachable X display"
     skip "platform layout"      "no reachable X display"
+    skip "practice record client" "no reachable X display"
     skip "weekly-hours client"  "no reachable X display"
     skip "catalog client"       "no reachable X display"
     skip "Publisher client"     "no reachable X display"
@@ -332,6 +336,8 @@ if [ "$WANT_BROWSER" = "1" ]; then
     skip "interview + critique" "no reachable X display"
     skip "cost-per-credit"     "no reachable X display"
     skip "cost accessibility"  "no reachable X display"
+    skip "brochure and firms layout + Letter print" "no reachable X display"
+    skip "brochure and firms accessibility" "no reachable X display"
     skip "persona journeys (local browser leg)" "no reachable X display"
   fi
 else
@@ -339,6 +345,7 @@ else
   skip "accessibility audit"  "--no-browser"
   skip "rail placement"       "--no-browser"
   skip "platform layout"      "--no-browser"
+  skip "practice record client" "--no-browser"
   skip "weekly-hours client"  "--no-browser"
   skip "catalog client"       "--no-browser"
   skip "Publisher client"     "--no-browser"
@@ -346,6 +353,8 @@ else
   skip "interview + critique" "--no-browser"
   skip "cost-per-credit"     "--no-browser"
   skip "cost accessibility"  "--no-browser"
+  skip "brochure and firms layout + Letter print" "--no-browser"
+  skip "brochure and firms accessibility" "--no-browser"
   skip "persona journeys (local browser leg)" "--no-browser"
 fi
 
