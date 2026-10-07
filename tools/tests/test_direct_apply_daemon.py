@@ -89,6 +89,8 @@ def _run(rec, **kw):
         notify=rec.notify, editorial=rec.editorial, out=io.StringIO(),
         deploy_guard=lambda _branch: dad.DeployCheckoutStatus(0),
         deploy_refusal_notify=rec.notify_deploy_refusal,
+        # Hermetic: the production default publishes a real ntfy push.
+        recovery_notify=lambda _kind: None,
     )
     defaults.update(kw)
     return dad.run(**defaults)
@@ -404,7 +406,8 @@ class TestDeployCheckoutGuard(unittest.TestCase):
                         heartbeat=rec.heartbeat, notify=rec.notify,
                         editorial=rec.editorial, out=io.StringIO(),
                         deploy_guard=lambda _: status,
-                        deploy_refusal_notify=rec.notify_deploy_refusal)
+                        deploy_refusal_notify=rec.notify_deploy_refusal,
+                        recovery_notify=lambda _kind: None)
 
                 run.side_effect = exercise_selected_branch
                 self.assertEqual(dad.main(["--no-lock"]), 0)
@@ -795,6 +798,160 @@ class TestDeployCheckoutGuard(unittest.TestCase):
         with mock.patch.dict(os.environ, {}, clear=True), \
              mock.patch.object(dad, "run", return_value=refused):
             self.assertEqual(dad.main(["--no-lock"]), 1)
+
+
+class TestAlertEpisodes(unittest.TestCase):
+    """Episode-based ntfy alerting: a persistent condition pushes once, then at
+    most one reminder per reminder window, plus one recovery push when it clears.
+    Heartbeats and exit reasons are unchanged on every tick."""
+
+    DIVERGED = dad.DeployCheckoutStatus(failure_reason="diverged")
+    DIRTY = dad.DeployCheckoutStatus(failure_reason="dirty_checkout")
+    CURRENT = dad.DeployCheckoutStatus(0)
+
+    def setUp(self):
+        self._td = tempfile.TemporaryDirectory()
+        self.state_path = os.path.join(self._td.name, "state.json")
+        self.recoveries = []
+
+    def tearDown(self):
+        self._td.cleanup()
+
+    def tick(self, rec, minutes, status, **kw):
+        return _run(rec, state_path=self.state_path,
+                    now=NOW + datetime.timedelta(minutes=minutes),
+                    deploy_guard=lambda _branch: status,
+                    recovery_notify=lambda kind: self.recoveries.append(kind),
+                    **kw)
+
+    def test_repeated_refusals_within_window_push_once(self):
+        rec = Recorder(rows=[row("aaaaaaaa")])
+        results = [self.tick(rec, m, self.DIVERGED) for m in range(0, 6 * 60 - 1, 2)]
+        self.assertTrue(all(r.reason == "deploy_refused" for r in results))
+        self.assertEqual(len(rec.deploy_refusals), 1)
+        # Heartbeat behaviour is unchanged: every tick still reports unhealthy.
+        self.assertEqual(len(rec.heartbeats), len(results))
+        self.assertTrue(all(hb == {"ok": False, "applied": 0} for hb in rec.heartbeats))
+        self.assertEqual(self.recoveries, [])
+
+    def test_reminder_after_window_then_silence_again(self):
+        rec = Recorder(rows=[row("aaaaaaaa")])
+        self.tick(rec, 0, self.DIVERGED)
+        self.tick(rec, 2, self.DIVERGED)
+        self.tick(rec, 6 * 60, self.DIVERGED)        # reminder due
+        self.tick(rec, 6 * 60 + 2, self.DIVERGED)    # suppressed again
+        self.assertEqual(len(rec.deploy_refusals), 2)
+
+    def test_reminder_window_is_configurable_by_env(self):
+        rec = Recorder(rows=[row("aaaaaaaa")])
+        with mock.patch.dict(os.environ, {dad.ENV_ALERT_REMINDER_HOURS: "1"}):
+            self.tick(rec, 0, self.DIVERGED)
+            self.tick(rec, 30, self.DIVERGED)
+            self.tick(rec, 60, self.DIVERGED)
+        self.assertEqual(len(rec.deploy_refusals), 2)
+
+    def test_recovery_pushes_once_then_silence(self):
+        rec = Recorder(rows=[row("aaaaaaaa")])
+        self.tick(rec, 0, self.DIVERGED)
+        self.tick(rec, 2, self.DIVERGED)
+        ok1 = self.tick(rec, 4, self.CURRENT)
+        ok2 = self.tick(rec, 6, self.CURRENT)
+        self.assertEqual((ok1.reason, ok2.reason), ("applied", "applied"))
+        self.assertEqual(self.recoveries, ["deploy_refusal"])
+        self.assertEqual(len(rec.deploy_refusals), 1)
+        # A fresh refusal after recovery is a new episode and alerts at once.
+        self.tick(rec, 8, self.DIVERGED)
+        self.assertEqual(len(rec.deploy_refusals), 2)
+
+    def test_no_recovery_push_without_prior_episode(self):
+        rec = Recorder(rows=[row("aaaaaaaa")])
+        self.tick(rec, 0, self.CURRENT)
+        self.assertEqual(self.recoveries, [])
+
+    def test_reason_change_starts_new_episode(self):
+        rec = Recorder(rows=[row("aaaaaaaa")])
+        self.tick(rec, 0, self.DIVERGED)
+        self.tick(rec, 2, self.DIVERGED)
+        self.tick(rec, 4, self.DIRTY)
+        self.tick(rec, 6, self.DIRTY)
+        self.assertEqual([s.reason for s in rec.deploy_refusals],
+                         ["diverged", "dirty_checkout"])
+
+    def test_behind_count_change_is_same_episode(self):
+        rec = Recorder(rows=[row("aaaaaaaa")])
+        self.tick(rec, 0, dad.DeployCheckoutStatus(3))
+        self.tick(rec, 2, dad.DeployCheckoutStatus(4))
+        self.assertEqual(len(rec.deploy_refusals), 1)
+
+    def test_corrupt_episode_state_fails_toward_alerting(self):
+        rec = Recorder(rows=[row("aaaaaaaa")])
+        self.tick(rec, 0, self.DIVERGED)
+        path = dad.alert_state_path(self.state_path)
+        self.assertTrue(os.path.exists(path))
+        with open(path, "w") as fh:
+            fh.write("{not json")
+        self.tick(rec, 2, self.DIVERGED)
+        self.assertEqual(len(rec.deploy_refusals), 2)
+        # ...and the rewritten state resumes suppression on the next tick.
+        self.tick(rec, 4, self.DIVERGED)
+        self.assertEqual(len(rec.deploy_refusals), 2)
+
+    def test_unreadable_episode_state_fails_toward_alerting(self):
+        rec = Recorder(rows=[row("aaaaaaaa")])
+        self.tick(rec, 0, self.DIVERGED)
+        with mock.patch.object(dad, "_read_alert_state", side_effect=OSError("eio")):
+            self.tick(rec, 2, self.DIVERGED)
+        self.assertEqual(len(rec.deploy_refusals), 2)
+
+    def test_refusal_keeps_daemon_state_untouched(self):
+        initial = {"last_batch_id": "older-batch", "batch_reviewed": False}
+        dad.save_state(self.state_path, initial)
+        rec = Recorder(rows=[row("aaaaaaaa")])
+        self.tick(rec, 0, self.DIVERGED)
+        self.tick(rec, 2, self.DIVERGED)
+        self.assertEqual(dad.load_state(self.state_path), initial)
+
+    def test_persistent_apply_failure_pushes_once_and_recovers(self):
+        failing = Recorder(rows=[row("aaaaaaaa")], apply_rc=2)
+        failing.notify_count = 0
+        orig = failing.notify
+
+        def counting(ids):
+            failing.notify_count += 1
+            orig(ids)
+        for m in range(0, 20, 2):
+            r = self.tick(failing, m, self.CURRENT, notify=counting)
+            self.assertEqual(r.reason, "apply_failed")
+        self.assertEqual(failing.notify_count, 1)
+        self.tick(failing, 6 * 60, self.CURRENT, notify=counting)
+        self.assertEqual(failing.notify_count, 2)
+        healed = Recorder(rows=[row("aaaaaaaa")])
+        self.tick(healed, 6 * 60 + 2, self.CURRENT)
+        self.tick(healed, 6 * 60 + 4, self.CURRENT)
+        self.assertEqual(self.recoveries, ["failure"])
+
+    def test_different_failed_ids_alert_immediately(self):
+        rec = Recorder(rows=[row("aaaaaaaa")], apply_rc=2)
+        self.tick(rec, 0, self.CURRENT)
+        rec.notified = None
+        rec.rows = [row("bbbbbbbb")]
+        self.tick(rec, 2, self.CURRENT)
+        self.assertEqual(rec.notified, ["bbbbbbbb"])
+
+    def test_one_off_failure_gets_no_recovery_push(self):
+        rec = Recorder(rows=[row("aaaaaaaa")], apply_rc=2)
+        self.tick(rec, 0, self.CURRENT)
+        healed = Recorder(rows=[row("aaaaaaaa")])
+        self.tick(healed, 2, self.CURRENT)
+        self.assertEqual(self.recoveries, [])
+
+    def test_recovery_notification_is_metadata_only(self):
+        published = []
+        dad.notify_recovery("deploy_refusal", topic_resolver=lambda: "topic",
+                            publish=lambda *a, **k: published.append((a, k)))
+        args, _kwargs = published[0]
+        self.assertEqual(args[1], "Sonsteng apply deploy recovered")
+        self.assertNotIn("data/", args[2])
 
 
 class TestRevertJournalTransport(unittest.TestCase):

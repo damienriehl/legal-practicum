@@ -145,12 +145,21 @@ neither is a cheap local change to this daemon. The daemon flock prevents overla
 daemon ticks but cannot serialize unrelated Git processes, so this residual is
 documented rather than overstated as solved.
 
-An unchanged refusal continues to send a high-priority alert on every two-minute
-tick. Suppression was intentionally not added: this process starts afresh each tick,
-so reliable deduplication would require new persistent bookkeeping on a path whose
-central invariant is that refusal mutates no apply/revert state. Repeated alerts are
-noisy, but they keep an unsafe, still-pending publication visible and cannot hide a
-new refusal reason.
+**Episode alerting (2026-10-06).** An unchanged refusal used to push a high-priority
+alert on every two-minute tick (a diverged checkout from 2026-10-05 14:50 to
+2026-10-06 22:35 produced a push every two minutes). Pushes are now per episode: the
+first refusal pushes; while the same `reason` persists the daemon still heartbeats
+unhealthy and exits 1 every tick, but pushes again only as a reminder once per
+`APPLY_ALERT_REMINDER_HOURS` (default 6). A different refusal reason is a new episode
+and pushes at once. When the guard next permits a transaction, one low-priority
+"Sonsteng apply deploy recovered" push follows and the episode is cleared. Failure
+alerts (apply/rebuild/deploy and revert record/deploy failures, which retry every
+tick) use the same gate keyed by failure kind plus failed-id set; a failure episode
+that repeated gets one "Sonsteng apply daemon recovered" push on the next healthy
+tick, a one-off failure does not. Episode bookkeeping lives in its own
+`alert-episodes.json` beside the daemon state file (atomic write), so a refusal
+still mutates no apply/revert state. Any unreadable or corrupt episode file is
+treated as "no open episode", so the failure mode is an extra alert, never silence.
 
 **Regenerable-site guard.** `build_site.py` stamps the current HEAD sha into
 `site/platform/data/.build-stamp.json` (traceability only — deliberately not part of
@@ -204,7 +213,8 @@ from and cooperating with the engine's `.locks/apply.lock`):
    No-accepted ticks and `--dry-run` never invoke or record U18.
 8. On **any** apply/rebuild/deploy failure: heartbeat `{ok:false}` + an **ntfy
    alert** naming the failed suggestion **IDs only** (never content), so a stalled
-   home box is never silent (SL1/SL6).
+   home box is never silent (SL1/SL6). Repeats of the same failure are gated per
+   episode (see *Episode alerting* above).
 
 `APPLY_DEPLOY=1` is required because the engine only merges canonical on a
 successful deploy (merge is gated behind deploy). The engine therefore performs a
