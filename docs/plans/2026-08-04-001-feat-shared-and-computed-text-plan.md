@@ -1,4 +1,5 @@
 ---
+status: completed
 title: "Shared and Computed Text - Plan"
 type: feat
 date: 2026-08-04

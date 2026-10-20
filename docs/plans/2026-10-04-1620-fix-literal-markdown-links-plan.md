@@ -1,4 +1,5 @@
 ---
+status: completed
 title: Literal markdown links and pitch spacing - Plan
 type: fix
 date: 2026-10-04

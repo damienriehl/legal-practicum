@@ -1,4 +1,5 @@
 ---
+status: completed
 title: John-readiness pass - make the author-editor path bulletproof, simple, and steady - Plan
 type: fix
 date: 2026-10-03
