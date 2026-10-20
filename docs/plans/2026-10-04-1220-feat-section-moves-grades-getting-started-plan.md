@@ -1,4 +1,5 @@
 ---
+status: completed
 title: Section moves in the editor, long-exercise grade label, getting-started page - Plan
 type: feat
 date: 2026-10-04

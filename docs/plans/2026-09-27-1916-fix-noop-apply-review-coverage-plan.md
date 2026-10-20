@@ -1,4 +1,5 @@
 ---
+status: completed
 title: Cover net no-op applied suggestions in the production review ledger - Plan
 type: fix
 date: 2026-09-27
