@@ -65,7 +65,8 @@ blocked auto-apply. Separating the trees makes that impossible.
 
 **Why a worktree and not a clone.** A worktree shares the object store and refs
 with the interactive checkout, so an `apply:` or `revert(history):` commit the
-daemon makes is instantly visible to `git log` there and pushable from there — the
+daemon makes is instantly visible to `git log` there (the daemon now pushes it to
+`origin` itself; see "Self-publish" below) — the
 exact behavior of the old shared-tree setup, minus the shared working tree. A clone
 would strand the daemon's commits behind a fetch and could diverge from `origin/main`.
 
@@ -113,6 +114,21 @@ the behind count and requires zero before permitting the transaction. A current
 checkout needs no merge. Dirty checkouts, local commits (ahead or diverged), and
 failed fast-forwards refuse with `dirty_checkout`, `diverged`, and
 `fast_forward_failed` respectively. The guard never resets, rebases, or forces.
+
+**Self-publish (2026-10-23).** The daemon's own commits used to wedge it: the apply
+engine commits each batch to local `main`, nothing pushed it, and the next tick
+refused `diverged` on that commit forever (2026-10-05 to 10-06, and 2026-10-07 to
+10-23 with 38 suggestions queued). Now a clean checkout strictly ahead of its
+upstream *only* by daemon-written, non-merge commits (`apply: batch …` authored by
+`apply@sonsteng.local`, or `revert(history): …`) is published with a plain
+non-force `git push <remote> refs/heads/<branch>:<merge ref>`, re-fetched, and
+re-counted; zero ahead and behind permits the transaction and records
+`published: N`. A push or verification failure refuses `publish_failed`. Any other
+ahead commit, or ahead plus behind, still refuses `diverged` for an operator. After a
+completed apply (or revert publish) the daemon also runs the guard once more so the
+new commit reaches `origin` in the same tick; that step is non-gating because the
+next tick's guard retries it. Plan:
+`docs/plans/2026-10-23-1150-fix-apply-daemon-self-publish-plan.md`.
 
 Zero ahead and behind counts on a clean matching checkout permit the transaction. A positive remaining count,
 configured/checked-out branch mismatch, invalid or missing local branch, detached

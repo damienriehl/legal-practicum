@@ -137,6 +137,216 @@ def _stale_remote_fixture(root, branch="main", with_site=False):
     return checkout, remote, local_a, remote_b
 
 
+def _daemon_commit(checkout, subject="apply: batch batch-20261007T144833Z (2 suggestions)",
+                   email=dad.DAEMON_APPLY_AUTHOR_EMAIL):
+    _git(checkout, "-c", "user.name=apply-engine", "-c", "user.email=" + email,
+         "commit", "--allow-empty", "-q", "-m", subject)
+    return _git(checkout, "rev-parse", "HEAD").stdout.strip()
+
+
+def _level_fixture(root):
+    """A checkout level with its bare upstream (writer's B already pulled)."""
+    checkout, remote, _local_a, remote_b = _stale_remote_fixture(root)
+    _git(checkout, "fetch", "-q", "origin")
+    _git(checkout, "merge", "-q", "--ff-only", "origin/main")
+    assert _git(checkout, "rev-parse", "HEAD").stdout.strip() == remote_b
+    return checkout, remote, remote_b
+
+
+class TestDeployGuardSelfPublish(unittest.TestCase):
+    """2026-10-07 wedge: the daemon's own unpushed apply commit made every later
+    tick refuse `diverged`. The guard now publishes the daemon's own commits."""
+
+    def test_daemon_apply_commit_ahead_is_published_and_permitted(self):
+        with tempfile.TemporaryDirectory() as d:
+            checkout, remote, _b = _level_fixture(d)
+            head = _daemon_commit(checkout)
+            status = dad.checkout_deploy_status(checkout, branch="main")
+            self.assertTrue(status.deployable, status.metadata())
+            self.assertEqual(status.reason, "current")
+            self.assertEqual(status.published, 1)
+            self.assertEqual(status.metadata()["published"], 1)
+            self.assertEqual(
+                _git(remote, "rev-parse", "refs/heads/main").stdout.strip(), head)
+
+    def test_daemon_revert_and_apply_commits_publish_together(self):
+        with tempfile.TemporaryDirectory() as d:
+            checkout, remote, _b = _level_fixture(d)
+            _daemon_commit(checkout)
+            head = _daemon_commit(checkout, subject="revert(history): data/x.md run a..b",
+                                  email="test@example.invalid")
+            status = dad.checkout_deploy_status(checkout, branch="main")
+            self.assertTrue(status.deployable, status.metadata())
+            self.assertEqual(status.published, 2)
+            self.assertEqual(
+                _git(remote, "rev-parse", "refs/heads/main").stdout.strip(), head)
+
+    def test_foreign_commit_still_refuses_diverged_without_push(self):
+        cases = {
+            "hand_commit": [("local hand edit", "test@example.invalid")],
+            "mixed": [("apply: batch b1 (1 suggestions)", dad.DAEMON_APPLY_AUTHOR_EMAIL),
+                      ("local hand edit", "test@example.invalid")],
+            "apply_subject_wrong_author": [("apply: batch b1 (1 suggestions)",
+                                            "test@example.invalid")],
+        }
+        for name, commits in cases.items():
+            with self.subTest(case=name), tempfile.TemporaryDirectory() as d:
+                checkout, remote, remote_b = _level_fixture(d)
+                for subject, email in commits:
+                    _daemon_commit(checkout, subject=subject, email=email)
+                pushes = []
+                status = dad.checkout_deploy_status(
+                    checkout, branch="main", push=lambda args: pushes.append(args) or 0)
+                self.assertEqual(status.reason, "diverged")
+                self.assertFalse(status.deployable)
+                self.assertEqual(pushes, [])
+                self.assertEqual(
+                    _git(remote, "rev-parse", "refs/heads/main").stdout.strip(), remote_b)
+
+    def test_daemon_merge_commit_refuses_diverged(self):
+        with tempfile.TemporaryDirectory() as d:
+            checkout, _remote, _b = _level_fixture(d)
+            _git(checkout, "checkout", "-q", "-b", "side")
+            _daemon_commit(checkout, subject="apply: batch side (1 suggestions)")
+            _git(checkout, "checkout", "-q", "main")
+            _daemon_commit(checkout)
+            _git(checkout, "-c", "user.name=apply-engine",
+                 "-c", "user.email=" + dad.DAEMON_APPLY_AUTHOR_EMAIL,
+                 "merge", "-q", "--no-ff", "-m", "apply: batch merged (0 suggestions)", "side")
+            pushes = []
+            status = dad.checkout_deploy_status(
+                checkout, branch="main", push=lambda args: pushes.append(args) or 0)
+            self.assertEqual(status.reason, "diverged")
+            self.assertEqual(pushes, [])
+
+    def test_daemon_commit_ahead_and_behind_refuses_diverged(self):
+        with tempfile.TemporaryDirectory() as d:
+            checkout, _remote, _local_a, remote_b = _stale_remote_fixture(d)
+            _daemon_commit(checkout)
+            pushes = []
+            status = dad.checkout_deploy_status(
+                checkout, branch="main", push=lambda args: pushes.append(args) or 0)
+            self.assertEqual(status.reason, "diverged")
+            self.assertEqual(pushes, [])
+
+    def test_push_failure_refuses_publish_failed_with_safe_metadata(self):
+        for failure in (1, 128, "raise"):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as d:
+                checkout, remote, remote_b = _level_fixture(d)
+                head = _daemon_commit(checkout)
+                pushes = []
+
+                def push(args):
+                    pushes.append(args)
+                    if failure == "raise":
+                        raise OSError("private push detail")
+                    return failure
+
+                status = dad.checkout_deploy_status(checkout, branch="main", push=push)
+                self.assertEqual(status.reason, "publish_failed")
+                self.assertFalse(status.deployable)
+                self.assertEqual(status.published, 0)
+                self.assertNotIn("private", str(status.metadata()))
+                self.assertEqual(pushes, [["push", "--quiet", "origin",
+                                           "refs/heads/main:refs/heads/main"]])
+                self.assertNotIn("--force", pushes[0])
+                self.assertEqual(_git(checkout, "rev-parse", "HEAD").stdout.strip(), head)
+                self.assertEqual(
+                    _git(remote, "rev-parse", "refs/heads/main").stdout.strip(), remote_b)
+
+    def test_push_that_does_not_level_branch_refuses(self):
+        with tempfile.TemporaryDirectory() as d:
+            checkout, _remote, _b = _level_fixture(d)
+            _daemon_commit(checkout)
+            # Claims success but publishes nothing.
+            status = dad.checkout_deploy_status(checkout, branch="main", push=lambda args: 0)
+            self.assertEqual(status.reason, "publish_failed")
+            self.assertFalse(status.deployable)
+
+    def test_publish_failed_alert_names_reason_only(self):
+        sent = []
+        dad.notify_deploy_refusal(
+            dad.DeployCheckoutStatus(failure_reason="publish_failed"),
+            topic_resolver=lambda: "topic",
+            publish=lambda topic, title, body, *_a, **_k: sent.append((title, body)))
+        self.assertEqual(len(sent), 1)
+        self.assertIn("publish", sent[0][1])
+
+    def test_wedged_tick_now_applies(self):
+        """Regression for 2026-10-07: an unpushed apply commit no longer blocks."""
+        with tempfile.TemporaryDirectory() as d:
+            checkout, remote, _b = _level_fixture(d)
+            head = _daemon_commit(checkout)
+            rec = Recorder(rows=[row("aaaaaaaa")])
+            res = _run(rec, state_path=os.path.join(d, "state.json"), branch="main",
+                       deploy_guard=lambda b: dad.checkout_deploy_status(checkout, branch=b))
+            self.assertEqual(res.reason, "applied")
+            self.assertEqual(rec.deploy_refusals, [])
+            self.assertIn("apply", rec.calls)
+            self.assertEqual(dict(res.steps)["deploy_guard"]["published"], 1)
+            self.assertEqual(
+                _git(remote, "rev-parse", "refs/heads/main").stdout.strip(), head)
+
+    def test_transaction_publishes_new_commit_after_deploy(self):
+        with tempfile.TemporaryDirectory() as d:
+            checkout, remote, _b = _level_fixture(d)
+            rec = Recorder(rows=[row("aaaaaaaa")])
+            heads = {}
+
+            def engine(batch_id):
+                rec.calls.append("apply")
+                heads["new"] = _daemon_commit(
+                    checkout, subject="apply: batch %s (1 suggestions)" % batch_id)
+                return 0, "engine-tail"
+
+            def publish(b):
+                rec.calls.append("publish")
+                return dad.checkout_deploy_status(checkout, branch=b)
+
+            res = _run(rec, state_path=os.path.join(d, "state.json"), branch="main",
+                       apply_engine=engine, publish=publish,
+                       deploy_guard=lambda b: dad.checkout_deploy_status(checkout, branch=b))
+            self.assertEqual(res.reason, "applied")
+            self.assertLess(rec.calls.index("deploy:main"), rec.calls.index("publish"))
+            self.assertLess(rec.calls.index("publish"), len(rec.calls))
+            self.assertEqual(dict(res.steps)["publish"]["published"], 1)
+            self.assertEqual(
+                _git(remote, "rev-parse", "refs/heads/main").stdout.strip(), heads["new"])
+            # The next tick sees a level checkout and applies again.
+            rec2 = Recorder(rows=[row("bbbbbbbb")])
+            res2 = _run(rec2, state_path=os.path.join(d, "state.json"), branch="main",
+                        deploy_guard=lambda b: dad.checkout_deploy_status(checkout, branch=b))
+            self.assertEqual(res2.reason, "applied")
+            self.assertEqual(dict(res2.steps)["deploy_guard"]["published"], 0)
+
+    def test_publish_failure_is_non_gating(self):
+        for outcome in ("refused", "raises", "garbage"):
+            with self.subTest(outcome=outcome), tempfile.TemporaryDirectory() as d:
+                rec = Recorder(rows=[row("aaaaaaaa")])
+
+                def publish(_b):
+                    if outcome == "raises":
+                        raise RuntimeError("private")
+                    if outcome == "garbage":
+                        return None
+                    return dad.DeployCheckoutStatus(failure_reason="publish_failed")
+
+                res = _run(rec, state_path=os.path.join(d, "state.json"), publish=publish)
+                self.assertEqual(res.reason, "applied")
+                self.assertFalse(dict(res.steps)["publish"]["deployable"])
+                self.assertEqual(rec.deploy_refusals, [])
+                self.assertNotIn("private", str(res.steps))
+
+    def test_no_publish_when_apply_fails(self):
+        with tempfile.TemporaryDirectory() as d:
+            rec = Recorder(rows=[row("aaaaaaaa")], apply_rc=1)
+            calls = []
+            res = _run(rec, state_path=os.path.join(d, "state.json"),
+                       publish=lambda b: calls.append(b) or dad.DeployCheckoutStatus(0))
+            self.assertEqual(res.reason, "apply_failed")
+            self.assertEqual(calls, [])
+
+
 class TestAcceptedFilter(unittest.TestCase):
     def test_only_accepted(self):
         rows = [row("aaaaaaaa", "accepted"), row("bbbbbbbb", "pending"),
@@ -785,6 +995,7 @@ class TestDeployCheckoutGuard(unittest.TestCase):
             "upstream_fallback": False,
             "fetch_rc": 128,
             "fast_forwarded": False,
+            "published": 0,
         }
         payloads = dict(result.steps)
         self.assertEqual(payloads["deploy_guard"], expected)
