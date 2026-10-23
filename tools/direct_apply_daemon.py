@@ -45,7 +45,11 @@ The refusal heartbeats unhealthy, sends a metadata-only ntfy alert, and leaves
 accepted rows / revert journal state intact for a later tick. The guard fetches
 only the selected branch's exact upstream and fails closed if that bounded fetch
 does not succeed. A clean checkout strictly behind its upstream is fast-forwarded
-with a bounded ff-only merge before the transaction is permitted.
+with a bounded ff-only merge before the transaction is permitted. A clean checkout
+strictly AHEAD only by the daemon's own apply/revert commits is published with a
+plain non-force push (and re-verified) instead of refusing: the daemon's unpushed
+commit used to wedge every later tick as `diverged` (2026-10-07). Each completed
+apply/revert also publishes its commit in the same tick (non-gating).
 
 EPISODE ALERTING: refusal and failure pushes are deduplicated per episode. The
 first tick of a condition pushes; while it persists the daemon still heartbeats
@@ -105,6 +109,14 @@ DEFAULT_ALERT_REMINDER_HOURS = 6
 ALERT_STATE_FILENAME = "alert-episodes.json"
 DEPLOY_GUARD_FETCH_TIMEOUT = 30
 FETCH_STDERR_LIMIT = 500
+DEPLOY_GUARD_PUSH_TIMEOUT = 120
+# The daemon's own commits. The apply engine commits each batch as
+# apply-engine <apply@sonsteng.local> with subject "apply: batch <id> (...)";
+# execute_revert commits "revert(history): <doc> run <range>". Only these may be
+# self-published by the deploy guard; any other local commit is hand divergence.
+DAEMON_APPLY_AUTHOR_EMAIL = "apply@sonsteng.local"
+DAEMON_APPLY_SUBJECT_PREFIX = "apply: batch "
+DAEMON_REVERT_SUBJECT_PREFIX = "revert(history): "
 
 # The status the daemon flushes. Auto-accept (worker lane) lands rows here; the
 # engine's /claim only ever claims `accepted` rows, so this is the exact trigger.
@@ -486,6 +498,47 @@ def _fetch_git(args, repo_root=REPO_ROOT, timeout=DEPLOY_GUARD_FETCH_TIMEOUT):
         return proc.returncode, _fetch_stderr_tail(stderr_file)
 
 
+def _push_git(args, repo_root=REPO_ROOT, timeout=DEPLOY_GUARD_PUSH_TIMEOUT):
+    """Run the guard's bounded, non-interactive, non-force self-publish push."""
+    env = dict(os.environ)
+    env["GIT_TERMINAL_PROMPT"] = "0"
+    try:
+        proc = subprocess.run(
+            ["git", *args], cwd=repo_root, check=False, shell=False, env=env,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return 124
+    except OSError:
+        return 127
+    return proc.returncode
+
+
+def daemon_owned_commits(git, upstream_ref, local_ref):
+    """True when every commit in upstream..local is a non-merge commit the daemon
+    itself writes (an apply-engine batch or a History revert). Any inspection
+    failure, empty range, or foreign commit returns False (fail closed)."""
+    rc, output = git(["log", "--format=%H%x1f%P%x1f%ae%x1f%s",
+                      "%s..%s" % (upstream_ref, local_ref)])
+    if rc != 0:
+        return False
+    lines = [line for line in output.splitlines() if line.strip()]
+    if not lines:
+        return False
+    for line in lines:
+        fields = line.split("\x1f")
+        if len(fields) != 4:
+            return False
+        _sha, parents, author_email, subject = fields
+        if len(parents.split()) != 1:
+            return False
+        is_apply = (author_email == DAEMON_APPLY_AUTHOR_EMAIL and
+                    subject.startswith(DAEMON_APPLY_SUBJECT_PREFIX))
+        is_revert = subject.startswith(DAEMON_REVERT_SUBJECT_PREFIX)
+        if not (is_apply or is_revert):
+            return False
+    return True
+
+
 @dataclasses.dataclass(frozen=True)
 class DeployCheckoutStatus:
     """Safe, content-free result of the local upstream comparison."""
@@ -496,16 +549,21 @@ class DeployCheckoutStatus:
     fetch_stderr: str = ""
     upstream_fallback: bool = False
     fast_forwarded: bool = False
+    published: int = 0
 
     def __post_init__(self):
         if not isinstance(self.fast_forwarded, bool):
             raise ValueError("fast_forwarded must be a boolean")
+        if (not isinstance(self.published, int) or isinstance(self.published, bool)
+                or self.published < 0):
+            raise ValueError("published must be a nonnegative integer")
         if (self.behind is not None and
                 (not isinstance(self.behind, int) or
                  isinstance(self.behind, bool) or self.behind < 0)):
             raise ValueError("behind must be a nonnegative integer or None")
         if self.failure_reason not in (None, "fetch_failed", "dirty_checkout",
-                                       "diverged", "fast_forward_failed"):
+                                       "diverged", "fast_forward_failed",
+                                       "publish_failed"):
             raise ValueError("unsupported deploy-checkout failure reason")
         if self.failure_reason is not None and self.behind is not None:
             raise ValueError("a failed status cannot carry a behind count")
@@ -540,12 +598,13 @@ class DeployCheckoutStatus:
             "upstream_fallback": self.upstream_fallback,
             "fetch_rc": self.fetch_rc,
             "fast_forwarded": self.fast_forwarded,
+            "published": self.published,
         }
 
 
 def checkout_deploy_status(
         repo_root=REPO_ROOT, *, branch=DEFAULT_DEPLOY_BRANCH, git=None,
-        fetch=None, fetch_timeout=DEPLOY_GUARD_FETCH_TIMEOUT):
+        fetch=None, fetch_timeout=DEPLOY_GUARD_FETCH_TIMEOUT, push=None):
     """Return whether every local ref consumed by a deploy is current.
 
     ``deploy-dev.sh`` archives the explicitly configured local branch, while
@@ -553,10 +612,19 @@ def checkout_deploy_status(
     HEAD. The configured and checked-out branch must therefore be identical. That
     exact branch is compared with its own freshly fetched upstream. Any inability
     to prove a clean checkout with zero ahead and behind counts fails closed.
-    ``git`` and ``fetch`` are injectable for hermetic unit tests.
+
+    SELF-PUBLISH: a clean checkout strictly AHEAD of its upstream only by the
+    daemon's own commits (``daemon_owned_commits``) is published with a plain,
+    non-force push of the branch to its recorded upstream, then re-fetched and
+    re-counted; zero ahead and behind permits the transaction (``published`` > 0),
+    anything else refuses ``publish_failed``. Foreign ahead commits, or ahead plus
+    behind, still refuse ``diverged``: the guard never forces, resets, rebases, or
+    merges a diverged history.
+    ``git``, ``fetch``, and ``push`` are injectable for hermetic unit tests.
     """
     git = git or (lambda args: _git(args, repo_root))
     fetch = fetch or (lambda args: _fetch_git(args, repo_root, fetch_timeout))
+    push = push or (lambda args: _push_git(args, repo_root))
 
     def compare(local_ref):
         upstream_fallback = False
@@ -610,17 +678,20 @@ def checkout_deploy_status(
                 "fetch", "--no-tags", "--no-prune", remote,
                 "%s:%s" % (merge_ref, upstream_ref),
             ]
-            try:
-                fetch_rc, fetch_stderr = fetch(fetch_args)
-            except subprocess.TimeoutExpired as exc:
-                fetch_rc = 124
-                fetch_stderr = "fetch timed out after %d seconds" % fetch_timeout
-                if exc.stderr:
-                    fetch_stderr += ": " + _bounded_fetch_stderr(exc.stderr)
-            except OSError as exc:
-                fetch_rc, fetch_stderr = 127, _bounded_fetch_stderr(exc)
-            except Exception as exc:
-                fetch_rc, fetch_stderr = 1, _bounded_fetch_stderr(exc)
+            def run_fetch():
+                try:
+                    return fetch(fetch_args)
+                except subprocess.TimeoutExpired as exc:
+                    detail = "fetch timed out after %d seconds" % fetch_timeout
+                    if exc.stderr:
+                        detail += ": " + _bounded_fetch_stderr(exc.stderr)
+                    return 124, detail
+                except OSError as exc:
+                    return 127, _bounded_fetch_stderr(exc)
+                except Exception as exc:
+                    return 1, _bounded_fetch_stderr(exc)
+
+            fetch_rc, fetch_stderr = run_fetch()
             if fetch_rc != 0:
                 return DeployCheckoutStatus(
                     failure_reason="fetch_failed", fetch_rc=fetch_rc,
@@ -654,9 +725,33 @@ def checkout_deploy_status(
             ahead = int(output.strip())
             if ahead < 0:
                 raise ValueError("negative ahead count")
+            published = 0
             if ahead > 0:
-                return DeployCheckoutStatus(
-                    failure_reason="diverged", upstream_fallback=upstream_fallback)
+                if behind > 0 or not daemon_owned_commits(git, upstream_ref, local_ref):
+                    return DeployCheckoutStatus(
+                        failure_reason="diverged", upstream_fallback=upstream_fallback)
+                # The checkout is ahead only by the daemon's own commits: publish
+                # them (plain push, never --force) and prove the result.
+                try:
+                    push_rc = push(["push", "--quiet",
+                                    remote, "%s:%s" % (local_ref, merge_ref)])
+                    if push_rc != 0:
+                        raise ValueError("push failed")
+                    refetch_rc, _ = run_fetch()
+                    if refetch_rc != 0:
+                        raise ValueError("post-publish fetch failed")
+                    rc_a, out_a = git(
+                        ["rev-list", "--count", "%s..%s" % (upstream_ref, local_ref)])
+                    rc_b, out_b = git(
+                        ["rev-list", "--count", "%s..%s" % (local_ref, upstream_ref)])
+                    if (rc_a != 0 or rc_b != 0 or int(out_a.strip()) != 0 or
+                            int(out_b.strip()) != 0):
+                        raise ValueError("publish did not level the branch")
+                except Exception:
+                    return DeployCheckoutStatus(
+                        failure_reason="publish_failed",
+                        upstream_fallback=upstream_fallback)
+                published = ahead
             if behind > 0:
                 try:
                     rc, _ = git(["merge", "--ff-only", upstream_ref])
@@ -676,7 +771,8 @@ def checkout_deploy_status(
         except Exception:
             return DeployCheckoutStatus(upstream_fallback=upstream_fallback)
         return DeployCheckoutStatus(
-            behind, upstream_fallback=upstream_fallback, fast_forwarded=fast_forwarded)
+            behind, upstream_fallback=upstream_fallback, fast_forwarded=fast_forwarded,
+            published=published)
 
     try:
         deploy_ref = "refs/heads/" + branch
@@ -985,6 +1081,11 @@ def notify_deploy_refusal(status, *, topic_resolver=None, publish=None):
                 "refresh the guarded deploy ref's upstream (git fetch rc %d). "
                 "No deploy ran. Repair upstream access, then let a later tick retry."
                 % status.fetch_rc)
+    elif status.failure_reason == "publish_failed":
+        body = ("The home-box apply daemon refused to deploy because it could not "
+                "publish its own apply/revert commits to the deploy branch's upstream "
+                "(non-force push). No deploy ran. Repair push access, then let a "
+                "later tick retry.")
     elif status.failure_reason in ("dirty_checkout", "diverged", "fast_forward_failed"):
         body = ("The home-box apply daemon refused to deploy (%s). "
                 "No deploy ran. Repair the checkout, then let a later tick retry."
@@ -1138,13 +1239,19 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
         revert_record=None,
         clean_site=None, do_deploy_worker=None, do_scoped=None,
         legacy_u18=None, deploy_guard=None, deploy_refusal_notify=None,
-        recovery_notify=None, alert_state=None, alert_reminder=None):
+        recovery_notify=None, alert_state=None, alert_reminder=None,
+        publish=None):
     """Execute one daemon tick. Returns DaemonResult. All I/O is injectable; the
     production wiring is supplied by main().
 
     do_history / fetch_reverts / revert_exec / revert_resolve / clean_site are
     OPT-IN: when None the corresponding behavior is skipped (keeps the pure
-    orchestration tests hermetic). main() wires all five for production."""
+    orchestration tests hermetic). main() wires all five for production.
+
+    ``publish`` is likewise opt-in: after a completed apply or revert publish it
+    re-runs the deploy guard (main() wires checkout_deploy_status), which pushes
+    the daemon's own new commit to the branch's upstream. Non-gating: a failure
+    is logged and the next tick's guard retries the same self-publish."""
     out = out or sys.stdout
     state_path = state_path or default_state_path()
     now = now or datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
@@ -1186,6 +1293,26 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
             recovery_notify("failure")
             steps.append(("notify_recovery", "failure"))
 
+    def publish_commits():
+        """Publish the daemon's just-made commit(s) upstream; never fails the tick."""
+        if publish is None:
+            return
+        if clean_site is not None:
+            steps.append(("clean_site", bool(clean_site())))
+        try:
+            status = publish(branch)
+        except Exception:
+            status = DeployCheckoutStatus()
+        if not isinstance(status, DeployCheckoutStatus):
+            status = DeployCheckoutStatus()
+        steps.append(("publish", status.metadata()))
+        if status.deployable:
+            print("[daemon] published %d daemon commit(s) to %s upstream."
+                  % (status.published, branch), file=out)
+        else:
+            print("[daemon] publish to upstream did not complete (%s); "
+                  "the next tick's guard retries." % status.reason, file=out)
+
     def deploy_refusal(batch_id=""):
         """Fail closed without changing retry-critical apply/revert state."""
         # Rebuilds restamp tracked site/ output, including on failed ticks and
@@ -1216,7 +1343,8 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
             detail = "guarded deploy ref is behind upstream by %d commit(s)" % status.behind
         elif status.failure_reason == "fetch_failed":
             detail = "guarded deploy ref upstream fetch failed (rc %d)" % status.fetch_rc
-        elif status.failure_reason in ("dirty_checkout", "diverged", "fast_forward_failed"):
+        elif status.failure_reason in ("dirty_checkout", "diverged", "fast_forward_failed",
+                                       "publish_failed"):
             detail = "guarded deploy checkout refused (%s)" % status.failure_reason
         else:
             detail = "guarded deploy ref or upstream is unresolvable"
@@ -1280,6 +1408,8 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
                 completion_refused = dok and completed.get("ok") is False
                 dok = dok and completed.get("sent") is True
                 heartbeat(dok, 0)
+                if dok:
+                    publish_commits()
                 if not dok:
                     failure_alert("revert_deploy", [rid])
                     if completion_refused:
@@ -1412,6 +1542,10 @@ def run(*, api_base, token, branch=DEFAULT_DEPLOY_BRANCH, dry_run=False,
     if clean_site is not None:
         steps.append(("clean_site", bool(clean_site())))
 
+    # 2c) Publish the new apply commit to the branch's upstream so the next
+    #     tick's guard sees a level checkout (2026-10-07 wedge). Non-gating.
+    publish_commits()
+
     # 3) Heartbeat ok:true applied:N (best-effort; 404 tolerated).
     hb = heartbeat(True, len(accepted))
     steps.append(("heartbeat", {"ok": True, "applied": len(accepted)}))
@@ -1485,6 +1619,7 @@ def main(argv=None):
                          revert_record=lambda evidence, action: record_revert_mutation(
                              api_base, token, evidence, action),
                          do_scoped=lambda: dispatch_scoped_drafts(),
+                         publish=lambda selected: checkout_deploy_status(branch=selected),
                          legacy_u18=LegacyU18Hooks(
                              fetch_frontier=(lambda: completed_production_frontier(observer))
                                 if observer else (lambda: None),
