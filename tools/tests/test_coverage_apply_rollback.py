@@ -81,6 +81,44 @@ def test_downstream_failure_discards_real_patch_commit_and_worktree(transaction,
     assert_clean_rollback(transaction, before, head)
 
 
+@pytest.mark.parametrize('failure', ['build', 'parity', 'deploy'])
+def test_downstream_failure_finalizes_gate_classified_rows(transaction, failure):
+    """2026-10-23: a build failure finalized only accepted_blocked, leaving rows the
+    gates had already classified drift/needs_human stranded in_flight."""
+    root, store, _, _ = transaction
+    add(transaction, 'edit', fixtures.bref(root, fixtures.M03_MD, 0),
+        'Revised intake narrative for review.')
+    stale = add(transaction, 'stale', fixtures.M03_EX + '#caption', 'Never lands.')
+    stale['original_hash'] = 'stale-hash'
+    add(transaction, 'formatted', fixtures.bref(root, fixtures.M03_FMT, 0),
+        'This paragraph now says something else entirely.')
+    before, head = fixtures.snapshot_data(root), ap.head_sha(root)
+
+    class FailurePipeline(fixtures.FakePipeline):
+        def build(self, worktree):
+            if failure == 'build':
+                return False, {'step': 'build_site --check'}
+            return super().build(worktree)
+
+        def parity(self, worktree):
+            if failure == 'parity':
+                return False, {'stdout': 'mismatch'}
+            return super().parity(worktree)
+
+        def deploy(self, worktree, branch, plan_only):
+            if failure == 'deploy':
+                return False, {'executed': False}
+            return super().deploy(worktree, branch, plan_only)
+
+    result = run(transaction, FailurePipeline(fixtures.SPEC))
+    assert not result.committed
+    assert store.rows['edit']['status'] == 'accepted_blocked'
+    assert store.rows['stale']['status'] == 'drift'
+    assert store.rows['formatted']['status'] == 'needs_human'
+    assert not [r for r in store.rows.values() if r['status'] == 'in_flight']
+    assert_clean_rollback(transaction, before, head)
+
+
 @pytest.mark.parametrize('drift', ['missing-source', 'stale-hash'])
 def test_apply_time_drift_rejects_entire_group_before_patch(transaction, drift):
     root, store, _, _ = transaction
