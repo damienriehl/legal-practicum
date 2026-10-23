@@ -24,7 +24,7 @@ What letters, messages, agreements, photographs, or other records do you have? H
 
 ### 5. Earlier steps and other people {#b:dad07897}
 
-What have you already tried? Have you spoken with another lawyer or anyone else about this matter? Is another party represented by a lawyer? Include names for the firm's conflicts check. {#b:a53888a0}
+What have you already worked on? Have you spoken with another lawyer or anyone else about this matter? Is another party represented by a lawyer? Include names for the firm's conflicts check. {#b:a53888a0}
 
 ### 6. Questions for us {#b:d059d738}
 

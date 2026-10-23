@@ -1,6 +1,6 @@
 ## Purpose {#b:908d7ac2}
 
-Welcome to the practicum. You will learn by handling matters, working with a partner, receiving feedback, and trying again. The course rewards steady, week-by-week work. You demonstrate progress through preparation, practice, and revision, rather than cramming at the end. {#b:8b4c128d}
+Welcome to the Legal Practicum. You will learn by handling matters, working with a partner, receiving feedback, and trying again. The course rewards steady, week-by-week work. You demonstrate progress through preparation, practice, and revision, rather than cramming at the end. {#b:8b4c128d}
 
 Work cannot be postponed because each step prepares you for the next. Your interview supplies the facts for your memo; your memo informs your advice and negotiation plan. Your partner, clients, and opposing counsel also rely on you being ready. Feedback needs time to become a revision, and a revision needs time to become a habit. {#b:c2228d1f}
 

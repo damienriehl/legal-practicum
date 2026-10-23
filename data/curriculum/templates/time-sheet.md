@@ -1,6 +1,6 @@
 ## Purpose {#b:24a4e03d}
 
-The weekly time sheet is the smallest and most disciplined document in the practicum, and the one that most reliably separates a business-minded lawyer from a merely competent one. It is the primary record of your labor: the source from which every client billing statement is built, the evidence of whether the firm's work was realistically balanced between partners, and — for hourly and retainer matters — the arithmetic on which the fee itself depends. Professor Sonsteng's course requires a time sheet every week of the term. You keep one, contemporaneously, for each matter you touch. The habit is the lesson: time not recorded when the work is done is time lost, and a narrative written a week late is a narrative no client should be asked to pay for. {#b:bd3483d9}
+The weekly time sheet is the smallest and most disciplined document in the Legal Practicum, and the one that most reliably separates a business-minded lawyer from a merely competent one. It is the primary record of your labor: the source from which every client billing statement is built, the evidence of whether the firm's work was realistically balanced between partners, and — for hourly and retainer matters — the arithmetic on which the fee itself depends. The Legal Practicum course requires a time sheet every week of the term. You keep one, contemporaneously, for each matter you touch. The habit is the lesson: time not recorded when the work is done is time lost, and a narrative written a week late is a narrative no client should be asked to pay for.The Legal Practicum has two timesheet requirements:1. Time spent on client work for which the client may be billed.2. Time that is devoted to the Legal Practicum course and not necessarily client work. You are expected to average three hours each week for every credit. {#b:bd3483d9}
 
 Time is recorded in **tenth-of-an-hour (0.1) increments** — six-minute units — the universal convention of legal billing. A quick client call is 0.2; a morning drafting a memo is 3.0. Round honestly to the nearest tenth; do not pad, and do not "bill in bulk" by lumping a week into one line. {#b:3f394972}
 
@@ -32,7 +32,7 @@ The narrative is the craft of the time sheet. A good entry states **what you did
 - Write in the active voice, past tense: "Drafted," "Reviewed," "Telephoned," "Analyzed." {#b:da094ac1}
 - Name the task and its object: not "worked on case," but "drafted interrogatories to defendant on the icy-conditions defense." {#b:4ee2a3c7}
 - Avoid block-billing: if you did three distinct things, write three entries (or itemize within one) rather than one four-hour "attention to file." {#b:56ef0014}
-- Never disclose privileged strategy in a line a client statement will reproduce. {#b:ffe62e07}
+- Never disclose privileged strategy,  conversations, or written work in a line a client statement that can be discovered. {#b:ffe62e07}
 
 ## Assessment and feedback {#b:600f0d65}
 

@@ -1093,7 +1093,7 @@
     {
       "id": "m12",
       "slug": "m12-discipline-mn",
-      "caption": "In re Petition for Disciplinary Action against Delphine A. Karsgaard, a Minnesota Attorney",
+      "caption": "In re Petition for Disciplinary Action against Delphine A. Karsgaard, a Meridian Attorney",
       "shape": "attorney_discipline",
       "tier": "real",
       "jurisdiction": "MN",
@@ -1398,7 +1398,7 @@
     {
       "id": "m15",
       "slug": "m15-dwi-mn",
-      "caption": "State of Minnesota v. Travis O. Wenzloff",
+      "caption": "State of  Meridian v. Travis  O. Wenzloff",
       "shape": "criminal_dwi",
       "tier": "real",
       "jurisdiction": "MN",

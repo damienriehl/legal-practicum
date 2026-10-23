@@ -22,7 +22,7 @@ Plan the interview as an arc, not a checklist: {#b:8757f5b5}
 5. **Closing and next steps** — summarize, confirm understanding, and tell the client exactly what happens next. {#b:a9f7f0ef}
 
 ### 4. The T-funnel topic map {#b:ea7dbb12}
-For each major topic you must cover, write **one open-ended question to open it** and the **closed follow-ups** to fill the gaps. The discipline is broad-before-narrow: never lead with the closed question. {#b:a265819c}
+For each major topic you must cover, write **one open-ended question to open it** and the **closed follow-ups** to fill the gaps. The discipline is broad-before-narrow: do not lead with the closed question. {#b:a265819c}
 
 | Topic | Open-ended opener | Closed gap-fillers |
 |---|---|---|
@@ -37,4 +37,4 @@ What might go wrong — an over-talker who buries the facts, a distressed client
 
 ## Assessment and feedback {#b:d4091363}
 
-The Client Interview Plan is assessed on the **soundness of its T-funnel structure and its attention to both fact-gathering and relationship** — the two axes on which the interview itself is later scored. Assessment looks for genuine open-ended openers (not closed questions in disguise), a topic map that moves broad-to-narrow, explicit planning for the client's goals and non-legal concerns, and a mature, non-coercive approach to sensitive facts. Because the plan feeds a assessed interview whose debrief scores fact coverage *and* the client's felt experience in character, a plan that treats the client as a witness to be mined rather than a person to be understood tends to produce a poor result. The strongest plans prepare the lawyer to listen, not to interrogate. {#b:d6496125}
+The Client Interview Plan is assessed on the **soundness of its T-funnel structure and its attention to both fact-gathering and relationship** — the two axes on which the interview itself is later assessed. Assessment looks for genuine open-ended openers (not closed questions in disguise), a topic map that moves broad-to-narrow, explicit planning for the client's goals and non-legal concerns, and a mature, non-coercive approach to sensitive facts. Because the plan feeds an assessed interview whose debrief scores fact coverage *and* the client's felt experience in character, a plan that treats the client as a witness to be mined rather than a person to be understood tends to produce a poor result. The strongest plans prepare the lawyer to listen, not to interrogate. {#b:d6496125}
