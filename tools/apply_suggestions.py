@@ -1837,8 +1837,13 @@ def run_apply(client, pipeline, batch_id, *, worktree_parent=None, deploy_plan_o
         # 9) Build all three bundles.
         ok, binfo = pipeline.build(wt)
         if not ok:
+            # Finalize EVERY claimed row, as the validator-red path does: rows the
+            # gates already classified drift/needs_human must leave in_flight now,
+            # not sit leased until reconcile (2026-10-23: 6 rows stranded).
             client.finalize(batch_id, phase=PHASE_ROLLED_BACK,
-                            accepted_blocked=[p.suggestion_id for p in applied_patches])
+                            accepted_blocked=[p.suggestion_id for p in applied_patches],
+                            needs_human=[_id(r) for r in needs_human],
+                            drift=[_id(r) for r in drift])
             return ApplyResult(batch_id, base_sha, [], drift, needs_human,
                                applied_patches, companions, {}, "", False,
                                reason="build_failed:%s" % binfo.get("step"))
@@ -1848,7 +1853,9 @@ def run_apply(client, pipeline, batch_id, *, worktree_parent=None, deploy_plan_o
         ok, pinfo = pipeline.parity(wt)
         if not ok:
             client.finalize(batch_id, phase=PHASE_ROLLED_BACK,
-                            accepted_blocked=[p.suggestion_id for p in applied_patches])
+                            accepted_blocked=[p.suggestion_id for p in applied_patches],
+                            needs_human=[_id(r) for r in needs_human],
+                            drift=[_id(r) for r in drift])
             return ApplyResult(batch_id, base_sha, [], drift, needs_human,
                                applied_patches, companions, {}, "", False,
                                reason="parity_mismatch")
@@ -1864,7 +1871,9 @@ def run_apply(client, pipeline, batch_id, *, worktree_parent=None, deploy_plan_o
         deploy_ok, deploy_info = pipeline.deploy(wt, scratch_branch, deploy_plan_only)
         if not deploy_ok:
             client.finalize(batch_id, phase=PHASE_ROLLED_BACK,
-                            accepted_blocked=[p.suggestion_id for p in applied_patches])
+                            accepted_blocked=[p.suggestion_id for p in applied_patches],
+                            needs_human=[_id(r) for r in needs_human],
+                            drift=[_id(r) for r in drift])
             return ApplyResult(batch_id, base_sha, [], drift, needs_human,
                                applied_patches, companions, deploy_info, "", False,
                                reason="deploy_failed")
