@@ -348,6 +348,8 @@ export function lookupAccessSlot(env, email) {
 const EDITOR_LABELS = Object.freeze({
   john: "JOS",
   roger: "RSH",
+  michael: "MS",
+  abby: "AB",
   damien: "DR",
   damienadmin: "DR",
   admin: "ADM",

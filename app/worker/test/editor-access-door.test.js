@@ -522,6 +522,42 @@ test("the Access-only Damien slot is the Publisher on the canonical DEV ledger",
   assert.equal(cfg.env.production.vars.PROD_RELEASE_LEDGER, "false");
 });
 
+// Michael Sonsteng and Abby Breit (added 2026-10-24) hold exactly John's grant,
+// reached only through Access — the real DEV config, resolved end to end.
+test("michael and abby carry John's DEV grant and their own attribution", async () => {
+  const cfg = WRANGLER_CONFIG;
+  for (const vars of [cfg.vars, cfg.env.dev.vars]) {
+    const scopes = JSON.parse(vars.EDIT_TOKEN_SCOPES);
+    assert.deepEqual(scopes.michael, scopes.john);
+    assert.deepEqual(scopes.abby, scopes.john);
+  }
+  const env = baseEnv({
+    EDIT_TOKEN_SCOPES: cfg.vars.EDIT_TOKEN_SCOPES,
+    EDIT_ACCESS_EMAILS: JSON.stringify({ "michael@example.com": "michael", "abby@example.com": "abby" }),
+  });
+  for (const [email, slot, label] of [["michael@example.com", "michael", "MS"], ["abby@example.com", "abby", "AB"]]) {
+    __resetJwksCache();
+    const auth = await resolveAuth(env, await accessReq(email));
+    assert.equal(auth.slot, slot);
+    assert.equal(auth.scopes.edit.granted, true);
+    assert.equal(auth.scopes.instructor.granted, true);
+    assert.equal(auth.scopes.admin.granted, false);
+    assert.equal(auth.scopes.publisher.granted, false);
+    assert.equal(attributionLabel(auth.editor), label);
+  }
+  // Access-only: with no EDIT_TOKEN_MICHAEL / EDIT_TOKEN_ABBY secret, no Bearer
+  // value reaches either slot, and PROD never learns the slots at all.
+  for (const presented of ["", "michael", "abby", "EDIT_TOKEN_MICHAEL"]) {
+    const viaToken = await resolveAuth(env, req(FALLBACK_HOST, "/edit/v1/pending", {
+      Authorization: `Bearer ${presented}`,
+    }));
+    assert.equal(viaToken.scopes.edit.granted, false, JSON.stringify(presented));
+  }
+  const production = JSON.parse(cfg.env.production.vars.EDIT_TOKEN_SCOPES);
+  assert.equal(production.michael, undefined);
+  assert.equal(production.abby, undefined);
+});
+
 test("both browser origins are on the DEV allowlist while the tokens live (KTD6)", () => {
   const cfg = WRANGLER_CONFIG;
   for (const [name, vars] of [["top-level", cfg.vars], ["env.dev", cfg.env.dev.vars]]) {
