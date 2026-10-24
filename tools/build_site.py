@@ -280,6 +280,14 @@ EDITOR_TRANSITION_ALLOWLIST_SHA256 = {
     "0c5e0f5b972cf6713e1a60858bb5ed8f2be1e1f8ce09864a883d3e6e36f8ef07",
     # Facts-surface test build, which deliberately renders a page subset.
     "a35c00a90a1172ff81e74aa811d7a6456a264422fbcafcafa70651dc1bb94d9c",
+    # Canonical complete site build after JOS's deliberate page override of the
+    # m02 packet caption (suggestion d326e775, 2026-10-17). Reviewed 2026-10-23:
+    # exactly one removal, no additions. The override detaches the packet page
+    # from the shared caption, so data/matters/m02-discipline-meridian/
+    # matter.json#caption renders on one surface (the library card) and leaves
+    # the coupled-ref exemption set. Keep the pre-override value above until the
+    # override lands in canonical content.
+    "9d89399008f96d2eb06234ce584cc1d72991087bb6f5e3817bcf7385ae9a5585",
 }
 
 
