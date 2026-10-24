@@ -87,3 +87,27 @@ which a wrapped banner exceeds.
 
 - No change to the public site's palette or the footer design.
 - No change to what locked text does (dialog, role, keyboard handling).
+
+## Follow-up after merge (2026-10-24)
+
+After PR #111 merged, the repaired cross-model Codex review found two defects that the
+in-process review missed. Both were confirmed against the live site or the repository tokens.
+
+### U5. Locked focus ring wins over the theme (R2, corrected)
+`site/platform/assets/theme.css` declares `[tabindex]:focus-visible { outline: … var(--claret) }`.
+It ties `.eb--locked:focus-visible` at (0,2,0), and it loads after the prepended `editor.css`, so
+it wins. Live, tabbing to "Legal Practicum" in the footer showed `rgb(120, 54, 62)` on
+`rgb(48, 72, 58)`, 1.13:1. Raise the selector to `.eb--locked[tabindex]:focus-visible` and keep
+`currentColor` (9.55:1 on the footer).
+
+### U6. Paused-banner tag meets 4.5:1
+`.editor-banner--warn` turns the banner claret (#78363e), and the `.editor-banner__tag` keeps
+`--brass-lite-text` (#d3ae5c): 4.17:1 at 0.72rem. In the warn state the tag uses the banner's
+light ink (`--ink-invert`, 8.42:1).
+
+### U7. The audit sees both states
+- Focus indicators: in the editor-overlay case, keyboard-focus each locked value and FAIL when
+  its computed outline contrasts less than 3:1 with the surface behind it.
+- Warn banner: audit the editor harness in its stale-heartbeat warn state too (direct apply on,
+  heartbeat older than the stale threshold), so `editor-banner--warn` renders.
+- Each new check must FAIL against the pre-U5/U6 CSS and PASS after.

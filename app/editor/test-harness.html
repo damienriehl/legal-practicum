@@ -175,8 +175,8 @@
              : P.get('scenario') === 'oversize' ? 'validation_error'
              : P.get('scenario') === 'fail_once' ? 'network' : null,
     forcePersist: (P.get('scenario') === 'stale_page' || P.get('scenario') === 'map_stale'),   // stale_page isn't "recover on resend"
-    directApply: false,       // DIRECT_APPLY mode (auto-accept + auto-apply)
-    hbAge: null,              // heartbeat_age_s reported to the client
+    directApply: P.get('scenario') === 'auto_apply_paused', // DIRECT_APPLY mode
+    hbAge: P.get('scenario') === 'auto_apply_paused' ? 900 : null, // stale heartbeat_age_s
     fpById: {},               // id -> payload fingerprint (silent-loss guard mirror)
     server: { suggestions: {}, calls: 0, ids: [], last: null }
   };
