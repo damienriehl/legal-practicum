@@ -328,6 +328,10 @@ html.type-lg .eb-note { font-size: .95rem; }
   border-radius: var(--radius, 3px);
   padding: .2em .5em;
 }
+/* The small tag needs light ink against the paused banner's claret. */
+.editor-banner--warn .editor-banner__tag {
+  color: var(--ink-invert, #f4efe4);
+}
 .editor-banner__history,
 .editor-banner__student {
   font-family: var(--font-mono, ui-monospace, monospace);
@@ -761,7 +765,8 @@ html.type-lg .eb-confirm__yes, html.type-lg .eb-confirm__no { font-size: 1.05rem
   display: inline;
   margin: 0;
 }
-.eb--locked:focus-visible {
+/* Beat the theme's later [tabindex]:focus-visible rule on every surface. */
+.eb--locked[tabindex]:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 3px;
 }

@@ -14,6 +14,7 @@
                         (4.5:1, or 3:1 for large text).
      UI CONTRAST        borders/glyphs of interactive controls vs their
                         surround (1.4.11, 3:1).
+     LOCKED FOCUS       keyboard-visible outlines vs their surround (3:1).
      ACCESSIBLE NAMES   every button / link / input can be announced.
      TARGET SIZE        interactive controls are at least 24x24 (2.5.8 AA),
                         flagged separately at 44x44 (2.5.5 AAA — this project's
@@ -55,7 +56,7 @@ const PITCH = 'file://' + path.join(REPO, 'site', 'index.html');
 const EDITOR_HARNESS = 'file://' + path.join(REPO, 'app', 'editor', 'test-harness.html');
 const EDITOR_CSS = path.join(REPO, 'app', 'editor', 'editor.css');
 
-const AUDIT = function () {
+const AUDIT = function (focusTarget) {
   /* ---- colour helpers (run INSIDE the page) ---- */
   function parseColor(c) {
     const m = /rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/.exec(c || '');
@@ -143,6 +144,28 @@ const AUDIT = function () {
   const findings = [];
   let exceptions = 0;
   const add = (level, check, detail, sample) => findings.push({ level, check, detail, sample });
+
+  if (focusTarget) {
+    const el = focusTarget;
+    if (document.activeElement !== el || !el.matches('.eb--locked:focus-visible')) {
+      add('FAIL', 'focus-contrast', 'locked value has no keyboard-visible focus', where(el));
+      return findings;
+    }
+    const cs = getComputedStyle(el);
+    // The offset outline sits outside the value, over its parent's surface.
+    const bg = bgOf(el.parentElement);
+    const outline = parseColor(cs.outlineColor);
+    const sample = `${where(el)} “${(el.textContent || '').trim().slice(0, 48)}”`;
+    if (!outline || cs.outlineStyle === 'none' || parseFloat(cs.outlineWidth) === 0) {
+      add('FAIL', 'focus-contrast', 'locked value has no visible outline', sample);
+    } else {
+      const fg = over(outline, bg);
+      const r = ratio(fg, bg);
+      if (r < 3) add('FAIL', 'focus-contrast',
+        `${r.toFixed(2)}:1 (needs 3:1) — ${hex(fg)} on ${hex(bg)}`, sample);
+    }
+    return findings;
+  }
 
   /* ---- 1. text contrast (1.4.3) ---- */
   const seen = new Set();
@@ -242,15 +265,20 @@ const AUDIT = function () {
     if (explicitTargets || url === PITCH) return [{url, mode:'baseline'}];
     return MATRIX.typeModes.flatMap((mode) => {
       const baseline = {url, mode};
-      return url === EDITOR_HARNESS ? [baseline] : [baseline, {url, mode, overlay:true}];
+      return url === EDITOR_HARNESS
+        ? [baseline, {url: url + '?scenario=auto_apply_paused', mode, warnBanner:true}]
+        : [baseline, {url, mode, overlay:true}];
     });
   });
-  for (const {url, mode, overlay} of cases) {
+  for (const {url, mode, overlay, warnBanner} of cases) {
     const page = await browser.newPage();
     try {
       await page.emulateMediaFeatures([{name: 'prefers-reduced-motion', value: 'reduce'}]);
       await page.evaluateOnNewDocument((large) => localStorage.setItem('sonsteng-type-lg', large ? '1' : '0'), mode === 'large');
       await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+      if (warnBanner) {
+        await page.waitForSelector('.editor-banner--warn .editor-banner__tag', {visible:true});
+      }
       if (overlay) {
         // Mirror installLockedPassages on real page surfaces, including the footer.
         await page.evaluate((css) => {
@@ -271,13 +299,21 @@ const AUDIT = function () {
         throw new Error(`type mode mismatch: expected ${mode}, class type-lg=${largeActive}`);
       }
       const findings = await page.evaluate(AUDIT);
+      if (overlay) {
+        // Establish keyboard modality before focusing each locked value.
+        await page.keyboard.press('Tab');
+        for (const locked of await page.$$('[data-eb-locked]')) {
+          await locked.focus();
+          findings.push(...await page.evaluate(AUDIT, locked));
+        }
+      }
       const f = findings.filter((x) => x.level === 'FAIL');
       const w = findings.filter((x) => x.level === 'WARN');
       // NOTE-level entries are reasoned exceptions, printed but never counted.
       fails += f.length; warns += w.length;
       const short = url.replace('file://' + SITE + '/', '').replace(/^https?:\/\//, '');
-      report.push({ url: short, mode, overlay: !!overlay, findings });
-      console.log(`\n=== ${short} [${mode}${overlay ? ', editor-overlay' : ''}] — ${f.length} FAIL, ${w.length} WARN`);
+      report.push({ url: short, mode, overlay: !!overlay, warnBanner: !!warnBanner, findings });
+      console.log(`\n=== ${short} [${mode}${overlay ? ', editor-overlay' : ''}${warnBanner ? ', editor-warn' : ''}] — ${f.length} FAIL, ${w.length} WARN`);
       const shown = new Set();
       findings.forEach((x) => {
         const k = x.check + '|' + x.detail;
