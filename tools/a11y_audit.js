@@ -23,7 +23,8 @@
      LANDMARKS + LANG   <html lang>, a main landmark, a page title.
 
    Run:  DISPLAY=:0 node tools/a11y_audit.js [url ...]
-   With no arguments it sweeps the local built site over file://.
+   With no arguments it sweeps the local built site over file://, including
+   the editor overlay on non-interactive platform pages in both type modes.
    Exit code is 1 if any FAIL-level finding survives, so it can gate a build.
    Accepted WARN policy is recorded in docs/uat/accessibility-conformance.md.
    ============================================================================ */
@@ -52,6 +53,7 @@ const MATRIX = JSON.parse(fs.readFileSync(path.join(__dirname, 'platform_browser
 const DEFAULT_PAGES = MATRIX.pages.filter((p) => !p.interactive).map((p) => p.path);
 const PITCH = 'file://' + path.join(REPO, 'site', 'index.html');
 const EDITOR_HARNESS = 'file://' + path.join(REPO, 'app', 'editor', 'test-harness.html');
+const EDITOR_CSS = path.join(REPO, 'app', 'editor', 'editor.css');
 
 const AUDIT = function () {
   /* ---- colour helpers (run INSIDE the page) ---- */
@@ -238,14 +240,31 @@ const AUDIT = function () {
   const report = [];
   const cases = targets.flatMap((url) => {
     if (explicitTargets || url === PITCH) return [{url, mode:'baseline'}];
-    return MATRIX.typeModes.map((mode) => ({url, mode}));
+    return MATRIX.typeModes.flatMap((mode) => {
+      const baseline = {url, mode};
+      return url === EDITOR_HARNESS ? [baseline] : [baseline, {url, mode, overlay:true}];
+    });
   });
-  for (const {url, mode} of cases) {
+  for (const {url, mode, overlay} of cases) {
     const page = await browser.newPage();
     try {
       await page.emulateMediaFeatures([{name: 'prefers-reduced-motion', value: 'reduce'}]);
       await page.evaluateOnNewDocument((large) => localStorage.setItem('sonsteng-type-lg', large ? '1' : '0'), mode === 'large');
       await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+      if (overlay) {
+        // Mirror installLockedPassages on real page surfaces, including the footer.
+        await page.evaluate((css) => {
+          // HeadInjector prepends editor CSS, so site styles win cascade ties.
+          const style = document.createElement('style');
+          style.textContent = css;
+          document.head.prepend(style);
+          document.querySelectorAll('[data-eb-locked]').forEach((el) => {
+            el.classList.add('eb--locked');
+            el.setAttribute('role', 'button');
+            el.setAttribute('tabindex', '0');
+          });
+        }, fs.readFileSync(EDITOR_CSS, 'utf8'));
+      }
       await page.evaluate(() => document.fonts ? document.fonts.ready : Promise.resolve());
       const largeActive = await page.evaluate(() => document.documentElement.classList.contains('type-lg'));
       if (largeActive !== (mode === 'large')) {
@@ -257,8 +276,8 @@ const AUDIT = function () {
       // NOTE-level entries are reasoned exceptions, printed but never counted.
       fails += f.length; warns += w.length;
       const short = url.replace('file://' + SITE + '/', '').replace(/^https?:\/\//, '');
-      report.push({ url: short, mode, findings });
-      console.log(`\n=== ${short} [${mode}] — ${f.length} FAIL, ${w.length} WARN`);
+      report.push({ url: short, mode, overlay: !!overlay, findings });
+      console.log(`\n=== ${short} [${mode}${overlay ? ', editor-overlay' : ''}] — ${f.length} FAIL, ${w.length} WARN`);
       const shown = new Set();
       findings.forEach((x) => {
         const k = x.check + '|' + x.detail;
