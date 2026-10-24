@@ -233,6 +233,41 @@ async function run() {
   {
     const page = await boot(browser, 1280, 1500);
 
+    /* --- B2: banner growth repositions gutter rails with their passages --- */
+    const bannerOriginal = await page.evaluate(() => {
+      const message = document.querySelector('.editor-banner__msg span:last-child');
+      const original = { message: message.textContent, bodyStyle: document.body.getAttribute('style') };
+      // Override the harness's fixed 9rem padding with the production clearance.
+      document.body.style.setProperty('padding-top', 'var(--eb-banner-h, 3.6rem)', 'important');
+      return original;
+    });
+    await sleep(600); // let the initial rail layout and its delayed pass settle
+    const bannerBefore = await page.evaluate(() => {
+      const height = document.querySelector('.editor-banner').getBoundingClientRect().height;
+      document.querySelector('.editor-banner__msg span:last-child').textContent +=
+        ' Extra banner information that wraps onto another line.'.repeat(16);
+      return height;
+    });
+    await sleep(150); // ResizeObserver updates padding, then the next frame places rails
+    const bannerLayout = await page.evaluate(() => {
+      const rail = document.querySelector('.eb-tools--gutter');
+      const passage = document.querySelector('[data-eb-index="' + rail.getAttribute('data-eb-for') + '"]');
+      return {
+        height: document.querySelector('.editor-banner').getBoundingClientRect().height,
+        railTop: rail.getBoundingClientRect().top,
+        passageTop: passage.getBoundingClientRect().top
+      };
+    });
+    assert('B2 growing the banner keeps the first gutter rail aligned with its passage',
+      bannerLayout.height > bannerBefore && Math.abs(bannerLayout.railTop - bannerLayout.passageTop) < 1,
+      'beforeHeight=' + bannerBefore + ' after=' + JSON.stringify(bannerLayout));
+    await page.evaluate((original) => {
+      document.querySelector('.editor-banner__msg span:last-child').textContent = original.message;
+      if (original.bodyStyle === null) document.body.removeAttribute('style');
+      else document.body.setAttribute('style', original.bodyStyle);
+    }, bannerOriginal);
+    await sleep(150);
+
     /* --- N: normalize() mirrors tools/text_norm.py byte-for-byte ---------- */
     const samples = [
       '  The  “quick”—brown fox’s tale…  ',

@@ -43,3 +43,12 @@ table. Acceptance reopens when either condition occurs:
 An increased or changed `target-size-aaa` finding must be compared with the recorded control classes.
 The decision does not automatically accept a new control class merely because it uses the same rule
 name.
+
+## Editor overlay coverage — 2026-10-24
+
+The default audit now also loads `app/editor/editor.css` on every non-interactive platform matrix
+page in both type modes and marks `[data-eb-locked]` elements as the editor does (class, button role,
+and keyboard focus). This covers locked footer text on the green surface. Locked text, its dotted
+underline, and its focus outline now use the surrounding text color. The banner's
+`button.editor-banner__bigger` controls now have a 44 CSS pixel minimum height; they are not an
+accepted target-size warning class.

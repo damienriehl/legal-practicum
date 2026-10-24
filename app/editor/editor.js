@@ -2237,6 +2237,19 @@
     banner.appendChild(tg);
     document.body.insertBefore(banner, document.body.firstChild);
     document.documentElement.classList.add('has-editor-banner');
+    // Keep focus clearance current when the banner wraps or Help expands.
+    if (window.ResizeObserver) {
+      var lastBannerHeight;
+      var bannerObserver = new window.ResizeObserver(function () {
+        var bannerHeight = banner.getBoundingClientRect().height;
+        if (bannerHeight !== lastBannerHeight) {
+          lastBannerHeight = bannerHeight;
+          document.documentElement.style.setProperty('--eb-banner-h', bannerHeight + 'px');
+          scheduleRailLayout();
+        }
+      });
+      bannerObserver.observe(banner);
+    }
 
     function setTypeLg(on) {
       document.documentElement.classList.toggle('type-lg', on);

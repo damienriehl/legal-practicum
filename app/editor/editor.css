@@ -18,8 +18,12 @@
    (var(--token, #hex)) so it degrades gracefully if theme.css is absent. */
 
 /* keep page content clear of the fixed banner (top) and save bar (bottom) */
-html.has-editor-banner body { padding-top: 3.6rem; padding-bottom: 5rem; }
-@media (max-width: 640px) { html.has-editor-banner body { padding-top: 4.6rem; } }
+html.has-editor-banner { scroll-padding-top: var(--eb-banner-h, 3.6rem); }
+html.has-editor-banner body { padding-top: var(--eb-banner-h, 3.6rem); padding-bottom: 5rem; }
+@media (max-width: 640px) {
+  html.has-editor-banner { scroll-padding-top: var(--eb-banner-h, 4.6rem); }
+  html.has-editor-banner body { padding-top: var(--eb-banner-h, 4.6rem); }
+}
 
 /* THE EDITING VIEW RESERVES ITS OWN MARGIN.
    The controls belong beside the passage, but the practicum's own layout is
@@ -331,6 +335,7 @@ html.type-lg .eb-note { font-size: .95rem; }
   color: var(--paper, #f4efe4); text-decoration: none;
   border: 1px solid rgba(255, 255, 255, .35); border-radius: var(--radius, 3px);
   padding: .28em .6em; transition: background .15s;
+  display: inline-flex; align-items: center; min-height: 44px;
 }
 .editor-banner__history:hover,
 .editor-banner__student:hover { background: rgba(255, 255, 255, .14); }
@@ -746,10 +751,10 @@ html.type-lg .eb-confirm__yes, html.type-lg .eb-confirm__no { font-size: 1.05rem
 .eb--shared.editing::before { content: "Shared text · editing"; }
 
 /* Computed values are selectable for provenance, never contenteditable. Their
-   dotted cool-gray underline stays visually separate from shared brass. */
+   dotted underline inherits the surface's ink, separate from shared brass. */
 .eb--locked {
-  color: var(--ink-soft, #625d54);
-  border-bottom: 2px dotted var(--ink-faint, #8a7f6d);
+  color: inherit;
+  border-bottom: 2px dotted currentColor;
   cursor: help;
 }
 .mixed-sentence > p, .mixed-sentence__authored {
@@ -757,7 +762,7 @@ html.type-lg .eb-confirm__yes, html.type-lg .eb-confirm__no { font-size: 1.05rem
   margin: 0;
 }
 .eb--locked:focus-visible {
-  outline: 2px solid var(--claret, #7c1e2b);
+  outline: 2px solid currentColor;
   outline-offset: 3px;
 }
 .eb-locked-dialog {
@@ -815,6 +820,7 @@ html.type-lg .eb-confirm__yes, html.type-lg .eb-confirm__no { font-size: 1.05rem
 
 /* ---------- U8: the scoped-change dialog + banner verb --------------------- */
 .editor-banner__bigger {
+  min-height: 44px;
   font-family: var(--font-ui, system-ui, sans-serif);
   font-size: .85rem;
   padding: .35rem .8rem;
