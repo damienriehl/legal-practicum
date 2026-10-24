@@ -155,6 +155,8 @@
     // EDIT_TOKEN_ADMIN (set with `wrangler secret put`, never here). admin is
     // reachable ONLY via the admin token — never from edit/instructor tokens.
     // john -> "JOS", roger -> "RSH" attribution labels (see editor-auth.js).
+    // michael and abby (added 2026-10-24) are Access-only, like damienadmin: they
+    // carry John's edit+instructor grant but have no EDIT_TOKEN_* secret.
     //
     // `damienadmin` is the ONE slot carrying edit+instructor+admin together, and
     // it deliberately has NO EDIT_TOKEN_DAMIENADMIN secret — it is reachable only
@@ -162,7 +164,7 @@
     // DR attribution without widening the token path: the invariant in
     // editor-auth.js ("admin is NEVER reachable from an edit/instructor token,
     // separate secret, separate record") stays literally true for ?t= tokens.
-    "EDIT_TOKEN_SCOPES": "{\"john\":{\"edit\":1,\"instructor\":1},\"roger\":{\"edit\":1,\"instructor\":1},\"damien\":{\"edit\":1,\"instructor\":1},\"damienadmin\":{\"edit\":1,\"instructor\":1,\"admin\":1,\"publisher\":1},\"admin\":{\"admin\":1},\"release\":{\"release_service\":1},\"observer\":{\"release_observer\":1}}",
+    "EDIT_TOKEN_SCOPES": "{\"john\":{\"edit\":1,\"instructor\":1},\"roger\":{\"edit\":1,\"instructor\":1},\"michael\":{\"edit\":1,\"instructor\":1},\"abby\":{\"edit\":1,\"instructor\":1},\"damien\":{\"edit\":1,\"instructor\":1},\"damienadmin\":{\"edit\":1,\"instructor\":1,\"admin\":1,\"publisher\":1},\"admin\":{\"admin\":1},\"release\":{\"release_service\":1},\"observer\":{\"release_observer\":1}}",
     "PROD_RELEASE_LEDGER": "true",
     // Suggestion ceilings (see docs/research/editor-apply-spec.md §Ceilings).
     "EDIT_MAX_PENDING_PER_EDITOR": "200",
@@ -216,7 +218,7 @@
         "EDIT_LEGACY_HOST": "edit.sonsteng.damienriehl.com",
         "PUBLIC_CANONICAL_HOST": "legalpracticum.org",
         "PUBLIC_REDIRECT_HOSTS": "www.legalpracticum.org,sonsteng.damienriehl.com",
-        "EDIT_TOKEN_SCOPES": "{\"john\":{\"edit\":1,\"instructor\":1},\"roger\":{\"edit\":1,\"instructor\":1},\"damien\":{\"edit\":1,\"instructor\":1},\"damienadmin\":{\"edit\":1,\"instructor\":1,\"admin\":1,\"publisher\":1},\"admin\":{\"admin\":1},\"release\":{\"release_service\":1},\"observer\":{\"release_observer\":1}}",
+        "EDIT_TOKEN_SCOPES": "{\"john\":{\"edit\":1,\"instructor\":1},\"roger\":{\"edit\":1,\"instructor\":1},\"michael\":{\"edit\":1,\"instructor\":1},\"abby\":{\"edit\":1,\"instructor\":1},\"damien\":{\"edit\":1,\"instructor\":1},\"damienadmin\":{\"edit\":1,\"instructor\":1,\"admin\":1,\"publisher\":1},\"admin\":{\"admin\":1},\"release\":{\"release_service\":1},\"observer\":{\"release_observer\":1}}",
         "PROD_RELEASE_LEDGER": "true",
         "EDIT_MAX_PENDING_PER_EDITOR": "200",
         "EDIT_MAX_DAILY_PER_EDITOR": "500",
