@@ -375,6 +375,16 @@ The executor may claim only `authorized` records. On ambiguity or partial failur
 bounded error, fences later releases, and reconciles or restores the recorded pair; it never falls
 forward to ambient `HEAD`.
 
+Before any provider upload, deployment, or recorded-candidate reactivation, the
+candidate validator scans the configured Pages artifact in the frozen candidate
+checkout for unresolved editorial markers. Findings and incomplete scans fail
+through the same fenced-release path and report only stable rule identifiers and
+relative artifact locations. The trusted executor supplies this policy even when
+the candidate predates the checker. Developers can run the identical policy with
+`python3 tools/check_editorial_placeholders.py site/platform`; there is no
+publication bypass flag. Draft authoring and the DEV apply pipeline remain
+unchanged.
+
 Accepted-only candidates are synthetic commits and therefore do not move a branch. Before the
 temporary candidate worktree is removed, the builder creates an immutable
 `refs/sonsteng/releases/<manifest-hash>` ref in the dedicated daemon repository. These refs share
