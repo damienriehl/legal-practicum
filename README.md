@@ -74,7 +74,9 @@ simulator you need an API backend — either:
    `npx wrangler@4 deploy` (or `npx wrangler@4 deploy --dry-run`); point the site at
    it via the `sonsteng-api` meta tag.
 
-The Worker unit tests need no `npm install` (Node's built-in runner, Node ≥ 20).
+The Worker unit tests use Node's built-in runner. The complete suite requires Node 24
+because current coverage helpers use recent `node:module` APIs. The browser regression
+also needs the CI-only Puppeteer installation described below.
 From the repository root, generate the ignored Worker data, then run the tests:
 
 <!-- adopter-worker-generators -->
@@ -100,6 +102,33 @@ python3 tools/validate_spine.py && python3 tools/build_site.py --check
 
 The accessibility gate target, accepted WARN baseline, and reopening conditions are recorded in
 [`docs/uat/accessibility-conformance.md`](docs/uat/accessibility-conformance.md).
+
+### Automated checks
+
+GitHub Actions runs three independently visible checks: **Python tests**, **Node tests**,
+and an **Accessibility** matrix with default, cost-per-credit, and brochure-and-firms
+sweeps. Each job uses Python 3.12, Node 24, a complete Git checkout, and regenerates its
+ignored inputs with `bash tools/ci/prepare.sh`.
+
+To reproduce the checks locally, install the pinned test dependencies and browser, then
+run the same preparation step:
+
+```bash
+python3 -m pip install -r tools/ci/requirements.txt
+npm install --prefix tools/ci --ignore-scripts
+npx --prefix tools/ci puppeteer browsers install chrome
+bash tools/ci/prepare.sh
+```
+
+Run the Python suites with `python3 -m unittest discover -s tools/tests -p 'test_*.py'`
+and `python3 -m pytest tools/tests/ -q`. Run the Node suites with
+`node --test tools/tests/*.test.js` and, from `app/worker/`,
+`PUP_DIR="$PWD/../../tools/ci/node_modules/puppeteer" node --test test/*.test.js`.
+For accessibility, set `PUP_DIR` to that package and `CHROME_BIN` to the result of its
+`executablePath()` API, then use the audit commands documented in
+`tools/preflight.sh`. Failed Node and accessibility jobs retain their TAP or audit log
+and current JSON report for seven days; browser startup failure remains a failed check
+even when no JSON report exists.
 
 ## Deployments
 
