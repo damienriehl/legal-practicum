@@ -52,3 +52,30 @@ and keyboard focus). This covers locked footer text on the green surface. Locked
 underline, and its focus outline now use the surrounding text color. The banner's
 `button.editor-banner__bigger` controls now have a 44 CSS pixel minimum height; they are not an
 accepted target-size warning class.
+
+## Editor overlay verification attempt — 2026-10-27
+
+The fresh `so-4` run at source revision `6376645` **does not close the overlay
+accessibility plan**. The site build, all 50 tools Node tests and all 7 focused
+accessibility contract tests pass. The broad Python suite reports 3,078 passed,
+2 failed and 1 skipped; the two existing curriculum/semantic-baseline failures
+remain unresolved outside the overlay scope.
+The Worker suite reports 1,493 passed, 1 skipped and no failures after the
+documented local data generators complete.
+
+The rendered audit and editor verifier could not start because Puppeteer is
+missing, and the installed Chrome binary separately failed on the sandbox's
+Unix-socket restriction. No connected authenticated browser was available. All
+five live page probes and both editor asset probes returned HTTP 403. All 20
+core live cases and 16 role-specific keyboard cases therefore remain blocked,
+with no new contrast measurements, FAIL/WARN totals or Playwright screenshots.
+
+The audit source includes the follow-up locked-focus and paused-warning checks,
+but this run did not execute them or their historical CSS negative controls.
+Static inspection and historical contrast ratios are not fresh rendered proof.
+The accepted WARN classes and reopening conditions above remain unchanged.
+
+See the [verification receipt](../plans/evidence/so-4/verification.md),
+[local gate results](../plans/evidence/so-4/local-audit.json) and
+[live case ledger](../plans/evidence/so-4/live-results.json) for evidence and the
+controller's remaining verification work.
