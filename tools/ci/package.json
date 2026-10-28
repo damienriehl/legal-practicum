@@ -1,0 +1,9 @@
+{
+  "name": "legal-practicum-ci",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Browser dependency used only by repository checks",
+  "dependencies": {
+    "puppeteer": "24.31.0"
+  }
+}
