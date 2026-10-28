@@ -161,7 +161,9 @@ def main(argv=None):
                                          api_token=args.cloudflare_api_token)
             worker = WranglerWorkerAdapter(worker_config,args.worker_provenance_url,
                                            candidate_root=candidate_root)
-            validator = CandidateValidator(isolated_git, manifest)
+            # Validate the exact configured Pages upload tree in the frozen
+            # checkout, rather than ambient HEAD or an assumed site path.
+            validator = CandidateValidator(isolated_git, manifest, pages_artifact)
             registry = RecoveryRegistry(args.recovery_registry)
             ProductionExecutor(ledger,pages,worker,gate,validator,
                                recovery_registry=registry).run_once(release)

@@ -96,7 +96,12 @@ Worker URL + API key; run it separately, not via the glob.)
 Regenerate the site after editing any spine data:
 ```bash
 python3 tools/validate_spine.py && python3 tools/build_site.py --check
+python3 tools/check_editorial_placeholders.py site/platform
 ```
+
+The final command rejects the closed set of unresolved editorial markers used by
+the publication gate. It reports only a rule identifier and artifact location;
+`bash tools/preflight.sh --no-browser` runs the same check after generation.
 
 The accessibility gate target, accepted WARN baseline, and reopening conditions are recorded in
 [`docs/uat/accessibility-conformance.md`](docs/uat/accessibility-conformance.md).

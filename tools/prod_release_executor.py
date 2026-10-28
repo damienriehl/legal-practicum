@@ -616,8 +616,9 @@ class GitRefAdapter:
 class CandidateValidator:
     """Prove that the frozen manifest reproduces the authorized git frontier."""
 
-    def __init__(self, git, manifest):
+    def __init__(self, git, manifest, artifact_root=None):
         self.git, self.manifest = git, dict(manifest)
+        self.artifact_root = pathlib.Path(artifact_root) if artifact_root is not None else None
 
     def __call__(self, release):
         common_mismatch = self.manifest.get("base_sha") != release.base_sha or \
@@ -644,6 +645,15 @@ class CandidateValidator:
         if self.git.tree(release.candidate_sha) != self.manifest.get("candidate_tree"):
             raise ReleaseError("candidate tree mismatch")
         self.git.require_clean_candidate(release.candidate_sha)
+        if self.artifact_root is not None:
+            from check_editorial_placeholders import ScanError, scan_artifact
+            try:
+                findings = scan_artifact(self.artifact_root)
+            except ScanError as exc:
+                raise ReleaseError(f"editorial placeholder scan failed: {exc}") from exc
+            if findings:
+                details = ", ".join(f"{item.rule_id} at {item.location}" for item in findings)
+                raise ReleaseError(f"editorial placeholders found: {details}")
 
 
 class AcceptedProjectionCandidateBuilder:

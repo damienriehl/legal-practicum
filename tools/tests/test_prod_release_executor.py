@@ -731,6 +731,24 @@ def test_candidate_validator_binds_git_tree_ancestry_frontier_and_membership():
         CandidateValidator(Git(), {**manifest,"suggestion_ids":["s1"]})(item)
 
 
+def test_candidate_validator_rejects_editorial_marker_in_exact_artifact(tmp_path):
+    class Git:
+        def is_ancestor(self, base, candidate): return True
+        def tree(self, candidate): return "tree-1"
+        def require_clean_candidate(self, candidate): return None
+    manifest = {"base_sha":"a" * 40,"candidate_sha":"b" * 40,
+                "candidate_tree":"tree-1","suggestion_ids":["s1","s2"],
+                "batch_commits":["c" * 40,"b" * 40]}
+    digest = hashlib.sha256(json.dumps(manifest,sort_keys=True,separators=(",", ":")).encode()).hexdigest()
+    item = release(manifest_hash=digest)
+    artifact = tmp_path / "upload"; artifact.mkdir()
+    (artifact / "index.html").write_text("<p>WHAT DOES ZOPA STAND FOR?</p>")
+    with pytest.raises(ReleaseError, match="editorial-zopa-question at index.html:1"):
+        CandidateValidator(Git(), manifest, artifact)(item)
+    (artifact / "index.html").write_text("<p>ZOPA means zone of possible agreement.</p>")
+    CandidateValidator(Git(), manifest, artifact)(item)
+
+
 def test_candidate_validator_requires_prose_only_scope_and_disjoint_holds():
     class Git:
         def is_ancestor(self, base, candidate): return True
