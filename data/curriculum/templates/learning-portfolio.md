@@ -13,7 +13,7 @@ A complete reflection travels the whole cycle. Stopping at observation ("the cro
 
 ## The template {#b:51c5b397}
 
-The Portfolio is a running document (target 3–5 pages) built from dated entries, one per significant experience — an interview, a memo, a negotiation, an oral event. Each entry moves through the four stages. {#b:6b0d2674}
+The Learning Portfolio is a running document (target 3–5 pages) built from dated entries, one per significant experience — an interview, a memo, a negotiation, an oral event. Each entry moves through the four stages. {#b:6b0d2674}
 
 ### Entry heading {#b:4e3901ec}
 Matter and task (by name or TSK reference), the date, and one line naming the experience: *"First client interview — Osgard arbitration (TSK-022)."* {#b:e525a04d}
