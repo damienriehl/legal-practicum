@@ -2,12 +2,12 @@
 
 The Client Interview Plan is the preparation sheet a lawyer completes before meeting a new client. The interview is the origin of every matter — the moment the facts, the goals, and the relationship all begin — and it is far too important to conduct unplanned. This template encodes the practicum's interview pedagogy: the **T-funnel** structure of Binder and Price, the five-phase arc of a well-run interview, and the discipline of surfacing a client's non-legal concerns alongside the legal ones. It is a plan, not a script; the point of preparing this thoroughly is to be free, in the room, to listen. {#b:79897bc8}
 
-The plan is built to be used with the practicum's persona engine, where each client can be interviewed as many times as it takes to get it right — but it is written to prepare you for a real human across a real table. A guarded client will not yield facts to pressure; a distressed one cannot be rushed. Your plan should anticipate the disposition you expect and prepare you to earn what only rapport unlocks. {#b:5dd32f5e}
+The plan is built to be used with the Practicum's persona engine, where each client can be interviewed as many times as it takes to get it right — but it is written to prepare you for a real human across a real table. A guarded client will not yield facts to pressure; a distressed one cannot be rushed. Your plan should anticipate the disposition you expect and prepare you to earn what only rapport unlocks. {#b:5dd32f5e}
 
 ## The template {#b:d2b09917}
 
 ### 1. Matter and client {#b:d62ce323}
-The matter, the client's name and role, your side, and one line on what you already know from intake. Note the client's likely **disposition** — cooperative, guarded, an over-talker, or distressed — and what that implies for pace and tone. {#b:08536c0c}
+The matter, the client's name and role, your side, and what you already know from intake. Note the client's likely **disposition** — cooperative, guarded, an over-talker, or distressed — and what that implies for pace and tone. {#b:08536c0c}
 
 ### 2. Objectives for this interview {#b:ee657891}
 Three to five concrete goals: the facts you must gather, the decisions you must confirm, and the relationship you must begin to build. Distinguish what you *need* from this meeting from what can wait. {#b:54e822c2}

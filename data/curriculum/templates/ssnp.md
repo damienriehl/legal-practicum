@@ -26,7 +26,7 @@ State your client's BATNA plainly: what happens if no deal is reached? Trial? A 
 | Reservation point | Your walk-away — the worst deal still better than BATNA | The BATNA valuation in §4 |
 | Opening position | Where you begin | Anchored, defensible, not absurd |
 
-The **ZOPA** — the zone between your reservation point and theirs — is where any agreement lives. If you believe there is none, say so and plan for impasse.(WHAT DOES ZOPA STAND FOR) {#b:924b9379}
+The **ZOPA** — the zone between your reservation point and theirs — is where any agreement lives. If you believe there is none, say so and plan for impasse. {#b:924b9379}
 
 ### 6. Concession plan (confidential to your side) {#b:a3ceee3c}
 Sequence what you are prepared to give, in what order, and in exchange for what. Distinguish concessions that cost the client little from those that cost much. Plan trades, not giveaways: each concession should ask for something back. In practicum matters that distribute confidential facts by side, this section is yours alone. {#b:a13646b6}
