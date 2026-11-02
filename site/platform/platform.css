@@ -39,7 +39,10 @@ main[tabindex]:focus{outline:none}
 
 /* ---- home hero ---- */
 .hero{padding:var(--sp-16) 0 var(--sp-8);display:grid;gap:var(--sp-3)}
-.hero__proposition{font-size:var(--fs-display);max-width:14ch}
+/* John's heading is a full sentence (~190 characters), so the home hero sets
+   it well below the display size other pages use: about 4 lines on a laptop
+   and 7 on a phone. Scaling the token keeps large-type mode proportional. */
+.hero__proposition{font-size:calc(var(--fs-display) * .43);line-height:1.08;max-width:none;text-wrap:balance}
 .hero .lede{font-size:var(--fs-md);line-height:1.6;max-width:62ch}
 .volumes{display:grid;gap:var(--sp-6);grid-template-columns:repeat(auto-fit,minmax(min(15rem,100%),1fr))}
 .volume{position:relative;overflow:hidden}
@@ -67,10 +70,10 @@ main[tabindex]:focus{outline:none}
 .hero__adopt p::after{content:" →"}
 .hero .lede+.lede,.intro__after .lede+.lede{margin-top:0}
 .intro{margin:0 0 var(--sp-8);display:grid;gap:var(--sp-6)}
-.intro__heading{max-width:var(--maxw-read)}
+.intro__heading{max-width:var(--maxw-read);font-size:clamp(var(--fs-md),calc(var(--fs-display) * .36),2.6rem);line-height:1.1}
 .skill-columns{display:grid;gap:var(--sp-6) var(--sp-8);grid-template-columns:1fr}
 @media(min-width:40rem){.skill-columns{grid-template-columns:1fr 1fr}}
-.skill-columns__col h3{margin:0 0 var(--sp-3)}
+.skill-columns__col h3{margin:0 0 var(--sp-3);font-size:var(--fs-md)}
 .skill-columns__list{margin:0;padding-left:1.2em;display:grid;gap:var(--sp-2)}
 .skill-columns__list a{color:var(--ink);text-underline-offset:.15em}
 .intro__after .lede{line-height:1.6;max-width:62ch}

@@ -105,7 +105,10 @@ def test_generated_shell_uses_the_radical_casebook_hierarchy():
 def test_generated_layout_preserves_visual_rank_and_distinct_surfaces():
     generated = PLATFORM_CSS.read_text(encoding="utf-8")
     assert ".hero__proposition{" in generated
-    assert "font-size:var(--fs-display)" in generated
+    # The home hero carries John's full-sentence heading (Damien, 2026-11-02),
+    # so it scales the display token down rather than using it whole; it still
+    # derives from --fs-display, so large-type mode and rank stay proportional.
+    assert "font-size:calc(var(--fs-display) * .43)" in generated
     assert ".hero .lede{" in generated
     assert "font-size:var(--fs-md)" in generated
     assert ".section-head .editorial-label{" in generated
