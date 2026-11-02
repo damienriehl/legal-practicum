@@ -87,7 +87,10 @@ def test_canary_claims_and_executes_only_the_named_release(monkeypatch, tmp_path
         def run_once(self, release): calls.append(("run", release.id))
     class NeverPrepare:
         def __init__(self, *_args, **_kwargs): raise AssertionError("canary prepared a frontier")
-    fake = SimpleNamespace(CandidateValidator=lambda *_:object(),CompatibilityGate=lambda *_:object(),
+    def validator(*args):
+        calls.append(("validator_artifact", pathlib.Path(args[2])))
+        return object()
+    fake = SimpleNamespace(CandidateValidator=validator,CompatibilityGate=lambda *_:object(),
         GitRefAdapter=Git,LedgerHTTP=Ledger,ProductionCandidateBuilder=NeverPrepare,
         ProductionExecutor=Executor,RecordedPairRestorer=object,RecoveryRegistry=lambda *_:object(),
         WranglerPagesAdapter=lambda *_a,**_k:object(),WranglerWorkerAdapter=lambda *_a,**_k:object())
@@ -104,7 +107,7 @@ def test_canary_claims_and_executes_only_the_named_release(monkeypatch, tmp_path
     for key,value in values.items(): monkeypatch.setenv(key,value)
     monkeypatch.setenv("SONSTENG_PROD_EXPECTED_CONFIG_DIGEST",daemon.runtime_config_digest())
     assert daemon.main([]) == 0
-    assert calls == [("claim",release_id),("run",release_id)]
+    assert calls == [("claim",release_id),("validator_artifact",pages),("run",release_id)]
 
 
 def git(repo,*args):
