@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0.0",
+  "type": "page_copy",
+  "page": "adopt",
+  "repo_url": "",
+  "hero": {
+    "eyebrow": "LAW SCHOOLS · LEGAL AID · LAW FIRMS",
+    "heading": "Use the practicum on your own cases",
+    "lede": "Anyone can practice on the public exercises. Law schools, legal aid organizations, law firms, and solo lawyers can also run a private copy and work their own matters."
+  },
+  "who": {
+    "heading": "Who it's for",
+    "body": {
+      "p1": "Students and lawyers who want practice need nothing more than this site. Open a matter in the library, interview the simulated client, draft the work, and get feedback. No sign-in required.",
+      "p2": "Law schools, legal aid organizations, law firms, and solo lawyers who want to work their own matters run a private copy. They add their own case studies and decide who uses them."
+    }
+  },
+  "privacy": {
+    "heading": "Why a private copy",
+    "body": {
+      "p1": "Never upload client files or confidential information to this public site. It holds public teaching material only.",
+      "p2": "A private copy that you host keeps privileged material under your control. Your files stay on systems you choose, under the confidentiality rules that already govern your practice."
+    }
+  },
+  "setup": {
+    "heading": "Set up a private copy",
+    "body": {
+      "p1": "The practicum lives in one open-source repository: the matters, the curriculum, and the software that builds this site.",
+      "p2": "Get the repository, open it with an AI coding agent such as Claude Code or Codex, and ask the agent to set the practicum up for you. The agent reads the repository's instructions, installs what it needs, and explains each step before it acts."
+    },
+    "repo_pending": "The repository will be public soon. Until then, write to us and we'll share it.",
+    "repo_link_label": "Get the open-source repository",
+    "admin_heading": "What the administrator does",
+    "admin_body": "One person — a professor, a program director, or a firm's technology lead — sets up and hosts the private copy, connects it to an AI provider, and decides who can reach it. The administrator also adds new matters and retires old ones.",
+    "users_heading": "What students and lawyers do",
+    "users_body": "Students and lawyers open the private copy and practice: interview clients, draft documents, and revise after feedback. They need no technical setup."
+  },
+  "cases": {
+    "heading": "Add your own case studies",
+    "body": {
+      "p1": "Each matter lives in its own folder of plain files: the facts, the client, the case file, and the exercise. To add one, give your agent a file you know well and ask it to build a new matter in the same shape as an existing one.",
+      "p2": "Check which AI provider may see client material under your own confidentiality rules before you share a real file. Then review what the agent drafts before anyone practices on it. You stay the author; the agent does the typing."
+    }
+  },
+  "prompting": {
+    "heading": "Prompt the system well",
+    "body": "Write a prompt the way you would brief a junior colleague: say who the work serves, what you want, which materials to use, and what a good result looks like. Ask the agent to show you a plan before it writes files. Then review the result and ask again.",
+    "examples_heading": "Example prompts",
+    "examples": {
+      "e1": "\"Set up the Legal Practicum on this computer for a class of 20 law students. Explain each step before you run it, and stop whenever a step needs my decision.\"",
+      "e2": "\"Create a new matter modeled on the DWI matter, using the attached closed file. Change every name and remove anything that identifies a real person.\"",
+      "e3": "\"Add a landlord-tenant matter for Module II with a client interview, a case file, and an assessment rubric. Show me an outline before you write the files.\"",
+      "e4": "\"Compare the new matter with the existing matters, list anything missing, and tell me what you changed and why.\""
+    }
+  },
+  "license": {
+    "heading": "License",
+    "body": "The practicum's content carries the Creative Commons Attribution 4.0 license (CC BY 4.0). Use it and adapt it free of charge; credit the authors.",
+    "link_label": "Read the content license"
+  }
+}

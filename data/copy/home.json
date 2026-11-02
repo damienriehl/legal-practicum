@@ -4,16 +4,71 @@
   "page": "home",
   "identity": {
     "title": "Legal Practicum",
-    "byline": "John O. Sonsteng · Damien A. Riehl · Roger S. Haydock",
+    "byline": "John Sonsteng and Damien Riehl, with Abby Breit, Editor",
     "host": "Hosted by Damien Riehl"
   },
   "hero": {
     "eyebrow": "A LIVING CASEBOOK · 50 YEARS OF METHOD",
-    "heading": "The Legal Practice Practicum: a working law firm simulation for law students and Lawyer s: learn, develop and enhance law practice and law management skill - practice ready",
-    "lede": "Law graduates must be practice ready. Law professors are excellent teachers, scholars, published authors, responsible for governance of the law school, and active contributors to the community. Yet the demands and expectations placed on law professors can be overwhelming. With the time available, law professors are very effective and provide focused training to students. Law schools can be an effective source of training.  Because of the limitation of time and resources, there are many areas in which law schools are not the primary educator. The primary source of training in many important areas is the “lawyers own experience”. THE LEGAL PRACTICE PRACTICUMS provide legal practice education in many areas where training is now  based only on the lawyer’s personal experience.  THE LEGAL PRACTICE PRACTICUMS provide this legal practice training without sacrificing any areas in which the law schools are so successful, without diminishing students’ other legal education and without additional cost. The LEGAL PRACTICE PRACTICUMS address matters across different legal practice areas and two jurisdiction tiers."
+    "heading": "The Legal Practice Practicum: a working law firm simulation for law students and lawyers to learn, develop, and enhance law practice and law management skills. Practice ready.",
+    "lede": {
+      "p1": "The Legal Practicum System is an innovative teaching and learning tool for law students and lawyers. The Practicum System is designed for lawyers at any level.",
+      "p2": "Try an experiment. Take a risk. Receive immediate feedback. Try again. Any time. No waiting in line. No coffee breaks. 24/7. A classroom of one. It is yours whenever you want."
+    },
+    "adopter_link": "Law school, legal aid, or law firm? Use the practicum on your own cases"
+  },
+  "intro": {
+    "skills_heading": "The law practice and law practice management skills",
+    "practice_heading": "Law practice skills",
+    "management_heading": "Law practice management skills",
+    "after_skills": {
+      "p1": "For more than 50 years, a group of exceptional people — law students, law teachers, lawyers from firms large and small, judges, and non-lawyers — have worked together to develop the Legal Practicum System to assist law students and lawyers to learn, build, enhance, experiment, test ideas, strategy, and techniques, and take risks without fear of negative consequences.",
+      "p2": "Emerging technologies will help lawyers at all levels provide legal services quickly and at appropriate cost. Justice for all.",
+      "p3": "The Legal Practicum System is an open resource tool for all lawyers and law students at no cost. It may be edited and used to develop, learn, enhance, and perfect legal practice and legal management skills.",
+      "p4": "The Legal Practicum System is available to law students and lawyers throughout their careers, at any time, and is adaptable to any jurisdiction."
+    }
+  },
+  "authors": {
+    "eyebrow": "WHO WROTE IT",
+    "heading": "Authors",
+    "people": {
+      "sonsteng": {
+        "name": "John Sonsteng",
+        "role": "Author",
+        "bio": "John Sonsteng is an emeritus professor at Mitchell Hamline School of Law. He was a trial lawyer before he became a teacher. John has written many books and articles about advocacy. He is a Fulbright scholar and has taught effective advocacy skills throughout the United States and in many other countries."
+      },
+      "riehl": {
+        "name": "Damien Riehl",
+        "role": "Co-author & Provocateur",
+        "bio": "Damien Riehl is a lawyer-technologist with deep experience in litigation, cybersecurity, and AI. Admitted in 2002 and coding since 1985, he clerked for chief judges, litigated complex cases, and led global digital forensics teams. He now builds AI-driven legal systems. He co-chairs Minnesota's Connected and Automated Vehicles Council and chairs the MSBA AI Committee, advancing access-to-justice initiatives. He helped develop SALI's 18,000+ legal data standards and contributes to FOLIO's legal ontology. At Clio, he integrates AI into large-scale legal datasets. He also engages AI ethics work with global Catholic leaders and created the \"All the Music\" public-domain project."
+      },
+      "breit": {
+        "name": "Abby Breit, J.D.",
+        "role": "Editor",
+        "bio": "Abby Breit edits the Legal Practicum."
+      }
+    },
+    "reading": {
+      "heading": "Further reading",
+      "items": {
+        "trialbook": {
+          "citation": "John Sonsteng, Roger Haydock & Damien Riehl, Trialbook",
+          "url": "https://trialbook.org"
+        },
+        "trial_advocacy": {
+          "citation": "John Sonsteng, Roger Haydock & Damien Riehl, Trial Advocacy Before Judges, Jurors, and Arbitrators",
+          "url": "https://trialadvocacy.net"
+        },
+        "renaissance": {
+          "citation": "John O. Sonsteng et al., A Legal Education Renaissance: A Practical Approach for the Twenty-First Century, 34 Wm. Mitchell L. Rev. 7 (2007)"
+        },
+        "learning_by_doing": {
+          "citation": "John Sonsteng, Learning by Doing — Preparing Law Students for the Practice of Law: The Legal Practicum (Mitchell Hamline Faculty Scholarship)"
+        }
+      }
+    }
   },
   "volumes": {
-    "eyebrow": "THE THREE VOLUMES",
+    "eyebrow": "THE THREE MODULES",
     "heading": "Curriculum modules",
     "modules": {
       "M1": {

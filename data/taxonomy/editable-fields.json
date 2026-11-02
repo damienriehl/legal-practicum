@@ -6,7 +6,7 @@
       "source_ref": "data/taxonomy/skills.json#description",
       "family": "document_description",
       "record_id": "skills",
-      "authored_text": "Sonsteng's 17 Legal Practice + 9 Law Practice Management skills (exact survey names, both phrasings preserved) plus a clearly-marked AI-era extension set. Survey importance/preparedness from reliable tables in docs/research/skills-survey.md (Table 4 management-importance percentages deliberately omitted as unreliable)."
+      "authored_text": "The survey's 17 Legal Practice + 9 Law Practice Management skills (exact survey names, both phrasings preserved) plus a clearly-marked AI-era extension set. Survey importance/preparedness from reliable tables in docs/research/skills-survey.md (Table 4 management-importance percentages deliberately omitted as unreliable)."
     },
     {
       "source_ref": "data/taxonomy/skills.json#skills.0.name",

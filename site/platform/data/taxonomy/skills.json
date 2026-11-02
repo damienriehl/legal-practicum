@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "@id": "https://legalpracticum.org/spine/taxonomy/skills",
   "spine_version": "1.0.0",
-  "description": "Sonsteng's 17 Legal Practice + 9 Law Practice Management skills (exact survey names, both phrasings preserved) plus a clearly-marked AI-era extension set. Survey importance/preparedness from reliable tables in docs/research/skills-survey.md (Table 4 management-importance percentages deliberately omitted as unreliable).",
+  "description": "The survey's 17 Legal Practice + 9 Law Practice Management skills (exact survey names, both phrasings preserved) plus a clearly-marked AI-era extension set. Survey importance/preparedness from reliable tables in docs/research/skills-survey.md (Table 4 management-importance percentages deliberately omitted as unreliable).",
   "surveyed_count": 26,
   "extension_count": 5,
   "skills": [

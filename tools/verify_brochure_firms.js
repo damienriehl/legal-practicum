@@ -76,7 +76,7 @@ async function run() {
           assert(`brochure ${mode}: front and back content prints through the byline`,
             front.includes('Practice ready.') && front.includes('between live sessions.') &&
             back.includes('What you get') && back.includes('CC BY 4.0') && back.includes('You betcha!') &&
-            back.includes('legalpracticum.org') && back.includes('Roger S. Haydock'));
+            back.includes('legalpracticum.org') && back.includes('Abby Breit'));
         }
       }
       await page.close();

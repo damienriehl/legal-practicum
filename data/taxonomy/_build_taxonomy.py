@@ -981,7 +981,7 @@ for (sid,name,alt,cat,ext,folio,survey,note) in SKILLS:  # preserve skill order
             preserve(cross_tasks[-1], old_cross_tasks.get(tid, {}), ("note",))
 
 skills_doc={"schema_version":SV,"@id":f"{BASE}/taxonomy/skills","spine_version":SV,
-    "description":"Sonsteng's 17 Legal Practice + 9 Law Practice Management skills (exact survey names, both phrasings preserved) plus a clearly-marked AI-era extension set. Survey importance/preparedness from reliable tables in docs/research/skills-survey.md (Table 4 management-importance percentages deliberately omitted as unreliable).",
+    "description":"The survey's 17 Legal Practice + 9 Law Practice Management skills (exact survey names, both phrasings preserved) plus a clearly-marked AI-era extension set. Survey importance/preparedness from reliable tables in docs/research/skills-survey.md (Table 4 management-importance percentages deliberately omitted as unreliable).",
     "surveyed_count":26,"extension_count":sum(1 for s in SKILLS if s[4]),
     "skills":skills_out}
 tasks_doc={"schema_version":SV,"@id":f"{BASE}/taxonomy/tasks","spine_version":SV,

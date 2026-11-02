@@ -96,7 +96,7 @@ def test_browser_gates_assert_the_requested_large_type_mode_is_active():
 def test_semantic_heading_repairs_preserve_the_existing_visible_words():
     generator = (ROOT / "tools" / "build_site.py").read_text()
     for heading in (
-        '<h2 class="eyebrow">THE VOLUME · HOW THIS MODULE TEACHES</h2>',
+        '<h2 class="eyebrow">THE MODULE · HOW IT TEACHES</h2>',
         '<h2 class="eyebrow">RULED INDEX · TASKS BY SKILL</h2>',
         '<h2 class="eyebrow">THE FACTS OF THE SCENARIO</h2>',
         '<h2 class="eyebrow">THE GOVERNING LAW</h2>',
@@ -118,7 +118,10 @@ def test_semantic_heading_repairs_preserve_the_existing_visible_words():
     # page identities stay fixed.
     # Literal-link repairs change authored editor copy; the exercise lead-in
     # changes visible text. Page identities, headings, and reading order stay fixed.
+    # John's Oct–Nov suggestions add the adopter page, the home introduction,
+    # skills columns, and Authors section, and rename volumes to modules,
+    # advancing every digest including the page set.
     baseline = json.loads((TOOLS / "tests/fixtures/platform-semantic-baseline.json").read_text())
-    assert baseline["fields"]["links"] == "9379febbd27da39b3019b89ef880ce771c6c608aeb6d0065a9b3d976c68c01c4"
-    assert baseline["fields"]["editor_blocks"] == "6d84247ee7e52e83c603d9e0095d0526f5a9471156c9c5770a04c08daa2fff59"
-    assert baseline["fields"]["reading_order"] == "7f121b12173e33e84f513e9abe6ae705bf76b97095421b1297f5537f76323f91"
+    assert baseline["fields"]["links"] == "01dc1e5e2532c7f30bbdacf55e26a43fbb37ae587e8bac5b3cedcdbb53a12fa3"
+    assert baseline["fields"]["editor_blocks"] == "0acebca0b353aeadd659744ab4a2e086d554a952d326fac043fefdd8f06feafd"
+    assert baseline["fields"]["reading_order"] == "ec03f91accdb9b94bb9be107553d91f30f4e87a46c4ce7d6a421a313dd77387e"

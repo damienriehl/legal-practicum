@@ -125,7 +125,8 @@ class NewCoverageTest(unittest.TestCase):
 
     # ---- R1: the landing pages carry their authored copy ----------------- #
     def test_authored_page_copy_counts(self):
-        self.assertEqual(len(self.pages["index.html"]), 32)
+        self.assertEqual(len(self.pages["index.html"]), 58)
+        self.assertEqual(len(self.pages["adopt/index.html"]), 30)
         self.assertEqual(len(self.pages["getting-started/index.html"]), 13)
         self.assertEqual(len(self.pages["matters/index.html"]), 13)
         self.assertEqual(len(self.pages["firm/index.html"]), 33)
@@ -191,6 +192,7 @@ class NewCoverageTest(unittest.TestCase):
             "matters/index.html": "data/copy/matters.json#",
             "firm/index.html": "data/copy/firm.json#",
             "getting-started/index.html": "data/copy/getting-started.json#",
+            "adopt/index.html": "data/copy/adopt.json#",
         }
         for page, prefix in expected.items():
             refs = [b["source_ref"] for b in self.pages[page]

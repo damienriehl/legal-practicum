@@ -5,7 +5,7 @@ layered whole — a canonical text, a structured practicum curriculum, and an
 AI-assisted delivery platform — that trains the next generation of lawyers through a
 **human-and-AI ("centaur") apprenticeship**.
 
-**John O. Sonsteng · Damien Riehl · Roger S. Haydock.** Hosted by Damien Riehl;
+**John Sonsteng and Damien Riehl, with Abby Breit, Editor.** Hosted by Damien Riehl;
 open-source and **MIT-licensed**. Extends the open-access
 spirit of the [Open Resource Tool](https://www.openresourcetool.info/) (Mitchell Hamline
 C-LAB × IGUL / Bahçeşehir University) and the [Trialbook](https://trialbook.org/)
@@ -127,7 +127,7 @@ Original educational content in the paths enumerated by
 [CONTENT-LICENSE.md](CONTENT-LICENSE.md) is available under
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); software and associated
 code remain under the [MIT License](LICENSE). The content attribution is:
-**Legal Practicum — John O. Sonsteng · Damien Riehl · Roger S. Haydock**.
+**Legal Practicum — John Sonsteng and Damien Riehl, with Abby Breit, Editor**.
 
 All 20 matters, every party, fact, and document are **original synthetic content**
 (shapes mirror the live Skills Practicum; nothing derives from Trialbook/NITA materials).

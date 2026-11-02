@@ -39,7 +39,10 @@ main[tabindex]:focus{outline:none}
 
 /* ---- home hero ---- */
 .hero{padding:var(--sp-16) 0 var(--sp-8);display:grid;gap:var(--sp-3)}
-.hero__proposition{font-size:var(--fs-display);max-width:14ch}
+/* John's heading is a full sentence (~190 characters), so the home hero sets
+   it well below the display size other pages use: about 4 lines on a laptop
+   and 7 on a phone. Scaling the token keeps large-type mode proportional. */
+.hero__proposition{font-size:calc(var(--fs-display) * .43);line-height:1.08;max-width:none;text-wrap:balance}
 .hero .lede{font-size:var(--fs-md);line-height:1.6;max-width:62ch}
 .volumes{display:grid;gap:var(--sp-6);grid-template-columns:repeat(auto-fit,minmax(min(15rem,100%),1fr))}
 .volume{position:relative;overflow:hidden}
@@ -49,6 +52,37 @@ main[tabindex]:focus{outline:none}
 .volume--green .volume__num{color:var(--green)}
 .volume.card--featured{background:var(--surface-featured);border-color:var(--claret)}
 .entry-cards{display:grid;gap:var(--sp-6);grid-template-columns:repeat(auto-fit,minmax(min(16rem,100%),1fr))}
+/* Equal-height cards: the closing link sits on each card's bottom edge. */
+.entry-cards>.card,.volumes>.card{display:flex;flex-direction:column}
+.adopt-section{margin:var(--sp-8) 0}
+.adopt-section h3{margin:var(--sp-6) 0 var(--sp-2)}
+.adopt-section a.link{display:inline-flex;align-items:center;min-height:44px}
+.adopt-section a.link p{margin:0;color:var(--claret);text-decoration:underline;text-underline-offset:.2em}
+.adopt-note{border-left:var(--rule-bold) solid var(--brass);padding-left:var(--sp-3)}
+.adopt-prompts{padding-left:var(--sp-6)}
+.adopt-prompts li{margin:0 0 var(--sp-3);font-style:italic}
+.entry-cards>.card>.arrow-link,.volumes>.card>.arrow-link{margin-top:auto;padding-top:var(--sp-3);align-self:flex-start}
+.hero__byline,.hero__adopt{display:flex;align-items:center;min-height:44px;width:fit-content;max-width:100%;text-decoration:none}
+.hero__byline p{margin:0;font-family:var(--font-display);font-size:var(--fs-md);color:var(--ink)}
+.hero__byline:hover p,.hero__byline:focus-visible p{text-decoration:underline}
+.hero__adopt p{margin:0;font-family:var(--font-mono);font-size:var(--fs-sm);letter-spacing:.04em;
+  color:var(--claret);text-decoration:underline;text-underline-offset:.2em}
+.hero__adopt p::after{content:" →"}
+.hero .lede+.lede,.intro__after .lede+.lede{margin-top:0}
+.intro{margin:0 0 var(--sp-8);display:grid;gap:var(--sp-6)}
+.intro__heading{max-width:var(--maxw-read);font-size:clamp(var(--fs-md),calc(var(--fs-display) * .36),2.6rem);line-height:1.1}
+.skill-columns{display:grid;gap:var(--sp-6) var(--sp-8);grid-template-columns:1fr}
+@media(min-width:40rem){.skill-columns{grid-template-columns:1fr 1fr}}
+.skill-columns__col h3{margin:0 0 var(--sp-3);font-size:var(--fs-md)}
+.skill-columns__list{margin:0;padding-left:1.2em;display:grid;gap:var(--sp-2)}
+.skill-columns__list a{color:var(--ink);text-underline-offset:.15em}
+.intro__after .lede{line-height:1.6;max-width:62ch}
+.authors{display:grid;gap:var(--sp-6);grid-template-columns:repeat(auto-fit,minmax(min(17rem,100%),1fr))}
+.further-reading{margin-top:var(--sp-8);max-width:var(--maxw-read)}
+.further-reading h3{margin:0 0 var(--sp-3)}
+.citation{margin:0 0 var(--sp-3);padding-left:var(--sp-3);border-left:var(--rule) solid var(--line)}
+.citation p{margin:0}
+.citation__link{font-family:var(--font-mono);font-size:var(--fs-sm);color:var(--claret)}
 
 /* ---- module pages ---- */
 .module-numeral{font-family:var(--font-display);font-weight:900;

@@ -364,6 +364,27 @@ def _copy_scalar(page, copy, json_path, context):
     return value, _eb_scalar_attr(rel + "#" + json_path, value, json_path, context)
 
 
+def _copy_paragraphs(page, copy, json_path, context, css_class=""):
+    """Render a page-copy leaf that may hold several paragraphs.
+
+    A plain string renders as one <p>. An object renders one <p> per key, in
+    authored order, and each paragraph registers as its own json_scalar leaf
+    (``<json_path>.<key>``) so editors change one paragraph at a time and the
+    paragraph breaks survive every edit."""
+    value = copy
+    for key in json_path.split("."):
+        value = value[key]
+    cls = ' class="%s"' % css_class if css_class else ""
+    if isinstance(value, str):
+        text, attr = _copy_scalar(page, copy, json_path, context)
+        return "<p%s%s>%s</p>" % (cls, attr, esc(text))
+    out = []
+    for key in value:
+        text, attr = _copy_scalar(page, copy, "%s.%s" % (json_path, key), context)
+        out.append("<p%s%s>%s</p>" % (cls, attr, esc(text)))
+    return "\n  ".join(out)
+
+
 def data_relpath(*parts):
     """POSIX repo-relative path for a source file, for use as a source_ref base."""
     return os.path.relpath(os.path.join(*parts), ROOT).replace(os.sep, "/")
@@ -728,7 +749,7 @@ def load_corpus():
     taxonomy_crosswalk = load_json(os.path.join(DATA, "taxonomy", "folio-crosswalk.json"))
     firm = load_json(os.path.join(DATA, "firm", "firm.json"))
     copy = {page: load_json(os.path.join(DATA, "copy", page + ".json"))
-            for page in ("home", "matters", "firm", "getting-started")}
+            for page in ("home", "matters", "firm", "getting-started", "adopt")}
     PAGE_OVERRIDES.clear()
     for page_copy, doc in copy.items():
         relpath = data_relpath(DATA, "copy", page_copy + ".json")
@@ -992,7 +1013,10 @@ main[tabindex]:focus{outline:none}
 
 /* ---- home hero ---- */
 .hero{padding:var(--sp-16) 0 var(--sp-8);display:grid;gap:var(--sp-3)}
-.hero__proposition{font-size:var(--fs-display);max-width:14ch}
+/* John's heading is a full sentence (~190 characters), so the home hero sets
+   it well below the display size other pages use: about 4 lines on a laptop
+   and 7 on a phone. Scaling the token keeps large-type mode proportional. */
+.hero__proposition{font-size:calc(var(--fs-display) * .43);line-height:1.08;max-width:none;text-wrap:balance}
 .hero .lede{font-size:var(--fs-md);line-height:1.6;max-width:62ch}
 .volumes{display:grid;gap:var(--sp-6);grid-template-columns:repeat(auto-fit,minmax(min(15rem,100%),1fr))}
 .volume{position:relative;overflow:hidden}
@@ -1002,6 +1026,37 @@ main[tabindex]:focus{outline:none}
 .volume--green .volume__num{color:var(--green)}
 .volume.card--featured{background:var(--surface-featured);border-color:var(--claret)}
 .entry-cards{display:grid;gap:var(--sp-6);grid-template-columns:repeat(auto-fit,minmax(min(16rem,100%),1fr))}
+/* Equal-height cards: the closing link sits on each card's bottom edge. */
+.entry-cards>.card,.volumes>.card{display:flex;flex-direction:column}
+.adopt-section{margin:var(--sp-8) 0}
+.adopt-section h3{margin:var(--sp-6) 0 var(--sp-2)}
+.adopt-section a.link{display:inline-flex;align-items:center;min-height:44px}
+.adopt-section a.link p{margin:0;color:var(--claret);text-decoration:underline;text-underline-offset:.2em}
+.adopt-note{border-left:var(--rule-bold) solid var(--brass);padding-left:var(--sp-3)}
+.adopt-prompts{padding-left:var(--sp-6)}
+.adopt-prompts li{margin:0 0 var(--sp-3);font-style:italic}
+.entry-cards>.card>.arrow-link,.volumes>.card>.arrow-link{margin-top:auto;padding-top:var(--sp-3);align-self:flex-start}
+.hero__byline,.hero__adopt{display:flex;align-items:center;min-height:44px;width:fit-content;max-width:100%;text-decoration:none}
+.hero__byline p{margin:0;font-family:var(--font-display);font-size:var(--fs-md);color:var(--ink)}
+.hero__byline:hover p,.hero__byline:focus-visible p{text-decoration:underline}
+.hero__adopt p{margin:0;font-family:var(--font-mono);font-size:var(--fs-sm);letter-spacing:.04em;
+  color:var(--claret);text-decoration:underline;text-underline-offset:.2em}
+.hero__adopt p::after{content:" →"}
+.hero .lede+.lede,.intro__after .lede+.lede{margin-top:0}
+.intro{margin:0 0 var(--sp-8);display:grid;gap:var(--sp-6)}
+.intro__heading{max-width:var(--maxw-read);font-size:clamp(var(--fs-md),calc(var(--fs-display) * .36),2.6rem);line-height:1.1}
+.skill-columns{display:grid;gap:var(--sp-6) var(--sp-8);grid-template-columns:1fr}
+@media(min-width:40rem){.skill-columns{grid-template-columns:1fr 1fr}}
+.skill-columns__col h3{margin:0 0 var(--sp-3);font-size:var(--fs-md)}
+.skill-columns__list{margin:0;padding-left:1.2em;display:grid;gap:var(--sp-2)}
+.skill-columns__list a{color:var(--ink);text-underline-offset:.15em}
+.intro__after .lede{line-height:1.6;max-width:62ch}
+.authors{display:grid;gap:var(--sp-6);grid-template-columns:repeat(auto-fit,minmax(min(17rem,100%),1fr))}
+.further-reading{margin-top:var(--sp-8);max-width:var(--maxw-read)}
+.further-reading h3{margin:0 0 var(--sp-3)}
+.citation{margin:0 0 var(--sp-3);padding-left:var(--sp-3);border-left:var(--rule) solid var(--line)}
+.citation p{margin:0}
+.citation__link{font-family:var(--font-mono);font-size:var(--fs-sm);color:var(--claret)}
 
 /* ---- module pages ---- */
 .module-numeral{font-family:var(--font-display);font-weight:900;
@@ -1483,7 +1538,7 @@ def build_home(corpus):
       <h3{title_eb}>{title}</h3>
       <p class="matter-card__premise"{thesis_eb}>{thesis}</p>
       <p class="card__meta">{nt} TASKS · {nm} LINKED MATTERS</p>
-      <span class="arrow-link">Open volume</span>
+      <span class="arrow-link">Open module</span>
     </a>""".format(acc=acc, lo=code.lower(), code=esc(code), title=esc(title),
                    title_eb=title_eb, thesis=esc(thesis), thesis_eb=thesis_eb,
                    nt=task_by_module.get(code, 0),
@@ -1492,7 +1547,7 @@ def build_home(corpus):
     values = {}
     attrs = {}
     for path in (
-        "hero.eyebrow", "hero.heading", "hero.lede", "volumes.eyebrow", "volumes.heading",
+        "hero.eyebrow", "hero.heading", "volumes.eyebrow", "volumes.heading",
         "explore.eyebrow", "explore.heading",
     ):
         values[path], attrs[path] = _copy_scalar("home", copy, path, "home")
@@ -1507,12 +1562,16 @@ def build_home(corpus):
             values[path], attrs[path] = _copy_scalar(
                 "home", copy, path, "home · %s card" % card)
 
+    hero_extra = _home_hero_extra(copy, skills)
     body = """
 <section class="hero reveal">
   <p class="editorial-label"{hero_eyebrow_eb}>{hero_eyebrow}</p>
   <h1 class="hero__proposition"{hero_heading_eb}>{hero_heading}</h1>
-  <p class="lede"{hero_lede_eb}>{hero_lede}</p>
+  {hero_byline}
+  {hero_adopt}
+  {hero_lede}
 </section>
+{intro}
 
 <div class="brass-rule" role="presentation"></div>
 
@@ -1585,13 +1644,94 @@ def build_home(corpus):
     </div>
   </div>
 </section>
-""".format(vols="".join(vols), ns=n_surveyed, nt=n_tasks, nm=n_matters,
+{authors}
+""".format(vols="".join(vols), ns=n_surveyed, nt=n_tasks, nm=n_matters, **hero_extra,
            sample=esc(sample_href(rel)),
            **{("_".join(path.split(".")[2:]) if path.startswith("explore.cards.")
                else path.replace(".", "_")): esc(value) for path, value in values.items()},
            **{("_".join(path.split(".")[2:]) if path.startswith("explore.cards.")
                else path.replace(".", "_")) + "_eb": attr for path, attr in attrs.items()})
     write_file(rel, page_shell(rel, "Platform Home", "PLATFORM · HOME", [], body))
+
+def _home_hero_extra(copy, skills):
+    """The home page's authored additions: the hero byline, the adopter link,
+    John's introduction with the two-column skills list, and the Authors
+    section. Every sentence is page copy in data/copy/home.json."""
+    def leaf(path, context="home"):
+        value, attr = _copy_scalar("home", copy, path, context)
+        return esc(value), attr
+
+    byline, byline_eb = leaf("identity.byline", "home · hero byline")
+    adopt, adopt_eb = leaf("hero.adopter_link", "home · hero")
+    hero_byline = ('<a class="hero__byline" href="#authors"><p%s>%s</p></a>'
+                   % (byline_eb, byline))
+    hero_adopt = ('<a class="hero__adopt" href="adopt/index.html"><p%s>%s</p></a>'
+                  % (adopt_eb, adopt))
+    hero_lede = _copy_paragraphs("home", copy, "hero.lede", "home · introduction", "lede")
+
+    def column(category, heading_path):
+        heading, heading_eb = leaf(heading_path, "home · skills columns")
+        items = "".join(
+            '<li><a href="skills/index.html#{sid}">{name}</a></li>'.format(
+                sid=esc(s["id"]), name=esc(s["name"]))
+            for s in skills if s.get("category") == category)
+        return ('<div class="skill-columns__col"><h3%s>%s</h3><ul class="skill-columns__list">%s</ul></div>'
+                % (heading_eb, heading, items))
+
+    skills_heading, skills_heading_eb = leaf("intro.skills_heading", "home · skills columns")
+    intro = """<section class="intro reveal" aria-labelledby="skills-h">
+  <h2 id="skills-h" class="intro__heading"{heb}>{heading}</h2>
+  <div class="skill-columns">{left}{right}</div>
+  <div class="intro__after">
+  {after}
+  </div>
+</section>""".format(
+        heb=skills_heading_eb, heading=skills_heading,
+        left=column("legal_practice", "intro.practice_heading"),
+        right=column("practice_management", "intro.management_heading"),
+        after=_copy_paragraphs("home", copy, "intro.after_skills", "home · introduction", "lede"))
+
+    eyebrow, eyebrow_eb = leaf("authors.eyebrow", "home · authors")
+    a_heading, a_heading_eb = leaf("authors.heading", "home · authors")
+    people = []
+    for key in copy["authors"]["people"]:
+        base = "authors.people.%s." % key
+        name, name_eb = leaf(base + "name", "home · authors")
+        role, role_eb = leaf(base + "role", "home · authors")
+        bio, bio_eb = leaf(base + "bio", "home · authors")
+        people.append("""
+    <article class="card author-card">
+      <h3{neb}>{name}</h3>
+      <p class="card__meta"{reb}>{role}</p>
+      <p{beb}>{bio}</p>
+    </article>""".format(name=name, neb=name_eb, role=role, reb=role_eb, bio=bio, beb=bio_eb))
+    r_heading, r_heading_eb = leaf("authors.reading.heading", "home · further reading")
+    cites = []
+    for key, item in copy["authors"]["reading"]["items"].items():
+        cite, cite_eb = leaf("authors.reading.items.%s.citation" % key, "home · further reading")
+        link = ""
+        if item.get("url"):
+            url = item["url"]
+            link = '<a class="citation__link" href="{u}">{label}</a>'.format(
+                u=esc(url), label=esc(url.split("://", 1)[-1].rstrip("/")))
+        cites.append('<div class="citation"><p{eb}>{cite}</p>{link}</div>'.format(
+            eb=cite_eb, cite=cite, link=link))
+    authors = """
+<section id="authors" aria-labelledby="authors-h">
+  <div class="section-head"><p class="editorial-label"{eeb}>{eyebrow}</p>
+  <h2 id="authors-h"{heb}>{heading}</h2></div>
+  <div class="authors stagger">{people}
+  </div>
+  <div class="further-reading">
+    <h3{rheb}>{rheading}</h3>
+    {cites}
+  </div>
+</section>""".format(eyebrow=eyebrow, eeb=eyebrow_eb, heading=a_heading, heb=a_heading_eb,
+                     people="".join(people), rheading=r_heading, rheb=r_heading_eb,
+                     cites="\n    ".join(cites))
+    return {"hero_byline": hero_byline, "hero_adopt": hero_adopt, "hero_lede": hero_lede,
+            "intro": intro, "authors": authors}
+
 
 # --------------------------------------------------------------------------- #
 # Page — module covers
@@ -1656,8 +1796,8 @@ def build_modules(corpus):
         prose_section = ""
         if volume_md.strip():
             prose_section = """
-<section class="volume-prose reveal" aria-label="The volume">
-  <h2 class="eyebrow">THE VOLUME · HOW THIS MODULE TEACHES</h2>
+<section class="volume-prose reveal" aria-label="The module">
+  <h2 class="eyebrow">THE MODULE · HOW IT TEACHES</h2>
   <div class="prose">{prose}</div>
 </section>
 <div class="brass-rule" role="presentation"></div>
@@ -1730,6 +1870,65 @@ def build_getting_started(corpus):
     write_file(rel, page_shell(
         rel, copy["hero"]["heading"], "GETTING STARTED · AT YOUR SCHOOL",
         [("Home", "../index.html"), ("Getting started", None)], body))
+
+
+# --------------------------------------------------------------------------- #
+# Page — adopters: run the practicum on your own cases
+# --------------------------------------------------------------------------- #
+def build_adopt(corpus):
+    """The adopter page. Copy lives in data/copy/adopt.json. The repository link
+    renders only when the top-level ``repo_url`` field holds a URL; while it is
+    empty the page shows the authored "public soon" sentence instead."""
+    rel = "adopt/index.html"
+    copy = corpus["copy"]["adopt"]
+    context = "adopter page"
+
+    def leaf(path):
+        value, attr = _copy_scalar("adopt", copy, path, context)
+        return attr, esc(value)
+
+    def paras(path):
+        return _copy_paragraphs("adopt", copy, path, context)
+
+    def section(key, inner):
+        return ('<section class="reveal prose adopt-section" aria-labelledby="adopt-%s-h">'
+                '<h2 id="adopt-%s-h"%s>%s</h2>%s</section>' % ((key, key) + leaf(key + ".heading") + (inner,)))
+
+    repo_url = (copy.get("repo_url") or "").strip()
+    if repo_url:
+        attr, label = leaf("setup.repo_link_label")
+        repo_html = '<a class="link" href="%s"><p%s>%s</p></a>' % (esc(repo_url), attr, label)
+    else:
+        repo_html = '<p class="adopt-note"%s>%s</p>' % leaf("setup.repo_pending")
+    setup_inner = (paras("setup.body") + repo_html
+                   + '<h3%s>%s</h3>' % leaf("setup.admin_heading")
+                   + '<p%s>%s</p>' % leaf("setup.admin_body")
+                   + '<h3%s>%s</h3>' % leaf("setup.users_heading")
+                   + '<p%s>%s</p>' % leaf("setup.users_body"))
+    examples = "".join(
+        '<li class="adopt-prompt"%s>%s</li>' % leaf("prompting.examples." + key)
+        for key in copy["prompting"]["examples"])
+    prompting_inner = ('<p%s>%s</p>' % leaf("prompting.body")
+                       + '<h3%s>%s</h3>' % leaf("prompting.examples_heading")
+                       + '<ol class="adopt-prompts">%s</ol>' % examples)
+    license_attr, license_label = leaf("license.link_label")
+    license_inner = ('<p%s>%s</p>' % leaf("license.body")
+                     + '<a class="link" href="../about/content-license.html"><p%s>%s</p></a>'
+                     % (license_attr, license_label))
+
+    body = ('<header class="reveal"><p class="eyebrow"%s>%s</p>' % leaf("hero.eyebrow")
+            + '<h1%s>%s</h1>' % leaf("hero.heading")
+            + '<p class="lede"%s>%s</p></header>' % leaf("hero.lede")
+            + '<div class="brass-rule" role="presentation"></div>'
+            + section("who", paras("who.body"))
+            + section("privacy", paras("privacy.body"))
+            + section("setup", setup_inner)
+            + section("cases", paras("cases.body"))
+            + section("prompting", prompting_inner)
+            + section("license", license_inner))
+    write_file(rel, page_shell(
+        rel, copy["hero"]["heading"], "ADOPT · YOUR OWN CASES",
+        [("Home", "../index.html"), ("Use it on your own cases", None)], body))
 
 
 # --------------------------------------------------------------------------- #
@@ -1917,7 +2116,7 @@ def build_skills(corpus):
 <section class="reveal">
   <p class="eyebrow">TABLE OF AUTHORITIES · {n} SURVEYED SKILLS</p>
   <h1{title_render}>Skills browser</h1>
-  <p class="lede">Sonsteng&rsquo;s seventeen Legal Practice skills and nine Law Practice Management
+  <p class="lede">The seventeen Legal Practice skills and nine Law Practice Management
   skills, decomposed into the tasks most lawyers most often perform — each mapped into the FOLIO
   ontology where a sound mapping exists, and cross-linked to the matters that exercise it.</p>
 </section>
@@ -3906,6 +4105,10 @@ _EXTERNAL_ALLOW = (
     "https://challenges.cloudflare.com/",
     "https://creativecommons.org/licenses/by/4.0/",
     "https://github.com/damienriehl/legal-practicum",
+    # Reviewed navigational links: the authors' books cited under the home
+    # page's "Further reading" list (Damien, 2026-11-02).
+    "https://trialbook.org",
+    "https://trialadvocacy.net",
 )
 _ID_RE = re.compile(r'id="([^"]+)"')
 
@@ -4076,6 +4279,7 @@ def main(argv):
 
     build_home(corpus)
     build_getting_started(corpus)
+    build_adopt(corpus)
     build_modules(corpus)
     build_templates(corpus)
     build_skills(corpus)
