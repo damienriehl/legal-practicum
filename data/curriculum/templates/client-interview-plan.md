@@ -22,7 +22,7 @@ Plan the interview as an arc, not a checklist: {#b:8757f5b5}
 5. **Closing and next steps** — summarize, confirm understanding, and tell the client exactly what happens next. {#b:a9f7f0ef}
 
 ### 4. The T-funnel topic map {#b:ea7dbb12}
-For each major topic you must cover, write **one open-ended question to open it** and the **closed follow-ups** to fill the gaps. The discipline is broad-before-narrow: do not lead with the closed question. {#b:a265819c}
+For each major topic you must cover, write **an open-ended question to open it** and the **closed follow-ups** to fill the gaps. The discipline is broad-before-narrow: do not lead with the closed question. {#b:a265819c}
 
 | Topic | Open-ended opener | Closed gap-fillers |
 |---|---|---|
