@@ -25,7 +25,7 @@ def dataset(tmp_path, monkeypatch):
     write_json(data / 'taxonomy' / 'tasks.json', {'tasks': []})
     write_json(data / 'taxonomy' / 'folio-crosswalk.json', {})
     write_json(data / 'firm' / 'firm.json', {})
-    for page in ('home', 'matters', 'firm', 'getting-started'):
+    for page in ('home', 'matters', 'firm', 'getting-started', 'adopt'):
         write_json(data / 'copy' / (page + '.json'), {'shape_labels': {}})
     write_json(matter / 'matter.json', {'id': 'm01', 'caption': 'Fixture & matter', 'tier': 'meridian', 'jurisdiction': 'meridian'})
     write_json(matter / 'rubric.json', {})

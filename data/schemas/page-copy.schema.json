@@ -7,18 +7,21 @@
   "properties": {
     "schema_version": {"const": "1.0.0"},
     "type": {"const": "page_copy"},
-    "page": {"enum": ["home", "matters", "firm", "getting-started"]},
-    "overrides": {"$ref": "#/$defs/overrides"}
+    "page": {"enum": ["home", "matters", "firm", "getting-started", "adopt"]},
+    "overrides": {"$ref": "#/$defs/overrides"},
+    "repo_url": {"type": "string", "description": "Adopter page: the public repository URL. Empty renders no link."}
   },
   "patternProperties": {
-    "^(?!schema_version$|type$|page$|overrides$).+": {"$ref": "#/$defs/copyNode"}
+    "^(?!schema_version$|type$|page$|overrides$|repo_url$).+": {"$ref": "#/$defs/copyNode"}
   },
   "additionalProperties": false,
   "allOf": [
     {"if": {"properties": {"page": {"const": "home"}}}, "then": {"$ref": "#/$defs/home"}},
     {"if": {"properties": {"page": {"const": "matters"}}}, "then": {"$ref": "#/$defs/matters"}},
     {"if": {"properties": {"page": {"const": "firm"}}}, "then": {"$ref": "#/$defs/firm"}},
-    {"if": {"properties": {"page": {"const": "getting-started"}}}, "then": {"$ref": "#/$defs/gettingStarted"}}
+    {"if": {"properties": {"page": {"const": "getting-started"}}}, "then": {"$ref": "#/$defs/gettingStarted"}},
+    {"if": {"properties": {"page": {"const": "adopt"}}}, "then": {"$ref": "#/$defs/adopt"}},
+    {"if": {"properties": {"page": {"const": "adopt"}}}, "else": {"not": {"required": ["repo_url"]}}}
   ],
   "$defs": {
     "scalar": {"type": "string", "minLength": 1},
@@ -37,6 +40,27 @@
       "additionalProperties": false
     },
     "hero": {"type": "object", "required": ["eyebrow", "heading", "lede"], "properties": {"eyebrow": {"$ref": "#/$defs/scalar"}, "heading": {"$ref": "#/$defs/scalar"}, "lede": {"$ref": "#/$defs/scalar"}}},
+    "paragraphs": {"oneOf": [
+      {"$ref": "#/$defs/scalar"},
+      {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/scalar"}}
+    ]},
+    "homeHero": {"type": "object", "required": ["eyebrow", "heading", "lede", "adopter_link"], "properties": {"eyebrow": {"$ref": "#/$defs/scalar"}, "heading": {"$ref": "#/$defs/scalar"}, "lede": {"$ref": "#/$defs/paragraphs"}, "adopter_link": {"$ref": "#/$defs/scalar"}}},
+    "person": {"type": "object", "required": ["name", "role", "bio"], "properties": {"name": {"$ref": "#/$defs/scalar"}, "role": {"$ref": "#/$defs/scalar"}, "bio": {"$ref": "#/$defs/scalar"}}},
+    "citation": {"type": "object", "required": ["citation"], "properties": {"citation": {"$ref": "#/$defs/scalar"}, "url": {"type": "string", "pattern": "^https://"}}},
+    "adoptSection": {"type": "object", "required": ["heading", "body"], "properties": {"heading": {"$ref": "#/$defs/scalar"}, "body": {"$ref": "#/$defs/paragraphs"}}},
+    "adopt": {
+      "type": "object", "required": ["repo_url", "hero", "who", "privacy", "setup", "cases", "prompting", "license"],
+      "properties": {
+        "repo_url": {"type": "string", "pattern": "^(https://.+)?$"},
+        "hero": {"$ref": "#/$defs/hero"},
+        "who": {"$ref": "#/$defs/adoptSection"},
+        "privacy": {"$ref": "#/$defs/adoptSection"},
+        "setup": {"allOf": [{"$ref": "#/$defs/adoptSection"}], "required": ["repo_pending", "repo_link_label", "admin_heading", "admin_body", "users_heading", "users_body"]},
+        "cases": {"$ref": "#/$defs/adoptSection"},
+        "prompting": {"type": "object", "required": ["heading", "body", "examples_heading", "examples"], "properties": {"examples": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/scalar"}}}},
+        "license": {"type": "object", "required": ["heading", "body", "link_label"]}
+      }
+    },
     "module": {"type": "object", "required": ["title", "thesis"], "properties": {"title": {"$ref": "#/$defs/scalar"}, "thesis": {"$ref": "#/$defs/scalar"}}},
     "fullCard": {"type": "object", "required": ["meta", "title", "description"], "properties": {"meta": {"$ref": "#/$defs/scalar"}, "title": {"$ref": "#/$defs/scalar"}, "description": {"$ref": "#/$defs/scalar"}}},
     "shortCard": {"type": "object", "required": ["meta", "title"], "properties": {"meta": {"$ref": "#/$defs/scalar"}, "title": {"$ref": "#/$defs/scalar"}}},
@@ -45,10 +69,22 @@
       "title": {"$ref": "#/$defs/scalar"}, "byline": {"$ref": "#/$defs/scalar"}, "host": {"$ref": "#/$defs/scalar"}
     }},
     "home": {
-      "type": "object", "required": ["identity", "hero", "volumes", "explore"],
+      "type": "object", "required": ["identity", "hero", "intro", "authors", "volumes", "explore"],
       "properties": {
         "identity": {"$ref": "#/$defs/identity"},
-        "hero": {"$ref": "#/$defs/hero"},
+        "hero": {"$ref": "#/$defs/homeHero"},
+        "intro": {"type": "object", "required": ["skills_heading", "practice_heading", "management_heading", "after_skills"], "properties": {
+          "skills_heading": {"$ref": "#/$defs/scalar"}, "practice_heading": {"$ref": "#/$defs/scalar"},
+          "management_heading": {"$ref": "#/$defs/scalar"}, "after_skills": {"$ref": "#/$defs/paragraphs"}
+        }},
+        "authors": {"type": "object", "required": ["eyebrow", "heading", "people", "reading"], "properties": {
+          "eyebrow": {"$ref": "#/$defs/scalar"}, "heading": {"$ref": "#/$defs/scalar"},
+          "people": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/person"}},
+          "reading": {"type": "object", "required": ["heading", "items"], "properties": {
+            "heading": {"$ref": "#/$defs/scalar"},
+            "items": {"type": "object", "additionalProperties": {"$ref": "#/$defs/citation"}}
+          }}
+        }},
         "volumes": {"type": "object", "required": ["eyebrow", "heading", "modules"], "properties": {
           "eyebrow": {"$ref": "#/$defs/scalar"}, "heading": {"$ref": "#/$defs/scalar"},
           "modules": {"type": "object", "required": ["M1", "M2", "M3"], "properties": {"M1": {"$ref": "#/$defs/module"}, "M2": {"$ref": "#/$defs/module"}, "M3": {"$ref": "#/$defs/module"}}}

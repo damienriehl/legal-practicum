@@ -158,7 +158,7 @@
 
     var head = el('div', 'crit-head');
     head.appendChild(el('h1', null, cfg.title));
-    head.appendChild(el('p', 'crit-intro', 'Paste a draft deliverable — a memo, letter, or pleading — and it will be marked up against this matter’s rubric, criterion by criterion, in the Sonsteng revise-and-resubmit tradition.'));
+    head.appendChild(el('p', 'crit-intro', 'Paste a draft deliverable — a memo, letter, or pleading — and it will be marked up against this matter’s rubric, criterion by criterion, in the revise-and-resubmit tradition.'));
     wrap.appendChild(head);
 
     var drawerMount = el('div');
