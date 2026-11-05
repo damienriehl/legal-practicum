@@ -1,0 +1,174 @@
+{
+  "item": "so-4",
+  "observed_date_utc": "2026-10-27",
+  "status": "incomplete",
+  "source_revision": "637664550d2745d918d7249f1b61698a18987520",
+  "plan": "docs/plans/2026-10-24-0640-fix-editor-overlay-a11y-plan.md",
+  "runtime": {
+    "node": "v22.22.1",
+    "python": "3.14.4"
+  },
+  "source_sha256": {
+    "app/editor/editor.css": "d068ed1ca80be95cb078c3667e5e2bad56520ccf7a3bc7ab70fb3abade0eae36",
+    "app/editor/editor.js": "73513bcc102238175634fe347823c79bec1dcecd18f6c0fa61df7d7ee28f944e",
+    "tools/a11y_audit.js": "cfde93632e183ef9385ae884e1588f7408c3ea49c88d54aef8d47ec020ea7d8c",
+    "app/editor/verify-editor.js": "a6bcb4a0f3c6d36d3575aaea45de71453a0dd5ec1f5d77890e443cca9af119b1"
+  },
+  "checks": [
+    {
+      "id": "site-build",
+      "command": "python3 tools/build_site.py --check",
+      "status": "pass",
+      "exit_code": 0,
+      "details": {
+        "matters": 20,
+        "html_pages": 78,
+        "editable_blocks": 6582,
+        "editable_pages": 75,
+        "spine_build_id": "fe3ecc46d4ef60f9",
+        "internal_links": "pass",
+        "instructor_leak_sweep": "pass",
+        "marker_leak_sweep": "pass",
+        "history_leak_sweep": "pass"
+      }
+    },
+    {
+      "id": "instructor-bundle",
+      "command": "python3 tools/build_instructor_bundle.py",
+      "status": "pass",
+      "exit_code": 0,
+      "details": {
+        "documents": 60,
+        "editable_blocks": 2658
+      }
+    },
+    {
+      "id": "editor-data-bundle",
+      "command": "node app/worker/scripts/bundle-editor-data.mjs",
+      "status": "pass",
+      "exit_code": 0,
+      "details": {
+        "history_documents": 353,
+        "history_leak_assertion": "pass",
+        "generated_bundles": [
+          "editor-map",
+          "instructor-bundle",
+          "history",
+          "editor-client"
+        ]
+      }
+    },
+    {
+      "id": "worker-suite",
+      "command": "node --test app/worker/test/*.test.js",
+      "status": "pass",
+      "exit_code": 0,
+      "details": {
+        "tests": 1494,
+        "passed": 1493,
+        "failed": 0,
+        "skipped": 1,
+        "duration_seconds": 36.547
+      },
+      "skip_reason": "The assessment-review browser test skips when Puppeteer is not installed."
+    },
+    {
+      "id": "python-suite",
+      "command": "python3 -m pytest tools/tests/ -q",
+      "status": "fail",
+      "exit_code": 1,
+      "details": {
+        "passed": 3078,
+        "failed": 2,
+        "skipped": 1,
+        "subtests_passed": 22068,
+        "duration_seconds": 179.87
+      },
+      "failures": [
+        {
+          "test": "tools/tests/test_coverage_apply_pipeline.py::test_curriculum_formatting_only_edit_cannot_report_applied",
+          "reason": "Existing fixture expects 653 source bytes; current source has 746."
+        },
+        {
+          "test": "tools/tests/test_platform_semantic_contract.py::TestPlatformSemanticContract::test_clean_fresh_production_build_matches_baseline",
+          "reason": "Existing full-corpus baseline differs for text, headings, links and editor_blocks."
+        }
+      ],
+      "scope": "Observed before any production or test changes. Deferred outside so-4; expectations were not weakened."
+    },
+    {
+      "id": "a11y-contract",
+      "command": "python3 -m pytest tools/tests/test_a11y_audit_contract.py -q",
+      "status": "pass",
+      "exit_code": 0,
+      "details": {
+        "passed": 7,
+        "duration_seconds": 0.03
+      },
+      "limits": "Static contract checks do not establish rendered or live accessibility."
+    },
+    {
+      "id": "tools-node-suite",
+      "command": "node --test tools/tests/*.test.js",
+      "status": "pass",
+      "exit_code": 0,
+      "details": {
+        "tests": 50,
+        "passed": 50,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "javascript-syntax",
+      "command": "node --check tools/a11y_audit.js && node --check app/editor/verify-editor.js && node --check app/editor/editor.js",
+      "status": "pass",
+      "exit_code": 0
+    },
+    {
+      "id": "editor-client",
+      "command": "node app/editor/verify-editor.js",
+      "status": "blocked",
+      "exit_code": 1,
+      "reason": "MODULE_NOT_FOUND: the hardcoded Puppeteer dependency is unavailable.",
+      "assertions_executed": 0
+    },
+    {
+      "id": "rendered-accessibility",
+      "command": "node tools/a11y_audit.js",
+      "status": "blocked",
+      "exit_code": 1,
+      "reason": "Puppeteer unavailable (set PUP_DIR or install puppeteer).",
+      "cases_executed": 0,
+      "fail_count": null,
+      "warn_count": null
+    },
+    {
+      "id": "browser-runtime",
+      "command": "google-chrome --headless --no-sandbox --disable-gpu --dump-dom about:blank",
+      "status": "blocked",
+      "exit_code": 134,
+      "reason": "Chrome process_singleton_posix.cc: socket() failed: Permission denied (13).",
+      "limits": "Executed the installed Google Chrome binary directly. Browser startup failed before any page could be measured."
+    },
+    {
+      "id": "negative-controls-before-first-repair",
+      "source_ref": "6f04bdc^:app/editor/editor.css",
+      "status": "blocked",
+      "reason": "Rendered audit cannot start; no original-footer contrast or button-height regression result exists."
+    },
+    {
+      "id": "negative-controls-before-followup-repair",
+      "source_ref": "4b9c093^:app/editor/editor.css",
+      "status": "blocked",
+      "reason": "Rendered audit cannot start; no locked-focus or paused-warning red/green result exists."
+    }
+  ],
+  "rendered_measurements": null,
+  "screenshots": [],
+  "warning_disposition": "No rendered WARN set was produced. Existing accepted classes and reopening conditions remain unchanged.",
+  "behavior_changed": false,
+  "tests_added_or_changed": [],
+  "test_exception": "Documentation-only receipt; existing checks were used unchanged. Browser failures did not reproduce an application defect, so no frontend repair or new regression test was justified.",
+  "recorded_at_utc": "2026-10-27T14:06:55+00:00"
+}
