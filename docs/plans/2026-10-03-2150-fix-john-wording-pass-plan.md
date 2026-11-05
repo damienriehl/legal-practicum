@@ -1,4 +1,5 @@
 ---
+status: completed
 title: John's wording corrections since 2026-08-12 - Plan
 type: fix
 date: 2026-10-03

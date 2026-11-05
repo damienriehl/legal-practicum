@@ -1,4 +1,5 @@
 ---
+status: completed
 title: Running the firm with technology (L50 exercise) - Plan
 type: feat
 date: 2026-10-04

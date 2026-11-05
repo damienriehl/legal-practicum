@@ -1,4 +1,5 @@
 ---
+status: completed
 title: Brochure (L38) and firms & bar associations page (L70) - Plan
 type: feat
 date: 2026-10-04

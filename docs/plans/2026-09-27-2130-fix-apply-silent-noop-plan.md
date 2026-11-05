@@ -1,4 +1,5 @@
 ---
+status: completed
 title: Apply engine reports "applied" for an edit that never reached its source - Plan
 type: fix
 date: 2026-09-27

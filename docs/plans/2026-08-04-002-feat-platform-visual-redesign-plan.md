@@ -1,4 +1,5 @@
 ---
+status: completed
 title: "Platform Visual Redesign - Plan"
 type: feat
 date: 2026-08-04

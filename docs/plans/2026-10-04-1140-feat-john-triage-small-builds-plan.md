@@ -1,4 +1,5 @@
 ---
+status: completed
 title: Small accepted items from the John-requests triage - Plan
 type: feat
 date: 2026-10-04

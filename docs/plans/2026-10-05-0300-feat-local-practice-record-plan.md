@@ -1,4 +1,5 @@
 ---
+status: completed
 title: Local-first practice record and recognition (L32 phase 1) - Plan
 type: feat
 date: 2026-10-05

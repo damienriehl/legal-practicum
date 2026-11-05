@@ -1,4 +1,5 @@
 ---
+status: completed
 title: User-story run across the Legal Practicum's common paths - Plan
 type: test
 date: 2026-09-30

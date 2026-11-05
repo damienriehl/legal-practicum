@@ -1,4 +1,5 @@
 ---
+status: completed
 title: Persona-Driven User Acceptance Testing - Plan
 type: test
 date: 2026-09-02

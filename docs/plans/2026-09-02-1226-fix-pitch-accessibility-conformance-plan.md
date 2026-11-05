@@ -1,4 +1,5 @@
 ---
+status: completed
 title: Pitch Page Accessibility Conformance - Plan
 type: fix
 date: 2026-09-02

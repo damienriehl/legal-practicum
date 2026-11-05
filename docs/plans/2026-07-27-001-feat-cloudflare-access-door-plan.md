@@ -1,4 +1,5 @@
 ---
+status: completed
 artifact_contract: ce-unified-plan/v1
 artifact_readiness: implementation-ready
 execution: code

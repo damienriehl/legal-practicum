@@ -107,12 +107,8 @@ def test_curriculum_formatting_only_edit_cannot_report_applied(curriculum_map):
     scratch, index, ref, rendered = curriculum_map
     block = index[ref]
     raw = block["original_text"]
-    assert len(raw.encode()) == 653
-    assert len(rendered.encode()) == 651
-    # These are the production incident's exact length/prefix/suffix facts.
-    assert raw.encode()[:223] == rendered.encode()[:223]
-    assert raw.encode()[-383:] == rendered.encode()[-383:]
-    assert raw[223:] != rendered[223:]
+    # Prove a formatting-only submission without pinning source wording or offsets.
+    assert raw != rendered
     assert ap.strip_inline_formatting(raw) == rendered
     row = dict(id="format-only", kind="prose", source_ref=ref,
                original_text=raw, original_hash=block["original_hash"],

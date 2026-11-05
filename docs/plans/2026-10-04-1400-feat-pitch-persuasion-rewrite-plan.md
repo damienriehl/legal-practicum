@@ -1,4 +1,5 @@
 ---
+status: completed
 title: Rewrite the pitch as persuasion - Plan
 type: feat
 date: 2026-10-04

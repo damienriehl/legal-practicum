@@ -1,4 +1,5 @@
 ---
+status: completed
 title: Code-review P2 follow-ups from the 2026-09-30 user-story run - Plan
 type: fix
 date: 2026-09-30
