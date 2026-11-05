@@ -121,7 +121,10 @@ def test_semantic_heading_repairs_preserve_the_existing_visible_words():
     # John's Oct–Nov suggestions add the adopter page, the home introduction,
     # skills columns, and Authors section, and rename volumes to modules,
     # advancing every digest including the page set.
+    # Hiding the still-private source repository (Damien, 2026-11-05) drops its
+    # matter-library link and changes that line and the content-license
+    # attribution; editor blocks, reading order, and page identities stay fixed.
     baseline = json.loads((TOOLS / "tests/fixtures/platform-semantic-baseline.json").read_text())
-    assert baseline["fields"]["links"] == "01dc1e5e2532c7f30bbdacf55e26a43fbb37ae587e8bac5b3cedcdbb53a12fa3"
+    assert baseline["fields"]["links"] == "eff832a23526d3fd9c1d48895828b85ed093d71a62990e5f4c049b6c343306a2"
     assert baseline["fields"]["editor_blocks"] == "0acebca0b353aeadd659744ab4a2e086d554a952d326fac043fefdd8f06feafd"
     assert baseline["fields"]["reading_order"] == "ec03f91accdb9b94bb9be107553d91f30f4e87a46c4ce7d6a421a313dd77387e"
