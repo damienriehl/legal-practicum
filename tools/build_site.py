@@ -51,6 +51,12 @@ MATTERS_DIR = os.path.join(DATA, "matters")
 CURRICULUM_DIR = os.path.join(DATA, "curriculum")   # handbook prose + deliverable templates
 CATALOG_PAGE_SIZE = 50
 PUBLIC_SOURCE_REPOSITORY = "https://github.com/damienriehl/legal-practicum"
+# The source repository stays private for now (Damien, 2026-11-05), so no
+# generated page may link to it: visitors would get a 404. The day it goes
+# public, set this to True; every repository link returns with no other edit
+# (the URL already sits in _EXTERNAL_ALLOW). While False, `--check` fails on any
+# generated file that names the repository URL.
+PUBLIC_SOURCE_REPOSITORY_LIVE = False
 
 # --------------------------------------------------------------------------- #
 # Small helpers
@@ -1875,6 +1881,17 @@ def build_getting_started(corpus):
 # --------------------------------------------------------------------------- #
 # Page — adopters: run the practicum on your own cases
 # --------------------------------------------------------------------------- #
+def public_repository_url(authored=""):
+    """The repository URL a page may link, or "" while the repository is private.
+
+    An authored URL that names the private repository is suppressed until
+    PUBLIC_SOURCE_REPOSITORY_LIVE flips; an empty one falls back to the public
+    repository once it is live."""
+    url = (authored or "").strip()
+    if not PUBLIC_SOURCE_REPOSITORY_LIVE:
+        return "" if PUBLIC_SOURCE_REPOSITORY in url else url
+    return url or PUBLIC_SOURCE_REPOSITORY
+
 def build_adopt(corpus):
     """The adopter page. Copy lives in data/copy/adopt.json. The repository link
     renders only when the top-level ``repo_url`` field holds a URL; while it is
@@ -1894,7 +1911,7 @@ def build_adopt(corpus):
         return ('<section class="reveal prose adopt-section" aria-labelledby="adopt-%s-h">'
                 '<h2 id="adopt-%s-h"%s>%s</h2>%s</section>' % ((key, key) + leaf(key + ".heading") + (inner,)))
 
-    repo_url = (copy.get("repo_url") or "").strip()
+    repo_url = public_repository_url(copy.get("repo_url"))
     if repo_url:
         attr, label = leaf("setup.repo_link_label")
         repo_html = '<a class="link" href="%s"><p%s>%s</p></a>' % (esc(repo_url), attr, label)
@@ -2167,10 +2184,16 @@ def build_skills(corpus):
 # Page — about/third-party (footer target; content from repo THIRD-PARTY.md)
 # --------------------------------------------------------------------------- #
 def build_markdown_about_page(filename, source, title, docket, eyebrow,
-                              preface_html="", empty_html="", crumb_label=None):
-    """Render one repository Markdown document as a public About page."""
+                              preface_html="", empty_html="", crumb_label=None,
+                              transform=None):
+    """Render one repository Markdown document as a public About page.
+
+    ``transform`` rewrites the Markdown for the site only; the repository file
+    itself (which GitHub shows as-is) never changes."""
     rel = "about/" + filename
     content = load_text(os.path.join(ROOT, source))
+    if content and transform:
+        content = transform(content)
     rendered = markdown(content) if content else empty_html
     body = """
 <section class="reveal prose">
@@ -2191,6 +2214,18 @@ def build_third_party():
         empty_html="<p>No third-party components recorded.</p>", crumb_label="Third-party")
 
 
+_ATTRIBUTION_SOURCE_RE = re.compile(
+    r"Source:\s*(?:>\s*)?" + re.escape(PUBLIC_SOURCE_REPOSITORY) + r"(?:\.git)?/?")
+
+def site_content_license(markdown_text):
+    """CONTENT-LICENSE.md is also the repository's own license text, so its
+    attribution keeps naming the repository on GitHub. While the repository is
+    private, the site's copy says it will be public soon instead of linking a
+    404."""
+    if PUBLIC_SOURCE_REPOSITORY_LIVE:
+        return markdown_text
+    return _ATTRIBUTION_SOURCE_RE.sub("The source repository will be public soon.", markdown_text)
+
 def build_license_pages():
     """Render the repo's layered rights documents into public, linkable pages."""
     pages = (
@@ -2201,6 +2236,7 @@ def build_license_pages():
             "preface_html": ('<h1>Content License</h1>'
                              '<p><a class="link" href="https://creativecommons.org/licenses/by/4.0/">'
                              'Official Creative Commons Attribution 4.0 license</a></p>'),
+            "transform": site_content_license,
         },
         {
             "filename": "code-license.html", "source": "LICENSE",
@@ -2240,6 +2276,15 @@ fetch('catalog-index.json').then(function(r){if(!r.ok)throw Error('index');retur
  window.addEventListener('popstate',function(){var p=locationParams();syncForm(p);render(p,false);});
 }).catch(function(){status.textContent+=' · enhanced search unavailable; use page links.';});
 })();"""
+
+def matter_library_repo_html():
+    """The matter library's source-repository line: a link once the repository
+    is public, a plain sentence while it is private."""
+    if PUBLIC_SOURCE_REPOSITORY_LIVE:
+        link = '<a class="arrow-link" href="{repo}">View complete public source repository (includes instructor materials and answer keys)</a>'
+        return "<p>" + link.format(repo=esc(PUBLIC_SOURCE_REPOSITORY)) + "</p>"
+    return ('<p>The complete source repository, including instructor materials and '
+            'answer keys, will be public soon.</p>')
 
 def paginate_catalog_records(records, page_size=CATALOG_PAGE_SIZE):
     """Pure scale contract used by production and the synthetic 1,000 fixture."""
@@ -2310,7 +2355,7 @@ def build_matter_library(corpus):
             seen_shapes.add(item["shape"])
             rendered_cards.append(card(item, annotate_shape=first_shape))
         body = """<section><p class="eyebrow"{eyebrow_attr}>{eyebrow}</p><h1{heading_attr}>{heading}</h1><p class="lede"{lede_attr}>{lede}</p>
-<p><a class="arrow-link" href="{repo}">View complete public source repository (includes instructor materials and answer keys)</a></p></section>
+{repo_html}</section>
 <form class="lib-toolbar" data-catalog-form role="search"><div class="lib-field"><label for="catalog-search">Search matters</label><input id="catalog-search" name="q" type="search" aria-label="Search matters"></div>
 <div class="lib-field"><label for="catalog-shape">Practice shape</label><select id="catalog-shape" name="shape"><option value="">All shapes</option>{shapes}</select></div>
 <div class="lib-field"><label for="catalog-tier">Tier</label><select id="catalog-tier" name="tier"><option value="">Both tiers</option><option value="meridian">Meridian</option><option value="real">Real states</option></select></div>
@@ -2319,7 +2364,7 @@ def build_matter_library(corpus):
 <h2 id="catalog-results" tabindex="-1">Catalog results</h2><div data-catalog-results>{cards}</div>
 <p data-catalog-empty hidden>No matters match your search and filters.</p><nav class="pagination" aria-label="Catalog pages">{nav}</nav>
 <p><a href="print-all.html">Print all matters</a></p><script src="catalog.js" defer></script>""".format(
-            repo=esc(PUBLIC_SOURCE_REPOSITORY), total=len(records), page=page_number, pages=total_pages,
+            repo_html=matter_library_repo_html(), total=len(records), page=page_number, pages=total_pages,
             cards="".join(rendered_cards), nav=nav,
             shapes="".join('<option value="{v}">{l}</option>'.format(v=esc(k), l=esc(v)) for k, v in shape_labels.items()),
             fees="".join('<option value="{v}">{v}</option>'.format(v=esc(v)) for v in sorted({r["fee_type"] for r in records})),
@@ -4112,6 +4157,23 @@ _EXTERNAL_ALLOW = (
 )
 _ID_RE = re.compile(r'id="([^"]+)"')
 
+def check_private_repository_links():
+    """While PUBLIC_SOURCE_REPOSITORY_LIVE is False, no generated file may name
+    the private repository's URL (a visitor would get a 404)."""
+    if PUBLIC_SOURCE_REPOSITORY_LIVE:
+        return []
+    found = []
+    for path in sorted(glob.glob(os.path.join(OUT, "**", "*"), recursive=True)):
+        if not os.path.isfile(path) or not path.endswith(_LEAK_SCAN_EXT):
+            continue
+        rel = os.path.relpath(path, OUT)
+        if rel.startswith("assets" + os.sep):
+            continue
+        with open(path, "r", encoding="utf-8", errors="ignore") as fh:
+            if PUBLIC_SOURCE_REPOSITORY in fh.read():
+                found.append(rel)
+    return found
+
 def check_links():
     errors = []
     # assets/ is input-only (design gallery); it is not part of generated nav.
@@ -4390,6 +4452,17 @@ def main(argv):
         else:
             print("no durable-ID markers in any shipped file.")
         leaks = leaks + marker_leaks
+
+        repo_links = check_private_repository_links()
+        print("== private-repository sweep ==")
+        if repo_links:
+            for l in repo_links:
+                print("  LEAK: private repository URL in " + l)
+        elif PUBLIC_SOURCE_REPOSITORY_LIVE:
+            print("source repository is public; repository links enabled.")
+        else:
+            print("no generated file names the private source repository.")
+        leaks = leaks + ["private repository URL in " + l for l in repo_links]
 
         # History-leak sweep — the editor-gated redline History output (redlines of
         # canonical sources expose instructor-only material) must NEVER reach the
