@@ -58,6 +58,24 @@ def test_dataset_load_to_packet_preserves_public_content(dataset):
     assert corpus['matters'][0]['_dir'] == str(matter)
 
 
+@pytest.mark.parametrize('page', ['home', 'matters', 'firm', 'getting-started', 'adopt'])
+def test_page_copy_line_breaks_survive_public_html(dataset, page):
+    bs.EDMAP.enabled = True
+    copy = {'intro': {'skills_heading': 'Practice\nSkills'}, 'bio': 'First paragraph.\n\nSecond paragraph.'}
+    heading, attrs = bs._copy_scalar(page, copy, 'intro.skills_heading', 'skills')
+    paragraphs = bs._copy_paragraphs(page, copy, 'bio', 'bio', css_class='author-bio')
+    curriculum = bs.markdown('Curriculum\nprose. {#b:12345678}', 'data/curriculum/m1.md')
+    rendered = f'<main><h2 class="skills-heading"{attrs}>{bs.esc(heading)}</h2>{paragraphs}{curriculum}</main>'
+    blocks, _, _ = bs._extract_page_blocks(rendered)
+    html = bs._EDITOR_ANNOTATION_RE.sub("", rendered)
+    assert '<h2 class="skills-heading" data-page-copy>Practice\nSkills</h2>' in html
+    assert '<p class="author-bio" data-page-copy>First paragraph.\n\nSecond paragraph.</p>' in html
+    assert '<p>Curriculum prose.</p>' in html
+    assert 'data-ebsrc' not in html
+    assert [block['kind'] for block in blocks] == ['json_scalar', 'json_scalar', 'prose']
+    assert '[data-page-copy]{white-space:pre-line}' in bs.PLATFORM_CSS
+
+
 def test_oversize_case_file_is_split_from_packet(dataset):
     _, matter = dataset
     text = ('Distinct exhibit content ' * 14000).strip()

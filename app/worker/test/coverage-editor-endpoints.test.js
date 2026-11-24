@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import * as endpoints from '../src/editor-endpoints.js';
 import { EDITOR_MAP } from '../src/editor-map.js';
 import { resolveAuth } from '../src/editor-auth.js';
+import { normHash } from '../src/text-norm.js';
 import { durableObject, EditorStore } from './coverage-runtime-helper.mjs';
 
 const origin = 'https://endpoint-coverage.example.test';
@@ -24,6 +25,23 @@ async function fixture(t, overrides = {}) {
   return { db, env, auth, call };
 }
 const suggestion = (id, extra = {}) => ({ id, source_ref: block.source_ref, new_text: 'Coverage exercises actual storage.', origin: 'companion', ...extra });
+
+test('page-copy heading with only a line break is stored against its original hash', async t => {
+  const { call } = await fixture(t);
+  const heading = EDITOR_MAP.pages['index.html'].find(b =>
+    b.source_ref === 'data/copy/home.json#intro.skills_heading');
+  const newText = heading.original_text.replace(' ', '\n');
+  assert.notEqual(newText, heading.original_text);
+  assert.equal(await normHash(newText), heading.original_hash);
+  const id = 'line-break-only-heading';
+  const sent = await call('suggest', { id, page: 'index.html', source_ref: heading.source_ref,
+    json_path: heading.json_path, original_hash: heading.original_hash, new_text: newText }, 'john');
+  assert.equal(sent.httpStatus, 200);
+  const { items } = await call('reviewJson');
+  const row = items.find(item => item.id === id);
+  assert.equal(row.new_text, newText);
+  assert.equal(row.original_hash, heading.original_hash);
+});
 
 for (const [setting, reason] of [['EDIT_MAX_PENDING_PER_EDITOR', 'pending_ceiling'], ['EDIT_MAX_GLOBAL_PENDING', 'global_ceiling'], ['EDIT_MAX_DAILY_PER_EDITOR', 'daily_cap']]) {
   test(`system queue maps actual ${reason} to 429 without persisting a rejected row`, async t => {

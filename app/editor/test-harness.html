@@ -28,6 +28,7 @@
   .wrap{max-width:44rem;margin:0 auto;padding:2rem 1.4rem 8rem}
   h1{font-family:var(--font-display,Georgia,serif);font-size:1.7rem;letter-spacing:-.01em}
   main .prose{line-height:1.7}
+  .line-break-fixture {line-height:1.5}
   .kpi{font-family:var(--font-mono,monospace);color:var(--ink-faint-text,#6b5b50);text-transform:uppercase;letter-spacing:.06em;font-size:.8rem}
   /* the harness sits below the editor banner; push content clear of both */
   body{padding-top:9rem !important}
@@ -76,6 +77,12 @@
     <h1>Next parent</h1>
     <h2>Other section</h2>
     <p>Other section body.</p>
+    <h2 id="skills-heading-fixture" class="line-break-fixture" data-page-copy>Practice skills</h2>
+    <p id="bio-fixture" class="line-break-fixture" data-page-copy>Abby teaches advocacy.
+
+She mentors new lawyers.</p>
+    <p id="curriculum-fixture" class="line-break-fixture">Curriculum
+      prose is continuous.</p>
   </main>
 </div>
 
@@ -120,7 +127,9 @@
     { "index": 12, "kind": "prose", "source_ref": "data/harness/sections.md#bbbbbbbbb", "original_text": "Section B", "original_hash": "heading-b", "heading_level": 2 },
     { "index": 13, "kind": "prose", "source_ref": "data/harness/sections.md#bcccccccc", "original_text": "Section C", "original_hash": "heading-c" },
     { "index": 15, "kind": "prose", "source_ref": "data/harness/sections.md#bdddddddd", "original_text": "Other section", "original_hash": "heading-d" },
-    { "index": 16, "kind": "prose", "source_ref": "data/harness/sections.md#bddddddde", "original_text": "Other section body.", "original_hash": "body-d" }
+    { "index": 16, "kind": "prose", "source_ref": "data/harness/sections.md#bddddddde", "original_text": "Other section body.", "original_hash": "body-d" },
+    { "index": 17, "kind": "json_scalar", "source_ref": "data/copy/home.json#intro.skills_heading", "json_path": "intro.skills_heading",
+      "original_text": "Practice skills", "original_hash": "4b1950e1552861c876afc83727491024a0046845900196c9099ebda9335e9aee" }
   ],
   "overrides": [
     { "page": "matters/m05-dwi-meridian/index.html",

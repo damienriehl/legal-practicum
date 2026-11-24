@@ -13,6 +13,7 @@ function node(tag = 'div') {
     appendChild(child) { child.parentNode = this; children.push(child); return child; },
     insertBefore(child) { child.parentNode = this; children.push(child); return child; },
     setAttribute(k, v) { attrs[k] = v; }, removeAttribute(k) { delete attrs[k]; },
+    hasAttribute(k) { return Object.hasOwn(attrs, k); },
     addEventListener(k, fn) { events[k] = fn; }, focus() {},
   };
 }
@@ -66,9 +67,9 @@ function harness({ role = 'editor', contact = '', stored = {}, blockedStorage = 
   if (document.readyState === 'loading')`), context);
   return { context, window, client: window.testClient, memory, body, root, requests, timers, get reloads() { return reloads; } };
 }
-function session(h, text = 'Source\n    paragraph.') {
+function session(h, text = 'Source\n    paragraph.', descriptor = {}) {
   const block = textBlock(); block.textContent = text; block.parentNode = h.body;
-  const s = h.client.makeSession({ index: 0, source_ref: 'data/copy/test.json#body.b12345678', kind: 'prose', original_text: text, original_hash: 'hash' }, block, true, false);
+  const s = h.client.makeSession({ index: 0, source_ref: 'data/copy/test.json#body.b12345678', kind: 'prose', original_text: text, original_hash: 'hash', ...descriptor }, block, true, false);
   s._status = node('span');
   return s;
 }
@@ -131,7 +132,7 @@ test('R2 csrf_failed and other 403 responses do not sign the editor out', async 
     assert.equal(h.body.children.length, 0);
   }
 });
-test('R3 edit entry collapses source text nodes in place and whitespace-only Done sends nothing', () => {
+test('edit entry collapses prose text nodes in place and unchanged focus and blur send nothing', () => {
   const h = harness(), s = session(h);
   const sourceNode = s.el.children[0];
   h.client.wireBlock(s);
@@ -141,13 +142,34 @@ test('R3 edit entry collapses source text nodes in place and whitespace-only Don
   assert.equal(sourceNode.nodeValue, 'Source paragraph.');
   assert.equal(s.dirty, false);
   assert.equal(h.window.SonstengEditor.normalize(s.originalText), h.window.SonstengEditor.normalize(s.el.textContent));
-  sourceNode.nodeValue = '  Source\n    paragraph.  ';
   s.el.events.input();
+  s.el.events.blur();
   assert.equal(s.dirty, false);
   h.client.finishEditing();
   assert.equal(s.el.children[0], sourceNode);
   assert.equal(h.requests.length, 0);
   assert.equal(s.dirty, false);
+});
+
+test('page-copy edit entry preserves existing breaks and a raw newline-only change sends with the map hash', () => {
+  const h = harness();
+  const s = session(h, 'Practice skills\nfor lawyers', { kind: 'json_scalar',
+    source_ref: 'data/copy/home.json#intro.skills_heading', json_path: 'intro.skills_heading' });
+  s.el.setAttribute('data-page-copy', '');
+  h.client.wireBlock(s);
+  h.client.makeEditable(s, true);
+  assert.equal(s.el.textContent, 'Practice skills\nfor lawyers');
+
+  const newText = 'Practice\nskills\nfor lawyers';
+  s.el.textContent = newText;
+  s.el.events.input();
+  assert.equal(s.dirty, true);
+  assert.equal(h.window.SonstengEditor.normalize(newText), h.window.SonstengEditor.normalize(s.originalText));
+  h.client.sendSuggestion(s);
+  assert.deepEqual(JSON.parse(h.requests[0].opts.body), {
+    id: s.suggestionId, source_ref: s.ref, page: 'index.html', json_path: 'intro.skills_heading',
+    new_text: newText, original_hash: 'hash'
+  });
 });
 test('F1 edit entry and unchanged Done preserve inline links without sending', () => {
   const h = harness(), block = textBlock(), link = textBlock('a');

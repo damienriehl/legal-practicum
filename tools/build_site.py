@@ -367,7 +367,7 @@ def _copy_scalar(page, copy, json_path, context):
     for key in json_path.split("."):
         value = value[key]
     rel = data_relpath(DATA, "copy", page + ".json")
-    return value, _eb_scalar_attr(rel + "#" + json_path, value, json_path, context)
+    return value, " data-page-copy" + _eb_scalar_attr(rel + "#" + json_path, value, json_path, context)
 
 
 def _copy_paragraphs(page, copy, json_path, context, css_class=""):
@@ -1177,6 +1177,7 @@ details.side-conf summary{cursor:pointer;font-family:var(--font-mono);font-size:
 .fact-label{font-family:var(--font-mono);font-size:var(--fs-mono-xs);overflow-wrap:anywhere}
 .fact-uses{display:block;color:var(--ink-faint-text);margin-top:var(--sp-2)}
 .fact-value{min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
+[data-page-copy]{white-space:pre-line}
 @media(max-width:42rem){
   .masthead__docket{margin-left:0}.type-toggle{margin-left:0}
   .task-block,.subtask{margin-left:0}
