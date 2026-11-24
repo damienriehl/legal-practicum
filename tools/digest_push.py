@@ -32,11 +32,10 @@ READ PATH (no shared apply-engine code imported; this file is standalone):
     not import it — one-writer rule: we touch zero pre-existing apply-engine code.
 
 PUBLISH PATH:
-  * POST {NTFY_SERVER}/{topic}  with a content-light body + a `Click` header set
-    to the review-page URL (tapping the push opens the review page). Topic is
-    resolved by path (~/.config/claude-rc/ntfy-topic — the home box's canonical
-    rc-notify topic) so it stays a rotatable secret, overridable by env. Public
-    ntfy.sh by default; no self-hosted ntfy is configured on this box.
+  * By default the push goes through the home box's `rc-notify` (RC_CLICK set
+    to the review-page URL), which owns the topic file and the ntfy signal
+    gate; the digest declares itself `info` (caller `sonsteng-digest`). An
+    explicit SONSTENG_NTFY_TOPIC still POSTs {NTFY_SERVER}/{topic} directly.
 
 CLIENT ERRORS:
   * GET /client-errors?since=<epoch ms> uses the same admin token. New errors
@@ -69,11 +68,9 @@ ENV_SERVICE_TOKEN = "EDIT_SERVICE_TOKEN"  # admin/service bookmark token (opaque
 ENV_REVIEW_URL = "EDIT_REVIEW_URL"      # click-through; defaults to EDIT_ORIGIN + /edit/review
 ENV_EDIT_ORIGIN = "EDIT_ORIGIN"         # worker origin, used to derive the review URL
 ENV_NTFY_SERVER = "SONSTENG_NTFY_SERVER"  # default https://ntfy.sh
-ENV_NTFY_TOPIC = "SONSTENG_NTFY_TOPIC"    # override; else read from the topic file
+ENV_NTFY_TOPIC = "SONSTENG_NTFY_TOPIC"    # override; else route through rc-notify
 ENV_STATE_FILE = "SONSTENG_DIGEST_STATE"  # override the dedupe state path
 
-# The home box's canonical rc-notify topic file (path only — rotatable secret).
-DEFAULT_TOPIC_FILE = os.path.expanduser("~/.config/claude-rc/ntfy-topic")
 DEFAULT_NTFY_SERVER = "https://ntfy.sh"
 DEFAULT_REVIEW_URL = "https://sonsteng-chat.damienriehl.workers.dev/edit/review"
 
@@ -253,23 +250,30 @@ def error_summary(items):
 
 
 def resolve_topic():
+    """An explicit SONSTENG_NTFY_TOPIC posts directly; otherwise None routes the
+    push through the home box's rc-notify gate (ntfy signal gate, KTD9)."""
     topic = os.environ.get(ENV_NTFY_TOPIC)
-    if topic:
-        return topic.strip()
-    try:
-        with open(DEFAULT_TOPIC_FILE, "r", encoding="utf-8") as fh:
-            topic = fh.read().strip()
-            if topic:
-                return topic
-    except FileNotFoundError:
-        pass
-    raise RuntimeError(
-        "No ntfy topic: set %s or create %s" % (ENV_NTFY_TOPIC, DEFAULT_TOPIC_FILE))
+    return topic.strip() if topic and topic.strip() else None
+
+
+def publish_rc_notify(title, body, click_url, priority="default", tags="pencil2"):
+    """Send through rc-notify, which owns the topic file and the signal gate."""
+    import shutil
+    import subprocess
+    command = shutil.which("rc-notify") or os.path.expanduser("~/.local/bin/rc-notify")
+    env = dict(os.environ, RC_NOTIFY_CALLER="sonsteng-digest", RC_NOTIFY_CLASS="info",
+               RC_NOTIFY_STRICT="1", RC_PRIORITY=priority, RC_TAGS=tags)
+    if click_url:
+        env["RC_CLICK"] = click_url
+    subprocess.run([command, title, body], env=env, check=True, timeout=60)
+    return 200
 
 
 def publish_ntfy(topic, title, body, click_url, timeout=15,
                  server=None, priority="default", tags="pencil2"):
     """POST the digest to ntfy. Content-light body; Click header = review URL."""
+    if topic is None:
+        return publish_rc_notify(title, body, click_url, priority=priority, tags=tags)
     server = (server or os.environ.get(ENV_NTFY_SERVER) or DEFAULT_NTFY_SERVER).rstrip("/")
     url = "%s/%s" % (server, topic)
     req = urllib.request.Request(url, data=body.encode("utf-8"), method="POST")

@@ -342,3 +342,21 @@ class ReviewUrlFromListOrigin(unittest.TestCase):
 
     def test_empty_first_entry_falls_back_to_default(self):
         self.assertEqual(self._url_with(" , "), dp.DEFAULT_REVIEW_URL)
+
+
+class TestRcNotifyRoute(unittest.TestCase):
+    def test_no_topic_override_routes_through_rc_notify(self):
+        from unittest import mock
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop(dp.ENV_NTFY_TOPIC, None)
+            self.assertIsNone(dp.resolve_topic())
+            with mock.patch("subprocess.run") as run, \
+                    mock.patch("urllib.request.urlopen") as urlopen:
+                dp.publish_ntfy(None, "T", "B", "https://r.example/edit/review")
+        urlopen.assert_not_called()
+        argv, env = run.call_args.args[0], run.call_args.kwargs["env"]
+        self.assertEqual(argv[1:], ["T", "B"])
+        self.assertEqual(env["RC_NOTIFY_CALLER"], "sonsteng-digest")
+        self.assertEqual(env["RC_NOTIFY_CLASS"], "info")
+        self.assertEqual(env["RC_CLICK"], "https://r.example/edit/review")
+        self.assertEqual(env["RC_PRIORITY"], "default")
