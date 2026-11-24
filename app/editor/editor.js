@@ -15,7 +15,7 @@
                    source_ref, original_text, original_hash,
                    has_inline_formatting, context, json_path?}
          #edits-data      = { items:[item…] }
-           item:  {block_index, source_ref, status, kind, preview, note?}
+           item:  {block_index, source_ref, json_path?, status, kind, preview, note?}
        Read via textContent + JSON.parse — NEVER eval, NEVER innerHTML.
      - Blocks are located by mirroring THE WALKER CONTRACT byte-for-byte
        (build/editor-map.generated.json .walker_contract): within <main>,
@@ -223,7 +223,7 @@
      1. Read the TWO injected JSON islands (Worker contract) — textContent + parse.
         #editor-map-data = { version, page?, blocks:[{index,kind,source_ref,
           json_path?,original_text,original_hash,has_inline_formatting,context}] }
-        #edits-data      = { items:[{block_index,source_ref,status,kind,preview,note?}] }
+        #edits-data      = { items:[{block_index,source_ref,json_path?,status,kind,preview,note?}] }
         Read the MAP from #editor-map-data.blocks; PENDING from #edits-data.items.
      ============================================================================ */
   function readJsonIsland(id) {
@@ -2053,7 +2053,11 @@
     });
 
     items.forEach(function (item) {
-      var s = byIndex[item.block_index];
+      // Comments follow their source when a rebuild moves the old page index.
+      var s = item.kind === 'comment' && session(item.source_ref);
+      if (!s || s.ref !== item.source_ref || (item.json_path && s.jsonPath !== item.json_path)) {
+        s = byIndex[item.block_index];
+      }
       if (!s) return;
       var label = STATUS_LABELS[item.status] || item.status || 'Sent';
       if (STRUCT_LABELS[item.kind]) {

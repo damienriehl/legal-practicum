@@ -11,7 +11,11 @@ function node(tag = 'div') {
     classList: { add(...names) { names.forEach(n => classes.add(n)); }, remove(...names) { names.forEach(n => classes.delete(n)); },
       contains(n) { return classes.has(n); }, toggle(n, on) { if (on) classes.add(n); else classes.delete(n); } },
     appendChild(child) { child.parentNode = this; children.push(child); return child; },
-    insertBefore(child) { child.parentNode = this; children.push(child); return child; },
+    insertBefore(child, next) {
+      child.parentNode = this;
+      children.splice(next == null ? children.length : children.indexOf(next), 0, child);
+      return child;
+    },
     setAttribute(k, v) { attrs[k] = v; }, removeAttribute(k) { delete attrs[k]; },
     hasAttribute(k) { return Object.hasOwn(attrs, k); },
     addEventListener(k, fn) { events[k] = fn; }, focus() {},
@@ -22,6 +26,9 @@ function textNode(value) {
 }
 function textBlock(tag = 'p') {
   const block = node(tag);
+  Object.defineProperty(block, 'nextSibling', {
+    get() { return this.parentNode.children[this.parentNode.children.indexOf(this) + 1]; }
+  });
   Object.defineProperty(block, 'textContent', {
     get() { return this.children.map(child => child.textContent).join(''); },
     set(value) { this.children.length = 0; this.appendChild(textNode(value)); }
@@ -171,6 +178,33 @@ test('page-copy edit entry preserves existing breaks and a raw newline-only chan
     new_text: newText, original_hash: 'hash'
   });
 });
+
+for (const [label, ref, path, status, expectedIndex] of [
+  ['three inserted leaves', 'data/copy/home.json#hero.eyebrow', 'hero.eyebrow', 'pending', 15],
+  ['declined comment with a reply', 'data/copy/home.json#hero.eyebrow', 'hero.eyebrow', 'declined', 15],
+  ['legacy comment with a source ref alone', 'data/copy/home.json#hero.eyebrow', undefined, 'pending', 15],
+  ['removed source ref', 'data/copy/home.json#hero.removed', 'hero.removed', 'pending', 12],
+  ['mismatched JSON path', 'data/copy/home.json#hero.eyebrow', 'hero.heading', 'pending', 12],
+]) {
+  test(`comment placement uses source identity or the stored index for ${label}`, () => {
+    const h = harness();
+    const leaves = [
+      session(h, 'First new leaf', { index: 12, source_ref: 'data/copy/home.json#cover.first' }),
+      session(h, 'Second new leaf', { index: 13, source_ref: 'data/copy/home.json#cover.second' }),
+      session(h, 'Third new leaf', { index: 14, source_ref: 'data/copy/home.json#cover.third' }),
+      session(h, 'The eyebrow', { index: 15, source_ref: 'data/copy/home.json#hero.eyebrow',
+        kind: 'json_scalar', json_path: 'hero.eyebrow' }),
+    ];
+    for (const s of leaves) h.body.appendChild(s.el);
+    const note = status === 'declined' ? 'Updated the label.' : undefined;
+    h.window.SonstengEditor.applyPending([{ block_index: 12, source_ref: ref, json_path: path,
+      kind: 'comment', status, preview: 'Please review this label.', note }]);
+    const bubbleIndex = h.body.children.findIndex(el => el.className?.includes('eb-comment-bubble--'));
+    const previous = h.body.children[bubbleIndex - 1];
+    assert.equal(leaves.find(s => s.el === previous)?.index, expectedIndex);
+    if (note) assert.equal(h.body.children[bubbleIndex].children[2].textContent, 'Damien: Updated the label.');
+  });
+}
 test('F1 edit entry and unchanged Done preserve inline links without sending', () => {
   const h = harness(), block = textBlock(), link = textBlock('a');
   const leading = textNode('  Source\n    '), linked = textNode('paragraph\t  text');

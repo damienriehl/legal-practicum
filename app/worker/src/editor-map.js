@@ -224,8 +224,8 @@ export function pageBlockDescriptors(blocks) {
 }
 
 // Project raw DO suggestion rows into the injected #edits-data item shape the
-// editor client reads. Base shape: { block_index, source_ref, status, kind,
-// preview, note? }. block_index is the trailing segment of block_anchor
+// editor client reads. Base shape: { block_index, source_ref, json_path?, status,
+// kind, preview, note? }. block_index is the trailing segment of block_anchor
 // ("page:index"); preview is the comment text (comments) or the proposed
 // new_text (edits), CAPPED (tooltip/summary).
 //
@@ -256,6 +256,7 @@ export function projectPendingItems(items, previewMax = 200) {
       kind: it.kind,
       preview: preview.length > previewMax ? preview.slice(0, previewMax) : preview,
     };
+    if (isComment && it.json_path != null) out.json_path = it.json_path;
     if (!isComment && typeof it.new_text === "string") out.new_text = it.new_text;
     if (it.original_hash != null) out.base_hash = it.original_hash;
     if (it.map_version != null) out.map_version = it.map_version;

@@ -1207,6 +1207,36 @@ async function run() {
     await page.close();
   }
 
+  /* ======================= COMMENT ANCHOR DRIFT =========================== */
+  {
+    const page = await boot(browser, 1280, 1100);
+    const placements = await page.evaluate(() => {
+      const editor = window.SonstengEditor;
+      const comment = { block_index: 17, source_ref: 'data/copy/home.json#hero.eyebrow',
+        json_path: 'hero.eyebrow', kind: 'comment', status: 'pending', preview: 'Check the eyebrow.' };
+      function place(item) {
+        editor.applyPending([item]);
+        const bubble = document.querySelector('.eb-comment-bubble');
+        const previous = bubble?.previousElementSibling;
+        return { anchor: previous?.id, reply: bubble?.querySelector('.eb-comment-bubble__note')?.textContent };
+      }
+      return {
+        pending: place(comment),
+        removed: place({ ...comment, source_ref: 'data/copy/home.json#hero.removed', json_path: 'hero.removed' }),
+        declined: place({ ...comment, status: 'declined', note: 'Updated the label.' })
+      };
+    });
+    assert('A comment follows the eyebrow after three leaves shift its index',
+      placements.pending.anchor === 'eyebrow-fixture', JSON.stringify(placements.pending));
+    assert('A removed comment source falls back to its stored index',
+      placements.removed.anchor === 'skills-heading-fixture', JSON.stringify(placements.removed));
+    assert('A declined comment shows Damien’s reply on the moved eyebrow',
+      placements.declined.anchor === 'eyebrow-fixture' && placements.declined.reply === 'Damien: Updated the label.',
+      JSON.stringify(placements.declined));
+    await page.screenshot({ path: path.join(OUT, 'editor-comment-anchor-drift.png'), fullPage: true });
+    await page.close();
+  }
+
   /* ======================= FACTS PAGE (add-a-fact U8) ===================== */
   {
     const page = await bootFacts(browser, 1280, 1100);
