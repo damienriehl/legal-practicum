@@ -118,6 +118,10 @@ def forbidden_old_wording(text, *, jury=False):
     return re.search(forms, text, re.I)
 
 
+def forbidden_program_name(text):
+    return re.search(r"\b(?:legal\s+practice\s+practicum|practicum\s+system)\b", text, re.I)
+
+
 class TestPlatformLanguageContract(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -163,6 +167,35 @@ class TestPlatformLanguageContract(unittest.TestCase):
         rendered = "\n".join(path.read_text(encoding="utf-8") for path in learner_pages)
         self.assertIsNone(forbidden_educational_grading(rendered))
         self.assertIn("Planning Guide and Checklist", rendered)
+
+    def test_current_program_name_on_reader_pages(self):
+        pages = list(Path(ROOT, "site").glob("*.html")) + list(Path(self.site).rglob("*.html"))
+        for page in pages:
+            with self.subTest(page=str(page)):
+                words, _ = reader_copy(page.read_text(encoding="utf-8"))
+                match = forbidden_program_name(words)
+                self.assertIsNone(match, match.group(0) if match else None)
+
+    def test_mutation_canary_detects_forbidden_program_names(self):
+        home = Path(self.site, "index.html").read_text(encoding="utf-8")
+        for name in ("Legal Practice Practicum", "Legal Practicum System",
+                     "Legal Practicum system", "The Practicum System"):
+            with self.subTest(name=name):
+                mutated = home.replace("</main>", f"<p>{name}</p></main>", 1)
+                words, _ = reader_copy(mutated)
+                self.assertIsNotNone(forbidden_program_name(words))
+
+    def test_module_one_first_premise_keeps_anchor_and_emphasis(self):
+        module = Path(ROOT, "data/curriculum/m1.md").read_text(encoding="utf-8")
+        html = Path(self.site, "modules/m1.html").read_text(encoding="utf-8")
+        block = next(line for line in module.splitlines() if "first premise" in line)
+        self.assertTrue(block.endswith("{#b:c6914edd}"))
+        paragraph = next(line for line in html.splitlines() if "first premise" in line)
+        self.assertIn("partnerships", paragraph)
+        self.assertNotIn("partmerships", paragraph)
+        self.assertIn("<em>doing</em>", paragraph)
+        for phrase in ("Course structure", "Participants", "Writing assignments", "exercises"):
+            self.assertIn(f"<strong>{phrase}</strong>", paragraph)
 
     def test_hand_authored_pitch_page_uses_locked_vocabulary(self):
         # The pitch page is hand-authored and lives outside site/platform/, so every

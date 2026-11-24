@@ -9,9 +9,9 @@
   },
   "hero": {
     "eyebrow": "A LIVING CASEBOOK · 50 YEARS OF METHOD",
-    "heading": "The Legal Practice Practicum: a working law firm simulation for law students and lawyers to learn, develop, and enhance law practice and law management skills. Practice ready.",
+    "heading": "Legal Practicum: a working law firm simulation for law students and lawyers to learn, develop, and enhance law practice and law management skills. Practice ready.",
     "lede": {
-      "p1": " The Legal Practicum System is an innovative teaching and learning tool for law students and lawyers. The Practicum System is designed for lawyers at any level.  It is a living document that can be revised and improved as technology changes.",
+      "p1": " Legal Practicum is an innovative teaching and learning tool for law students and lawyers. Legal Practicum is designed for lawyers at any level.  It is a living teaching and learning method that can be revised and improved as technology changes.",
       "p2": "Try an experiment. Take a risk. Receive immediate feedback. Try again. Any time. No waiting in line. No coffee breaks. 24/7. A classroom of one. It is yours whenever you want."
     },
     "adopter_link": "Law school, legal aid, or law firm? Use the practicum on your own cases"
@@ -21,10 +21,10 @@
     "practice_heading": "Law practice skills",
     "management_heading": "Law practice management skills",
     "after_skills": {
-      "p1": "For more than 50 years, a group of exceptional people — law students, law professors, lawyers from firms large and small, judges, and non-lawyers — have worked together to develop the Legal Practicum System to help law students and lawyers learn not simply the law, but how to practice it.\n\nThe System provides an environment in which participants can develop and refine their skills, experiment with different approaches, test ideas, strategies, and techniques, effectively use and manage technology, and take risks without fear of negative consequences. It is an opportunity to learn through experience, make mistakes, and grow as a legal practitioner.",
-      "p2": "Emerging technologies will help lawyers at all levels provide legal services quickly and at appropriate cost. Justice for all.",
-      "p3": "The Legal Practicum System is an open resource tool for all lawyers and law students at no cost. It may be edited and used to develop, learn, enhance, and perfect legal practice and legal management skills.",
-      "p4": "The Legal Practicum System is available to law students and lawyers throughout their careers, at any time, and is adaptable to any jurisdiction.BEFORE WE BEGIN"
+      "p1": "For more than 50 years, a group of exceptional people — law students, law professors, lawyers from firms large and small, judges, and non-lawyers — have worked together to develop Legal Practicum to help law students and lawyers learn not simply the law, but how to practice it.\n\nLegal Practicum provides an environment in which participants can develop and refine their skills, experiment with different approaches, test ideas, strategies, and techniques, effectively use and manage technology, and take risks without fear of negative consequences. It is an opportunity to learn through experience, make mistakes, and grow as a legal practitioner.",
+      "p2": "Emerging technologies will help lawyers at all levels of experience provide legal services more quickly and at a reasonable cost. The goal: justice for all.",
+      "p3": "Legal Practicum is an open resource available at no cost to law students and lawyers at all stages of their careers. It may be modified and adapted to any jurisdiction and used to develop, enhance, and refine legal practice and law practice management skills.",
+      "p4": ""
     }
   },
   "authors": {
@@ -44,7 +44,7 @@
       "breit": {
         "name": "Abby Breit",
         "role": "Editor",
-        "bio": "Abby Breit is an attorney, business owner, and President of More Than Money Trust Company. Her work focuses on trust administration and family stewardship.\n\nWhile attending Mitchell Hamline School of Law, Abby had the opportunity to work closely with John Sonsteng, who became a close friend and remains an invaluable mentor in her life.\n\nAbby believes that asking difficult questions, listening carefully, and understanding others are fundamental to the practice of law. She is grateful for the opportunity to support John and Damien in their efforts to help students and lawyers learn not only the law, but how to practice it."
+        "bio": "Abby Breit is an attorney, business owner, and President of More Than Money Trust Company. Her work focuses on trust administration, family stewardship, and technology development.\n\nWhile attending Mitchell Hamline School of Law, Abby worked closely with John Sonsteng as Student Director of the Center for Law and Business. John became a trusted mentor and close friend and continues to be an important source of guidance in her life.\n\nHer work in family stewardship reflects her appreciation for asking difficult questions, listening, and understanding others. Abby is grateful for the opportunity to support John and Damien in helping students and lawyers learn not only the law, but how to practice it."
       }
     },
     "reading": {
