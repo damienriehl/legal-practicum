@@ -113,3 +113,12 @@ Operator: orchestrating agent under Damien's 2026-10-05 answer "Ship to PROD" (C
 Validation: full preflight 26/26 on a clean isolated checkout at the candidate SHA after fresh generation; production dry run clean
 Release checks: tracked tree clean at origin/main after restoring the build stamp; no schema or configuration changes; no new server-side student data (records stay in the browser); Publisher release daemon remains config-off and its timer disabled
 ```
+
+Date (UTC): 2026-11-24
+Candidate SHA: fb679798158ae66ba82f63360c04b3b9323f0c5d (PRs #118, #119, #121, #122 plus editor applies since 82273eb)
+Previous Worker version / Pages deployment: e0a95636-6e23-42be-81d9-35eba693fe6a / a5d3f538-435c-4786-bec1-b85a6efef80a (82273eb)
+New Worker version / Pages deployment: 6b8d158f-43ec-48e9-81ea-ee9adb865d04 / 5155068b
+Worker provenance: 204 + fb679798158ae66ba82f63360c04b3b9323f0c5d
+Pages provenance: 200 + fb679798158ae66ba82f63360c04b3b9323f0c5d
+DEV/production parity: SAME except build stamp (home and Module I pages, spine-build meta stripped)
+Operator: Claude (orchestrating agent) under Damien's standing deploy authorization (2026-09-20, 2026-09-30) and the 2026-09-02 pre-user lane
