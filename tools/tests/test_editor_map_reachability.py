@@ -80,7 +80,8 @@ class EditorMapReachabilityTest(unittest.TestCase):
                               f"{page} is linked from the site nav; /edit must resolve it")
 
     def test_authored_landing_pages_are_editable(self):
-        self.assertEqual(len(self.pages["index.html"]), 58)
+        # Add cover title/subtitle/byline, both skills subheads, and Elise Carlson's name/role. Drop after_skills.p4.
+        self.assertEqual(len(self.pages["index.html"]), 64)
         self.assertEqual(len(self.pages["adopt/index.html"]), 30)
         self.assertEqual(len(self.pages["matters/index.html"]), 13)
         self.assertEqual(len(self.pages["firm/index.html"]), 33)

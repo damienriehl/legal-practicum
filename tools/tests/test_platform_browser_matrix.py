@@ -124,7 +124,8 @@ def test_semantic_heading_repairs_preserve_the_existing_visible_words():
     # Hiding the still-private source repository (Damien, 2026-11-05) drops its
     # matter-library link and changes that line and the content-license
     # attribution; editor blocks, reading order, and page identities stay fixed.
+    # The cover link, byline, skills subheads, editor card, and November copy edits change links, blocks, and order.
     baseline = json.loads((TOOLS / "tests/fixtures/platform-semantic-baseline.json").read_text())
-    assert baseline["fields"]["links"] == "eff832a23526d3fd9c1d48895828b85ed093d71a62990e5f4c049b6c343306a2"
-    assert baseline["fields"]["editor_blocks"] == "0acebca0b353aeadd659744ab4a2e086d554a952d326fac043fefdd8f06feafd"
-    assert baseline["fields"]["reading_order"] == "ec03f91accdb9b94bb9be107553d91f30f4e87a46c4ce7d6a421a313dd77387e"
+    assert baseline["fields"]["links"] == "d556bab2247ec7c3b100362a9c1a32d9cf885f02a4caa5b768183dcb08f952aa"
+    assert baseline["fields"]["editor_blocks"] == "2b37cabf1a345bded2e604578de8c066d52830f43fbd6be8a479c193640b97c5"
+    assert baseline["fields"]["reading_order"] == "d5f938aa37ccc8417e78863ad47c643461f79eb5caafa406ed42963feddc099c"
