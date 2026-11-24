@@ -1184,7 +1184,9 @@ async function run() {
 
     await page.focus(heading);
     await page.$eval(heading, el => window.getSelection().setBaseAndExtent(el.firstChild, 8, el.firstChild, 9));
-    await page.keyboard.press('Shift+Enter');
+    await page.keyboard.down('Shift');
+    await page.keyboard.press('Enter');
+    await page.keyboard.up('Shift');
     const edited = await page.evaluate(() => window.SonstengEditor.block(17));
     assert('Typing a line break makes the heading dirty', edited.dirty && edited.snapshot === 'Practice\nskills');
     await page.evaluate(() => window.SonstengEditor.clickSave(17));
