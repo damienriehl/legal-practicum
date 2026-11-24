@@ -781,6 +781,29 @@ class ApplyEngineTest(unittest.TestCase):
         self.assertEqual(paragraphs["p3"], "The combined paragraph.")
         self.assertEqual(paragraphs["p4"], "")
 
+    def test_applies_newline_only_page_copy_edit(self):
+        home = "data/copy/home.json"
+        home_path = Path(self.root) / home
+        copy = json.loads((Path(TOOLS).parent / home).read_text(encoding="utf-8"))
+        copy["intro"]["skills_heading"] = "Law practice & Law practice management skills"
+        _write(self.root, home, json.dumps(copy, indent=2) + "\n")
+        _git(["add", "--", home], self.root)
+        _git(["commit", "-qm", "Add single-line page copy fixture"], self.root)
+
+        field = "intro.skills_heading"
+        spec = [*SPEC, (home, "json", {"scalars": [field]})]
+        self.index = resolve_index(self.root, spec)
+        new_text = "Law practice &\nLaw practice management skills"
+        row = self._add_edit("line-break", f"{home}#{field}", new_text)
+        self.assertEqual(row["original_hash"], text_norm.norm_hash(new_text))
+
+        result = self._run("newline-only", FakePipeline(spec), deploy_plan_only=False)
+
+        self.assertTrue(result.committed, (result.reason, result.needs_human))
+        self.assertEqual(self.store.rows["line-break"]["status"], "applied")
+        patched = json.loads(home_path.read_text(encoding="utf-8"))
+        self.assertEqual(patched["intro"]["skills_heading"], new_text)
+
     # 3) Formatted block whose SPAN TEXT is edited away -> needs_human (WP7 keeps
     #    the conservative fallback: the bold span 'bold emphasis' disappears).
     def test_formatted_block_needs_human(self):

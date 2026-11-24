@@ -384,6 +384,10 @@
     s.originalHtml = htmlForText(text);  // keep rollback DOM in step with it
     s.editBaseline = text;
   }
+  function changed(s, text) {
+    if (s.el.hasAttribute('data-page-copy')) return text !== s.editBaseline;
+    return normalize(text) !== normalize(s.editBaseline);
+  }
 
   /* ---------- computed values: locked, but never a dead end -------------- */
   var lockedDialogEl = null;
@@ -1168,7 +1172,7 @@
       if (s.state === ST.IDLE) enterEdit(s);
       if (!s.suggestionId) s.suggestionId = uuid();     // R2 mint-once guard
       s.snapshot = eb.textContent;                      // snapshot maintained continuously
-      s.dirty = s.snapshot !== s.editBaseline;
+      s.dirty = changed(s, s.snapshot);
       eb.classList.toggle('dirty', s.dirty);
       if (s.dirty) saveDraft(s); else clearDraft(s);
       setLocalStatus(s, s.dirty ? 'Draft saved — not sent yet' : '', s.dirty ? 'draft' : null);
@@ -1308,7 +1312,7 @@
         var lbl = STATUS_LABELS[srv] || 'Sent';
         var tone = STATUS_TONE[srv] || 'sending';
         // Did the user type MORE while this send was in flight?
-        var stillDirty = s.snapshot !== textAtClick;
+        var stillDirty = changed(s, s.snapshot);
         s.dirty = stillDirty;
         if (opts.auto) {
           // keep the block editable so typing continues seamlessly
@@ -1383,7 +1387,7 @@
       clearDraft(s);
       setBaseline(s, textAtClick);
       s.suggestionId = null;
-      var stillDirty = s.snapshot !== textAtClick;
+      var stillDirty = changed(s, s.snapshot);
       s.dirty = stillDirty;
       if (stillDirty) {
         s.state = ST.EDITING; s.suggestionId = uuid(); barDisable(false);

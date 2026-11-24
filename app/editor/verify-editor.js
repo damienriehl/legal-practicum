@@ -193,6 +193,14 @@ async function run() {
     await john.evaluate(() => window.SonstengEditor.focusBlock(4));
     assert('J R4 shared wording warning appears only while editing at ' + width,
       await john.evaluate(() => window.SonstengEditor.noteText(4) === 'This wording also appears on other pages.'));
+    const noop = await john.evaluate(() => {
+      const editor = window.SonstengEditor;
+      const baseline = editor.block(1).originalText;
+      editor.typeInto(1, '  ' + baseline.replace(/ /g, ' \n   ') + '  ');
+      editor.clickSave(1);
+      return { dirty: editor.block(1).dirty, calls: window.__MOCK_CTRL__.server().calls };
+    });
+    assert('Markdown prose whitespace-only edits send nothing at ' + width, !noop.dirty && noop.calls === 0);
     await john.evaluate(() => {
       window.__ERROR_REPORTS__ = [];
       window.__EDITOR_MOCK__ = null;
@@ -1182,6 +1190,26 @@ async function run() {
       calls: window.__MOCK_CTRL__.server().calls, dirty: window.SonstengEditor.block(17).dirty
     }));
     assert('Focus and blur without changing the heading sends nothing', !unchanged.dirty && unchanged.calls === 0);
+
+    const reverted = await page.evaluate(() => {
+      const editor = window.SonstengEditor;
+      const baseline = editor.blockText(17);
+      const key = editor.draftKeyFor(17);
+      const readState = () => ({
+        sessionDraft: sessionStorage.getItem(key), localDraft: localStorage.getItem(key),
+        dirty: editor.block(17).dirty, status: editor.statusText(17)
+      });
+      editor.typeInto(17, baseline + ' today');
+      const before = readState();
+      editor.typeInto(17, baseline);
+      return { before, after: readState() };
+    });
+    assert('Changing the heading saves a draft in both stores and shows draft status',
+      reverted.before.sessionDraft && reverted.before.localDraft && reverted.before.dirty &&
+      reverted.before.status === 'Draft saved — not sent yet');
+    assert('Restoring the heading baseline clears both drafts and resets dirty status',
+      reverted.after.sessionDraft === null && reverted.after.localDraft === null &&
+      !reverted.after.dirty && reverted.after.status === '');
 
     // Use the count from before typing in case the debounce sends first.
     await page.focus(heading);

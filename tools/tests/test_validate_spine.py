@@ -50,6 +50,17 @@ def test_page_copy_rejects_blank_paragraph_scalar():
     assert any(path == "hero/lede" for path, _ in errors), errors
 
 
+def test_page_copy_rejects_adopt_repo_url_on_getting_started():
+    doc = json.loads((REPO / "data/copy/getting-started.json").read_text(encoding="utf-8"))
+    schemas = vs.SchemaSet(SCHEMAS_DIR)
+    assert schemas.validate("page_copy", doc) == []
+
+    doc["repo_url"] = "https://example.org/practicum"
+    errors = schemas.validate("page_copy", doc)
+
+    assert any(path == "<root>" and "repo_url" in message for path, message in errors), errors
+
+
 def test_page_copy_omits_blanked_paragraph_members(monkeypatch):
     doc = json.loads((REPO / "data/copy/home.json").read_text(encoding="utf-8"))
     paragraphs = doc["intro"]["after_skills"]
