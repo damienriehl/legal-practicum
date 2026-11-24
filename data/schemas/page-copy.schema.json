@@ -9,7 +9,7 @@
     "type": {"const": "page_copy"},
     "page": {"enum": ["home", "matters", "firm", "getting-started", "adopt"]},
     "overrides": {"$ref": "#/$defs/overrides"},
-    "repo_url": {"type": "string", "description": "Adopter page: the public repository URL. Empty renders no link."}
+    "repo_url": {"type": "string", "description": "Adopter page: the repository URL. Empty uses the public source repository."}
   },
   "patternProperties": {
     "^(?!(?:schema_version|type|page|overrides|repo_url|hero|intro|who|privacy|setup|cases)$).+": {"$ref": "#/$defs/copyNode"}
@@ -59,7 +59,7 @@
         "hero": {"$ref": "#/$defs/hero"},
         "who": {"$ref": "#/$defs/adoptSection"},
         "privacy": {"$ref": "#/$defs/adoptSection"},
-        "setup": {"allOf": [{"$ref": "#/$defs/adoptSection"}], "required": ["repo_pending", "repo_link_label", "admin_heading", "admin_body", "users_heading", "users_body"]},
+        "setup": {"allOf": [{"$ref": "#/$defs/adoptSection"}], "required": ["repo_link_label", "admin_heading", "admin_body", "users_heading", "users_body"]},
         "cases": {"$ref": "#/$defs/adoptSection"},
         "prompting": {"type": "object", "required": ["heading", "body", "examples_heading", "examples"], "properties": {"examples": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/scalar"}}}},
         "license": {"type": "object", "required": ["heading", "body", "link_label"]}

@@ -68,16 +68,14 @@ run() {  # run <name> <command…>
 }
 skip() { results+=("SKIP  $1 — $2"); skipped=$((skipped+1)); printf '\n\033[2m── %s (skipped: %s)\033[0m\n' "$1" "$2"; }
 
-# The site links the repository only once PUBLIC_SOURCE_REPOSITORY_LIVE is True
-# (tools/build_site.py); until then the repository is private by design and
-# the anonymous reachability probe is not expected to pass.
+# Check that visitors can reach the source repository without credentials.
 check_public_repository() {
   if python3 -c 'import sys; sys.path.insert(0, "tools"); import build_site; sys.exit(0 if build_site.PUBLIC_SOURCE_REPOSITORY_LIVE else 3)'; then
     curl -fsSIL https://github.com/damienriehl/legal-practicum
   else
     local status=$?
     [ "$status" -eq 3 ] || return "$status"
-    echo "repository private until PUBLIC_SOURCE_REPOSITORY_LIVE is True; probe not run."
+    echo "anonymous source repository probe disabled by PUBLIC_SOURCE_REPOSITORY_LIVE."
   fi
 }
 

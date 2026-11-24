@@ -28,7 +28,6 @@
       "p1": "The practicum lives in one open-source repository: the matters, the curriculum, and the software that builds this site.",
       "p2": "Get the repository, open it with an AI coding agent such as Claude Code or Codex, and ask the agent to set the practicum up for you. The agent reads the repository's instructions, installs what it needs, and explains each step before it acts."
     },
-    "repo_pending": "The repository will be public soon. Until then, write to us and we'll share it.",
     "repo_link_label": "Get the open-source repository",
     "admin_heading": "What the administrator does",
     "admin_body": "One person — a professor, a program director, or a firm's technology lead — sets up and hosts the private copy, connects it to an AI provider, and decides who can reach it. The administrator also adds new matters and retires old ones.",
