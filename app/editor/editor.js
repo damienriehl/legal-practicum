@@ -379,6 +379,11 @@
     holder.textContent = text == null ? '' : String(text);
     return holder.innerHTML;
   }
+  function setBaseline(s, text) {
+    s.originalText = text;
+    s.originalHtml = htmlForText(text);  // keep rollback DOM in step with it
+    s.editBaseline = text;
+  }
 
   /* ---------- computed values: locked, but never a dead end -------------- */
   var lockedDialogEl = null;
@@ -1165,7 +1170,7 @@
       s.snapshot = eb.textContent;                      // snapshot maintained continuously
       s.dirty = s.snapshot !== s.editBaseline;
       eb.classList.toggle('dirty', s.dirty);
-      if (s.dirty) saveDraft(s); else clearDraft(s);      // R1: flush-to-DRAFT only
+      if (s.dirty) saveDraft(s); else clearDraft(s);
       setLocalStatus(s, s.dirty ? 'Draft saved — not sent yet' : '', s.dirty ? 'draft' : null);
       if (activeRef === s.ref) syncBar(s);
       scheduleAutoSave(s);                              // debounced auto-send (~2.5s)
@@ -1295,9 +1300,7 @@
         if (s._retry) { clearTimeout(s._retry); s._retry = null; }
         s._retryDelay = 0;
         clearDraft(s);
-        s.originalText = textAtClick;               // the sent text is now the baseline
-        s.originalHtml = htmlForText(textAtClick);  // keep rollback DOM in step with it
-        s.editBaseline = textAtClick;
+        setBaseline(s, textAtClick);
         s.suggestionId = null;                      // rotate: next burst mints a fresh id
         // Honest status from the STORE (accepted "Going live…" under DIRECT_APPLY,
         // else "Pending review") — never an optimistic "Saved".
@@ -1377,8 +1380,9 @@
       original_hash: s.originalHash, op: 'page_override', page: PAGE
     }}).then(function (out) {
       if (!out.ok) { handleSendError(s, out, { pageOverride: true }); return; }
-      clearDraft(s); s.originalText = textAtClick; s.originalHtml = htmlForText(textAtClick); s.suggestionId = null;
-      s.editBaseline = textAtClick;
+      clearDraft(s);
+      setBaseline(s, textAtClick);
+      s.suggestionId = null;
       var stillDirty = s.snapshot !== textAtClick;
       s.dirty = stillDirty;
       if (stillDirty) {
@@ -2031,6 +2035,12 @@
     s._hydrated = false; s._attr = '';
   }
 
+  function findCommentSession(item) {
+    var s = session(item.source_ref);
+    if (!s || s.ref !== item.source_ref || (item.json_path && s.jsonPath !== item.json_path)) return null;
+    return s;
+  }
+
   function renderPending(items) {
     clearMargins();
     items = items || [];
@@ -2053,11 +2063,7 @@
     });
 
     items.forEach(function (item) {
-      // Comments follow their source when a rebuild moves the old page index.
-      var s = item.kind === 'comment' && session(item.source_ref);
-      if (!s || s.ref !== item.source_ref || (item.json_path && s.jsonPath !== item.json_path)) {
-        s = byIndex[item.block_index];
-      }
+      var s = (item.kind === 'comment' && findCommentSession(item)) || byIndex[item.block_index];
       if (!s) return;
       var label = STATUS_LABELS[item.status] || item.status || 'Sent';
       if (STRUCT_LABELS[item.kind]) {

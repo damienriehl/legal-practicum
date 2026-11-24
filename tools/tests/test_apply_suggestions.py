@@ -750,8 +750,6 @@ class ApplyEngineTest(unittest.TestCase):
         schema = "data/schemas/page-copy.schema.json"
         for relpath in (home, schema):
             _write(self.root, relpath, (Path(TOOLS).parent / relpath).read_text(encoding="utf-8"))
-        # Give the blanking row a visible starting paragraph even after the
-        # canonical edit lands. The other home fields match production.
         home_path = Path(self.root) / home
         copy = json.loads(home_path.read_text(encoding="utf-8"))
         copy["intro"]["after_skills"]["p4"] = "Text to merge into the preceding paragraph."

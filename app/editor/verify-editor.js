@@ -19,6 +19,7 @@ const { execFileSync } = require('child_process');
 const DIR = __dirname;                              // app/editor
 const REPO = path.resolve(DIR, '..', '..');         // repo root
 const OUT = process.env.EDITOR_SCREENSHOT_DIR || '/tmp';
+const PAST_DEBOUNCE_MS = 2500 + 200;
 // Default: load the harness straight off disk (file://). When the checkout lives
 // somewhere snap-confined Chromium cannot read (e.g. a ~/.cache worktree), set
 // HARNESS_URL to a localhost static-server URL for app/editor/test-harness.html
@@ -1176,7 +1177,7 @@ async function run() {
     await page.evaluate(() => window.SonstengEditor.focusBlock(17));
     await page.focus(heading);
     await page.focus('#btnRepoll');
-    await sleep(2700); // an unchanged focus/blur must also stay silent past debounce
+    await sleep(PAST_DEBOUNCE_MS);
     const unchanged = await page.evaluate(() => ({
       calls: window.__MOCK_CTRL__.server().calls, dirty: window.SonstengEditor.block(17).dirty
     }));
