@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -14,6 +15,7 @@ sys.path.insert(0, str(TOOLS))
 
 from fresh_site_build import build_fresh_site
 import build_site
+import validate_spine
 import verify_pitch
 
 
@@ -26,7 +28,7 @@ MIT_LICENSE = ROOT / "LICENSE"
 MASTER_OUTLINE = ROOT / "docs/master-outline.md"
 CC_BY_URL = "https://creativecommons.org/licenses/by/4.0/"
 COPYRIGHT_LINE = "Copyright (c) 2026 Damien Riehl, John O. Sonsteng, Roger S. Haydock"
-COVER_BYLINE = "John Sonsteng and Damien Riehl, with Abby Breit, Editor"
+COVER_BYLINE = "John Sonsteng and Damien Riehl, with Abby Breit and Elise Carlson, Editors"
 MIT_BLOCK = """MIT License
 
 Copyright (c) 2026 Damien Riehl, John O. Sonsteng, Roger S. Haydock
@@ -106,12 +108,38 @@ def test_hand_authored_current_surfaces_use_settled_identity():
         assert "Legal Practicum" in text
     assert "The Sonsteng Magnum Opus" not in pitch
     assert readme.startswith("# Legal Practicum\n")
+    assert COVER_BYLINE in readme
+    for name in ("brochure.html", "firms.html"):
+        text = (ROOT / "site" / name).read_text(encoding="utf-8")
+        assert f'<p class="byline">{COVER_BYLINE}</p>' in text
 
 
 def test_pitch_uses_new_cover_byline():
     pitch = PITCH.read_text(encoding="utf-8")
     normalized_pitch = pitch.replace("&nbsp;", " ").replace("</b>", "").replace("<b>", "")
-    assert COVER_BYLINE in normalized_pitch
+    assert normalized_pitch.count(COVER_BYLINE) == 2
+
+
+def test_home_byline_and_bio_free_editor_card(fresh_site):
+    home = (fresh_site / "index.html").read_text(encoding="utf-8")
+    assert re.search(r'<a class="hero__byline" href="#authors"><p[^>]*>'
+                     + re.escape(COVER_BYLINE) + r'</p></a>', home)
+    cards = re.findall(r'<article class="card author-card">(.*?)</article>', home, re.S)
+    assert len(cards) == 4
+    assert re.findall(r"<h3[^>]*>(.*?)</h3>", cards[-2] + cards[-1]) == ["Abby Breit", "Elise Carlson"]
+    assert re.findall(r"<p[^>]*>(.*?)</p>", cards[-1], re.S) == ["Editor"]
+
+
+def test_editor_bio_is_optional_but_cannot_be_blank():
+    copy = json.loads(HOME_COPY.read_text(encoding="utf-8"))
+    editor = copy["authors"]["people"]["carlson"]
+    schemas = validate_spine.SchemaSet(ROOT / "data/schemas")
+    assert "bio" not in editor
+    assert schemas.validate("page_copy", copy) == []
+
+    editor["bio"] = ""
+    errors = schemas.validate("page_copy", copy)
+    assert any(path == "authors/people/carlson/bio" for path, _ in errors), errors
 
 
 def test_pitch_body_prose_does_not_name_authors():

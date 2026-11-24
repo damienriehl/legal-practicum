@@ -49,7 +49,7 @@
       {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/paragraphMember"}}
     ]},
     "homeHero": {"type": "object", "required": ["eyebrow", "heading", "lede", "adopter_link"], "properties": {"eyebrow": {"$ref": "#/$defs/scalar"}, "heading": {"$ref": "#/$defs/scalar"}, "lede": {"$ref": "#/$defs/paragraphs"}, "adopter_link": {"$ref": "#/$defs/scalar"}}, "additionalProperties": {"$ref": "#/$defs/copyNode"}},
-    "person": {"type": "object", "required": ["name", "role", "bio"], "properties": {"name": {"$ref": "#/$defs/scalar"}, "role": {"$ref": "#/$defs/scalar"}, "bio": {"$ref": "#/$defs/scalar"}}},
+    "person": {"type": "object", "required": ["name", "role"], "properties": {"name": {"$ref": "#/$defs/scalar"}, "role": {"$ref": "#/$defs/scalar"}, "bio": {"$ref": "#/$defs/scalar"}}},
     "citation": {"type": "object", "required": ["citation"], "properties": {"citation": {"$ref": "#/$defs/scalar"}, "url": {"type": "string", "pattern": "^https://"}}},
     "adoptSection": {"type": "object", "required": ["heading", "body"], "properties": {"heading": {"$ref": "#/$defs/scalar"}, "body": {"$ref": "#/$defs/paragraphs"}}, "additionalProperties": {"$ref": "#/$defs/copyNode"}},
     "adopt": {

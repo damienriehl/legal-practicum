@@ -1702,17 +1702,19 @@ def _home_hero_extra(copy, skills):
     eyebrow, eyebrow_eb = leaf("authors.eyebrow", "home · authors")
     a_heading, a_heading_eb = leaf("authors.heading", "home · authors")
     people = []
-    for key in copy["authors"]["people"]:
+    for key, person in copy["authors"]["people"].items():
         base = "authors.people.%s." % key
         name, name_eb = leaf(base + "name", "home · authors")
         role, role_eb = leaf(base + "role", "home · authors")
-        bio, bio_eb = leaf(base + "bio", "home · authors")
+        bio_paragraph = ""
+        if person.get("bio"):
+            bio, bio_eb = leaf(base + "bio", "home · authors")
+            bio_paragraph = "\n      <p%s>%s</p>" % (bio_eb, bio)
         people.append("""
     <article class="card author-card">
       <h3{neb}>{name}</h3>
-      <p class="card__meta"{reb}>{role}</p>
-      <p{beb}>{bio}</p>
-    </article>""".format(name=name, neb=name_eb, role=role, reb=role_eb, bio=bio, beb=bio_eb))
+      <p class="card__meta"{reb}>{role}</p>{bio}
+    </article>""".format(name=name, neb=name_eb, role=role, reb=role_eb, bio=bio_paragraph))
     r_heading, r_heading_eb = leaf("authors.reading.heading", "home · further reading")
     cites = []
     for key, item in copy["authors"]["reading"]["items"].items():

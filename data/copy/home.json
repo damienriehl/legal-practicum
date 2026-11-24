@@ -4,7 +4,7 @@
   "page": "home",
   "identity": {
     "title": "Legal Practicum",
-    "byline": "John Sonsteng and Damien Riehl, with Abby Breit, Editor",
+    "byline": "John Sonsteng and Damien Riehl, with Abby Breit and Elise Carlson, Editors",
     "host": "Hosted by Damien Riehl"
   },
   "hero": {
@@ -45,6 +45,10 @@
         "name": "Abby Breit",
         "role": "Editor",
         "bio": "Abby Breit is an attorney, business owner, and President of More Than Money Trust Company. Her work focuses on trust administration, family stewardship, and technology development.\n\nWhile attending Mitchell Hamline School of Law, Abby worked closely with John Sonsteng as Student Director of the Center for Law and Business. John became a trusted mentor and close friend and continues to be an important source of guidance in her life.\n\nHer work in family stewardship reflects her appreciation for asking difficult questions, listening, and understanding others. Abby is grateful for the opportunity to support John and Damien in helping students and lawyers learn not only the law, but how to practice it."
+      },
+      "carlson": {
+        "name": "Elise Carlson",
+        "role": "Editor"
       }
     },
     "reading": {
