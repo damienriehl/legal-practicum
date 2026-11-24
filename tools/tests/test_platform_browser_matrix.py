@@ -125,7 +125,8 @@ def test_semantic_heading_repairs_preserve_the_existing_visible_words():
     # matter-library link and changes that line and the content-license
     # attribution; editor blocks, reading order, and page identities stay fixed.
     # The cover link, byline, skills subheads, editor card, and November copy edits change links, blocks, and order.
+    # Removing source hard wraps changes the original text stored in editor blocks.
     baseline = json.loads((TOOLS / "tests/fixtures/platform-semantic-baseline.json").read_text())
     assert baseline["fields"]["links"] == "d556bab2247ec7c3b100362a9c1a32d9cf885f02a4caa5b768183dcb08f952aa"
-    assert baseline["fields"]["editor_blocks"] == "2b37cabf1a345bded2e604578de8c066d52830f43fbd6be8a479c193640b97c5"
+    assert baseline["fields"]["editor_blocks"] == "bb53d167b03ea4f3f326024bd00695c89dd4c0eef35c72f11bc12faa43109c0a"
     assert baseline["fields"]["reading_order"] == "d5f938aa37ccc8417e78863ad47c643461f79eb5caafa406ed42963feddc099c"
