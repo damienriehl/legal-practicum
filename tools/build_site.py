@@ -373,8 +373,8 @@ def _copy_scalar(page, copy, json_path, context):
 def _copy_paragraphs(page, copy, json_path, context, css_class=""):
     """Render a page-copy leaf that may hold several paragraphs.
 
-    A plain string renders as one <p>. An object renders one <p> per key, in
-    authored order, and each paragraph registers as its own json_scalar leaf
+    A plain string renders as one <p>. An object renders one <p> per nonempty
+    member, in authored order, each registered as its own json_scalar leaf
     (``<json_path>.<key>``) so editors change one paragraph at a time and the
     paragraph breaks survive every edit."""
     value = copy
@@ -385,7 +385,9 @@ def _copy_paragraphs(page, copy, json_path, context, css_class=""):
         text, attr = _copy_scalar(page, copy, json_path, context)
         return "<p%s%s>%s</p>" % (cls, attr, esc(text))
     out = []
-    for key in value:
+    for key, member in value.items():
+        if member == "":
+            continue
         text, attr = _copy_scalar(page, copy, "%s.%s" % (json_path, key), context)
         out.append("<p%s%s>%s</p>" % (cls, attr, esc(text)))
     return "\n  ".join(out)

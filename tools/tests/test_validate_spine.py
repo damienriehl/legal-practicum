@@ -35,9 +35,44 @@ sys.path.insert(0, str(TOOLS))
 
 import validate_spine as vs  # noqa: E402
 import day_zero  # noqa: E402
+import build_site as bs  # noqa: E402
 
 SCHEMAS_DIR = REPO / "data" / "schemas"
 EXAMPLES_DIR = SCHEMAS_DIR / "examples"
+
+
+def test_page_copy_rejects_blank_paragraph_scalar():
+    doc = json.loads((REPO / "data/copy/home.json").read_text(encoding="utf-8"))
+    doc["hero"]["lede"] = ""
+
+    errors = vs.SchemaSet(SCHEMAS_DIR).validate("page_copy", doc)
+
+    assert any(path == "hero/lede" for path, _ in errors), errors
+
+
+def test_page_copy_omits_blanked_paragraph_members(monkeypatch):
+    doc = json.loads((REPO / "data/copy/home.json").read_text(encoding="utf-8"))
+    paragraphs = doc["intro"]["after_skills"]
+    paragraphs.update(p1="First paragraph.", p2="", p3="Third paragraph.", p4="")
+    editor_map = bs._EditorMap()
+    editor_map.enabled = True
+    monkeypatch.setattr(bs, "EDMAP", editor_map)
+    path = "intro.after_skills"
+    prefix = f"data/copy/home.json#{path}."
+
+    rendered = bs._copy_paragraphs("home", doc, path, "home · introduction")
+
+    expected_refs = [prefix + "p1", prefix + "p3"]
+    assert re.findall(r'data-ebsrc="([^"]+)"', rendered) == expected_refs
+    assert list(editor_map.sources) == expected_refs
+    assert re.findall(r"<p[^>]*>(.*?)</p>", rendered) == ["First paragraph.", "Third paragraph."]
+
+    for key in paragraphs:
+        paragraphs[key] = ""
+    editor_map.sources.clear()
+    assert vs.SchemaSet(SCHEMAS_DIR).validate("page_copy", doc) == []
+    assert bs._copy_paragraphs("home", doc, path, "home · introduction") == ""
+    assert editor_map.sources == {}
 
 
 def test_taxonomy_contract_manifests_are_not_misclassified_as_entities():
