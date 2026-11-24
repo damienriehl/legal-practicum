@@ -196,13 +196,13 @@ for (const [label, ref, path, status, expectedIndex] of [
         kind: 'json_scalar', json_path: 'hero.eyebrow' }),
     ];
     for (const s of leaves) h.body.appendChild(s.el);
-    const note = status === 'declined' ? 'Updated the label.' : undefined;
+    const note = status === 'declined' ? 'Updated the label. — Claude' : undefined;
     h.window.SonstengEditor.applyPending([{ block_index: 12, source_ref: ref, json_path: path,
       kind: 'comment', status, preview: 'Please review this label.', note }]);
     const bubbleIndex = h.body.children.findIndex(el => el.className?.includes('eb-comment-bubble--'));
     const previous = h.body.children[bubbleIndex - 1];
     assert.equal(leaves.find(s => s.el === previous)?.index, expectedIndex);
-    if (note) assert.equal(h.body.children[bubbleIndex].children[2].textContent, 'Damien: Updated the label.');
+    if (note) assert.equal(h.body.children[bubbleIndex].children[2].textContent, 'Reply: Updated the label. — Claude');
   });
 }
 test('F1 edit entry and unchanged Done preserve inline links without sending', () => {

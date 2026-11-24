@@ -2086,7 +2086,7 @@
         head.appendChild(el('span', 'eb-comment-bubble__status', label));
         b.appendChild(head);
         if (item.preview) b.appendChild(el('p', 'eb-comment-bubble__body', item.preview));
-        if (item.note) b.appendChild(el('p', 'eb-comment-bubble__note', 'Damien: ' + item.note));
+        if (item.note) b.appendChild(el('p', 'eb-comment-bubble__note', 'Reply: ' + item.note));
         // AFTER the passage, never between the rail and its block: the rail is
         // pulled back over the element that follows it, so anything slipped in
         // between drags the controls away from the paragraph they belong to.
@@ -2115,7 +2115,7 @@
           setStatusPill(pill, label + (item.attribution ? ' · ' + item.attribution : ''), tone,
                         labelLong + (item.preview ? ' — “' + item.preview + '”' : ''));
         }
-        if (item.note) { showNote(s, 'Damien: ' + item.note); }
+        if (item.note) { showNote(s, 'Reply: ' + item.note); }
       }
     });
   }
