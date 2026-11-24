@@ -15,7 +15,7 @@
                    source_ref, original_text, original_hash,
                    has_inline_formatting, context, json_path?}
          #edits-data      = { items:[item…] }
-           item:  {block_index, source_ref, status, kind, preview, note?}
+           item:  {block_index, source_ref, json_path?, status, kind, preview, note?}
        Read via textContent + JSON.parse — NEVER eval, NEVER innerHTML.
      - Blocks are located by mirroring THE WALKER CONTRACT byte-for-byte
        (build/editor-map.generated.json .walker_contract): within <main>,
@@ -118,9 +118,8 @@
           then every LF -> single space
        3. smart-quote / dash / space fold to ASCII; delete zero-width; …-> ...
        4. collapse whitespace runs -> one space, trim
-     (Client uses this for the dirty check + the no-op guard; the block's
-     original_hash comes from the map, so no async SHA-256 is needed to key or
-     submit. normHash() is provided for parity checks.) */
+     (The block's original_hash comes from the map. normHash() is provided
+     for parity checks.) */
   function normalize(s) {
     if (s == null) return '';
     s = String(s);
@@ -224,7 +223,7 @@
      1. Read the TWO injected JSON islands (Worker contract) — textContent + parse.
         #editor-map-data = { version, page?, blocks:[{index,kind,source_ref,
           json_path?,original_text,original_hash,has_inline_formatting,context}] }
-        #edits-data      = { items:[{block_index,source_ref,status,kind,preview,note?}] }
+        #edits-data      = { items:[{block_index,source_ref,json_path?,status,kind,preview,note?}] }
         Read the MAP from #editor-map-data.blocks; PENDING from #edits-data.items.
      ============================================================================ */
   function readJsonIsland(id) {
@@ -311,6 +310,7 @@
       shared: Array.isArray(desc.occurrences) && desc.occurrences.length > 1,
       originalText: desc.original_text != null ? desc.original_text : (elx.textContent || ''),
       originalHtml: elx.innerHTML,
+      editBaseline: elx.textContent,
       originalHash: desc.original_hash || '',
       suggestionId: null, snapshot: null, state: ST.IDLE, dirty: false,
       _debounce: null, _retry: null, _retryDelay: 0, _queued: false, // auto-save
@@ -1163,9 +1163,9 @@
       if (s.state === ST.IDLE) enterEdit(s);
       if (!s.suggestionId) s.suggestionId = uuid();     // R2 mint-once guard
       s.snapshot = eb.textContent;                      // snapshot maintained continuously
-      s.dirty = normalize(s.snapshot) !== normalize(s.originalText);
+      s.dirty = s.snapshot !== s.editBaseline;
       eb.classList.toggle('dirty', s.dirty);
-      saveDraft(s);                                     // R1: flush-to-DRAFT only
+      if (s.dirty) saveDraft(s); else clearDraft(s);      // R1: flush-to-DRAFT only
       setLocalStatus(s, s.dirty ? 'Draft saved — not sent yet' : '', s.dirty ? 'draft' : null);
       if (activeRef === s.ref) syncBar(s);
       scheduleAutoSave(s);                              // debounced auto-send (~2.5s)
@@ -1196,7 +1196,6 @@
     // block before exposing contenteditable so deleted text cannot be saved.
     if (s._reviewRendered) { restoreOriginal(s); s._reviewRendered = false; }
     try { s.el.setAttribute('contenteditable', 'plaintext-only'); } catch (e) { s.el.setAttribute('contenteditable', 'true'); }
-    if (s.state === ST.IDLE && !s.dirty) collapseSourceWhitespace(s.el);
     s.el.setAttribute('role', 'textbox');
     s.el.setAttribute('aria-label', 'Editable paragraph' + (s.kind ? '' : ''));
     if (focus) { try { s.el.focus(); } catch (e) {} enterEdit(s); }
@@ -1209,8 +1208,11 @@
     s.el.classList.add('editing');
     if (!s.suggestionId) s.suggestionId = uuid();   // R2 mint ONCE per edit-session
     hideNote(s); hideReauth(s);
+    if (!s.dirty) {
+      if (!s.el.hasAttribute('data-page-copy')) collapseSourceWhitespace(s.el);
+      s.editBaseline = s.el.textContent;
+    }
     reconcileDraft(s);                              // R8 re-poll on (re)entry
-    if (!s.dirty) collapseSourceWhitespace(s.el);
     if (s.shared && !IS_ADMIN) showNote(s, 'This wording also appears on other pages.');
     showBar(s);
     log('EDIT enter ref=' + s.ref + ' id=' + (s.suggestionId || '').slice(0, 8));
@@ -1295,6 +1297,7 @@
         clearDraft(s);
         s.originalText = textAtClick;               // the sent text is now the baseline
         s.originalHtml = htmlForText(textAtClick);  // keep rollback DOM in step with it
+        s.editBaseline = textAtClick;
         s.suggestionId = null;                      // rotate: next burst mints a fresh id
         // Honest status from the STORE (accepted "Going live…" under DIRECT_APPLY,
         // else "Pending review") — never an optimistic "Saved".
@@ -1302,7 +1305,7 @@
         var lbl = STATUS_LABELS[srv] || 'Sent';
         var tone = STATUS_TONE[srv] || 'sending';
         // Did the user type MORE while this send was in flight?
-        var stillDirty = normalize(s.snapshot) !== normalize(s.originalText);
+        var stillDirty = s.snapshot !== textAtClick;
         s.dirty = stillDirty;
         if (opts.auto) {
           // keep the block editable so typing continues seamlessly
@@ -1375,7 +1378,8 @@
     }}).then(function (out) {
       if (!out.ok) { handleSendError(s, out, { pageOverride: true }); return; }
       clearDraft(s); s.originalText = textAtClick; s.originalHtml = htmlForText(textAtClick); s.suggestionId = null;
-      var stillDirty = normalize(s.snapshot) !== normalize(textAtClick);
+      s.editBaseline = textAtClick;
+      var stillDirty = s.snapshot !== textAtClick;
       s.dirty = stillDirty;
       if (stillDirty) {
         s.state = ST.EDITING; s.suggestionId = uuid(); barDisable(false);
@@ -2049,7 +2053,11 @@
     });
 
     items.forEach(function (item) {
-      var s = byIndex[item.block_index];
+      // Comments follow their source when a rebuild moves the old page index.
+      var s = item.kind === 'comment' && session(item.source_ref);
+      if (!s || s.ref !== item.source_ref || (item.json_path && s.jsonPath !== item.json_path)) {
+        s = byIndex[item.block_index];
+      }
       if (!s) return;
       var label = STATUS_LABELS[item.status] || item.status || 'Sent';
       if (STRUCT_LABELS[item.kind]) {

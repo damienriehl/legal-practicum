@@ -192,13 +192,6 @@ async function run() {
     await john.evaluate(() => window.SonstengEditor.focusBlock(4));
     assert('J R4 shared wording warning appears only while editing at ' + width,
       await john.evaluate(() => window.SonstengEditor.noteText(4) === 'This wording also appears on other pages.'));
-    const noop = await john.evaluate(() => {
-      const s = window.SonstengEditor.block(1);
-      window.SonstengEditor.typeInto(1, '  ' + s.originalText.replace(/ /g, ' \n   ') + '  ');
-      window.SonstengEditor.clickSave(1);
-      return { dirty: window.SonstengEditor.block(1).dirty, calls: window.__MOCK_CTRL__.server().calls };
-    });
-    assert('J R3 whitespace-only edits send nothing at ' + width, !noop.dirty && noop.calls === 0);
     await john.evaluate(() => {
       window.__ERROR_REPORTS__ = [];
       window.__EDITOR_MOCK__ = null;
@@ -1169,6 +1162,78 @@ async function run() {
     // large-type screenshot for visual QA
     await page.screenshot({ path: path.join(OUT, 'editor-largetype.png'), fullPage: false });
     console.log('   [screenshot] ' + path.join(OUT, 'editor-largetype.png'));
+    await page.close();
+  }
+
+  /* ======================= AUTHORED LINE BREAKS ============================ */
+  {
+    const page = await boot(browser, 1280, 1100);
+    const platformCss = execFileSync('python3', [
+      '-c', 'from build_site import PLATFORM_CSS; print(PLATFORM_CSS)'
+    ], { cwd: path.join(REPO, 'tools'), encoding: 'utf8' });
+    await page.addStyleTag({ content: platformCss });
+    const heading = '#skills-heading-fixture';
+    await page.evaluate(() => window.SonstengEditor.focusBlock(17));
+    await page.focus(heading);
+    await page.focus('#btnRepoll');
+    await sleep(2700); // an unchanged focus/blur must also stay silent past debounce
+    const unchanged = await page.evaluate(() => ({
+      calls: window.__MOCK_CTRL__.server().calls, dirty: window.SonstengEditor.block(17).dirty
+    }));
+    assert('Focus and blur without changing the heading sends nothing', !unchanged.dirty && unchanged.calls === 0);
+
+    await page.focus(heading);
+    await page.$eval(heading, el => window.getSelection().setBaseAndExtent(el.firstChild, 8, el.firstChild, 9));
+    await page.keyboard.press('Shift+Enter');
+    const edited = await page.evaluate(() => window.SonstengEditor.block(17));
+    assert('Typing a line break makes the heading dirty', edited.dirty && edited.snapshot === 'Practice\nskills');
+    await page.evaluate(() => window.SonstengEditor.clickSave(17));
+    const sent = await page.evaluate(() => window.__MOCK_CTRL__.last());
+    const hash = execFileSync('python3', ['-c', 'from text_norm import norm_hash; print(norm_hash("Practice skills"))'],
+      { cwd: path.join(REPO, 'tools'), encoding: 'utf8' }).trim();
+    assert('The newline-only suggestion carries the original server-contract hash',
+      sent && sent.new_text === 'Practice\nskills' && sent.original_hash === hash && sent.json_path === 'intro.skills_heading');
+
+    const layout = await page.evaluate(() => {
+      function lines(id) {
+        const leaf = document.getElementById(id);
+        return Math.round(leaf.getBoundingClientRect().height / parseFloat(getComputedStyle(leaf).lineHeight));
+      }
+      return [lines('skills-heading-fixture'), lines('bio-fixture'), lines('curriculum-fixture')];
+    });
+    assert('Heading spans two lines, bio has a blank line, and curriculum prose retains one line',
+      layout.join(',') === '2,3,1', JSON.stringify(layout));
+    await page.screenshot({ path: path.join(OUT, 'editor-page-copy-line-breaks.png'), fullPage: true });
+    await page.close();
+  }
+
+  /* ======================= COMMENT ANCHOR DRIFT =========================== */
+  {
+    const page = await boot(browser, 1280, 1100);
+    const placements = await page.evaluate(() => {
+      const editor = window.SonstengEditor;
+      const comment = { block_index: 17, source_ref: 'data/copy/home.json#hero.eyebrow',
+        json_path: 'hero.eyebrow', kind: 'comment', status: 'pending', preview: 'Check the eyebrow.' };
+      function place(item) {
+        editor.applyPending([item]);
+        const bubble = document.querySelector('.eb-comment-bubble');
+        const previous = bubble?.previousElementSibling;
+        return { anchor: previous?.id, reply: bubble?.querySelector('.eb-comment-bubble__note')?.textContent };
+      }
+      return {
+        pending: place(comment),
+        removed: place({ ...comment, source_ref: 'data/copy/home.json#hero.removed', json_path: 'hero.removed' }),
+        declined: place({ ...comment, status: 'declined', note: 'Updated the label.' })
+      };
+    });
+    assert('A comment follows the eyebrow after three leaves shift its index',
+      placements.pending.anchor === 'eyebrow-fixture', JSON.stringify(placements.pending));
+    assert('A removed comment source falls back to its stored index',
+      placements.removed.anchor === 'skills-heading-fixture', JSON.stringify(placements.removed));
+    assert('A declined comment shows Damien’s reply on the moved eyebrow',
+      placements.declined.anchor === 'eyebrow-fixture' && placements.declined.reply === 'Damien: Updated the label.',
+      JSON.stringify(placements.declined));
+    await page.screenshot({ path: path.join(OUT, 'editor-comment-anchor-drift.png'), fullPage: true });
     await page.close();
   }
 

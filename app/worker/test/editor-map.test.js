@@ -162,6 +162,20 @@ test("projectPendingItems emits the client #edits-data item shape", () => {
   assert.ok(!("note" in out[1]));
 });
 
+test("page-copy comments retain the stored index, source ref, JSON path, and reply", () => {
+  const source_ref = "data/copy/home.json#hero.eyebrow";
+  const [item] = projectPendingItems([{
+    block_anchor: "index.html:12", source_ref, json_path: "hero.eyebrow",
+    kind: "comment", status: "declined", comment: "Please review the label.",
+    decision_note: "Updated the label.",
+  }]);
+  assert.deepEqual(item, {
+    block_index: 12, source_ref, json_path: "hero.eyebrow",
+    kind: "comment", status: "declined", preview: "Please review the label.",
+    note: "Updated the label.",
+  });
+});
+
 test("instructor doc resolution: valid matter/doc resolves; junk is null", () => {
   assert.ok(resolveInstructorDoc("m01", "facts"));
   assert.ok(resolveInstructorDoc("m01", "answer-key"));
