@@ -1,6 +1,8 @@
 """Public builder boundaries using disposable data and generated output trees."""
 import json
 from pathlib import Path
+import re
+import shutil
 import sys
 import zipfile
 
@@ -8,6 +10,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import build_site as bs
+from fresh_site_build import build_fresh_site
 
 
 def write_json(path, value):
@@ -56,6 +59,52 @@ def test_dataset_load_to_packet_preserves_public_content(dataset):
     assert 'A public history.' in rendered
     assert bs.check_no_instructor_leaks(corpus) == []
     assert corpus['matters'][0]['_dir'] == str(matter)
+
+
+def test_home_cover_and_skill_subheads_are_editable():
+    tmp, site, editor_map = build_fresh_site('home-cover-')
+    try:
+        html = Path(site, 'index.html').read_text(encoding='utf-8')
+    finally:
+        shutil.rmtree(tmp)
+
+    cover = re.search(r'<section class="home-cover"[^>]*>(.*?)</section>', html, re.S)
+    assert cover is not None
+    assert 'aria-labelledby="home-cover-title"' in cover.group(0)
+    assert re.findall(r'<p[^>]*>(.*?)</p>', cover.group(1)) == [
+        'LEGAL PRACTICUMS', 'Law Practice and Law Management PRACTICE READY',
+        'John Sonsteng and Damien Riehl',
+    ]
+    assert 'href="#home-hero"' in cover.group(1)
+    assert re.search(r'<h1\b[^>]*id="home-hero"[^>]*tabindex="-1"', html[cover.end():])
+
+    groups = re.findall(r'<h4[^>]*>(.*?)</h4>\s*<ul class="skill-columns__list">(.*?)</ul>', html, re.S)
+    assert [heading for heading, _ in groups] == [
+        'Learned through the general law school curriculum',
+        'Learned through the lawyer&#x27;s own experience',
+    ]
+    curriculum = re.findall(r'<li><a[^>]*>(.*?)</a></li>', groups[0][1])
+    experience = re.findall(r'<li><a[^>]*>(.*?)</a></li>', groups[1][1])
+    assert len(curriculum) == 6
+    assert curriculum[-1] == 'Computer legal research'
+    assert experience[0] == 'Fact gathering'
+
+    editable = {row['json_path']: row['original_text'] for row in editor_map['pages']['index.html']
+                if row['kind'] == 'json_scalar'}
+    assert editable['cover.title'] == 'LEGAL PRACTICUMS'
+    assert editable['cover.subtitle'] == 'Law Practice and Law Management PRACTICE READY'
+    assert editable['cover.byline'] == 'John Sonsteng and Damien Riehl'
+    assert editable['intro.practice_groups.curriculum_heading'] == groups[0][0]
+    assert editable['intro.practice_groups.experience_heading'] == "Learned through the lawyer's own experience"
+    assert 'intro.practice_groups.experience_start_skill_id' not in editable
+
+
+def test_home_build_reports_missing_skill_split_id():
+    corpus = bs.load_corpus()
+    corpus['copy']['home']['intro']['practice_groups']['experience_start_skill_id'] = 'SK-LP-99'
+
+    with pytest.raises(ValueError, match=r'intro\.practice_groups\.experience_start_skill_id.*SK-LP-99.*skills\.json'):
+        bs.build_home(corpus)
 
 
 def test_oversize_case_file_is_split_from_packet(dataset):

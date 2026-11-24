@@ -73,13 +73,21 @@
       "title": {"$ref": "#/$defs/scalar"}, "byline": {"$ref": "#/$defs/scalar"}, "host": {"$ref": "#/$defs/scalar"}
     }},
     "home": {
-      "type": "object", "required": ["identity", "hero", "intro", "authors", "volumes", "explore"],
+      "type": "object", "required": ["identity", "cover", "hero", "intro", "authors", "volumes", "explore"],
       "properties": {
         "identity": {"$ref": "#/$defs/identity"},
+        "cover": {"type": "object", "required": ["title", "subtitle", "byline"], "properties": {
+          "title": {"$ref": "#/$defs/scalar"}, "subtitle": {"$ref": "#/$defs/scalar"},
+          "byline": {"$ref": "#/$defs/scalar"}
+        }},
         "hero": {"$ref": "#/$defs/homeHero"},
-        "intro": {"type": "object", "required": ["skills_heading", "practice_heading", "management_heading", "after_skills"], "properties": {
+        "intro": {"type": "object", "required": ["skills_heading", "practice_heading", "management_heading", "practice_groups", "after_skills"], "properties": {
           "skills_heading": {"$ref": "#/$defs/scalar"}, "practice_heading": {"$ref": "#/$defs/scalar"},
-          "management_heading": {"$ref": "#/$defs/scalar"}, "after_skills": {"$ref": "#/$defs/paragraphs"}
+          "management_heading": {"$ref": "#/$defs/scalar"}, "after_skills": {"$ref": "#/$defs/paragraphs"},
+          "practice_groups": {"type": "object", "required": ["curriculum_heading", "experience_heading", "experience_start_skill_id"], "properties": {
+            "curriculum_heading": {"$ref": "#/$defs/scalar"}, "experience_heading": {"$ref": "#/$defs/scalar"},
+            "experience_start_skill_id": {"$ref": "#/$defs/scalar"}
+          }, "additionalProperties": {"$ref": "#/$defs/copyNode"}}
         }, "additionalProperties": {"$ref": "#/$defs/copyNode"}},
         "authors": {"type": "object", "required": ["eyebrow", "heading", "people", "reading"], "properties": {
           "eyebrow": {"$ref": "#/$defs/scalar"}, "heading": {"$ref": "#/$defs/scalar"},

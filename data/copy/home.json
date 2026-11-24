@@ -7,6 +7,11 @@
     "byline": "John Sonsteng and Damien Riehl, with Abby Breit and Elise Carlson, Editors",
     "host": "Hosted by Damien Riehl"
   },
+  "cover": {
+    "title": "LEGAL PRACTICUMS",
+    "subtitle": "Law Practice and Law Management PRACTICE READY",
+    "byline": "John Sonsteng and Damien Riehl"
+  },
   "hero": {
     "eyebrow": "A LIVING CASEBOOK · 50 YEARS OF METHOD",
     "heading": "Legal Practicum: a working law firm simulation for law students and lawyers to learn, develop, and enhance law practice and law management skills. Practice ready.",
@@ -20,6 +25,11 @@
     "skills_heading": "Law practice & \nLaw practice management skills",
     "practice_heading": "Law practice skills",
     "management_heading": "Law practice management skills",
+    "practice_groups": {
+      "curriculum_heading": "Learned through the general law school curriculum",
+      "experience_heading": "Learned through the lawyer's own experience",
+      "experience_start_skill_id": "SK-LP-07"
+    },
     "after_skills": {
       "p1": "For more than 50 years, a group of exceptional people — law students, law professors, lawyers from firms large and small, judges, and non-lawyers — have worked together to develop Legal Practicum to help law students and lawyers learn not simply the law, but how to practice it.\n\nLegal Practicum provides an environment in which participants can develop and refine their skills, experiment with different approaches, test ideas, strategies, and techniques, effectively use and manage technology, and take risks without fear of negative consequences. It is an opportunity to learn through experience, make mistakes, and grow as a legal practitioner.",
       "p2": "Emerging technologies will help lawyers at all levels of experience provide legal services more quickly and at a reasonable cost. The goal: justice for all.",
