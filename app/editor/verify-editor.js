@@ -1183,6 +1183,7 @@ async function run() {
     }));
     assert('Focus and blur without changing the heading sends nothing', !unchanged.dirty && unchanged.calls === 0);
 
+    // Use the count from before typing in case the debounce sends first.
     await page.focus(heading);
     await page.$eval(heading, el => window.getSelection().setBaseAndExtent(el.firstChild, 8, el.firstChild, 9));
     await page.keyboard.down('Shift');
@@ -1191,7 +1192,14 @@ async function run() {
     const edited = await page.evaluate(() => window.SonstengEditor.block(17));
     assert('Typing a line break makes the heading dirty', edited.dirty && edited.snapshot === 'Practice\nskills');
     await page.evaluate(() => window.SonstengEditor.clickSave(17));
-    const sent = await page.evaluate(() => window.__MOCK_CTRL__.last());
+    const recorded = await page.waitForFunction((callsBefore, sourceRef) => {
+      const mock = window.__MOCK_CTRL__;
+      if (mock.server().calls <= callsBefore) return false;
+      const last = mock.last();
+      return last?.source_ref === sourceRef && last;
+    }, { timeout: 4000 }, unchanged.calls, edited.ref);
+    const sent = await recorded.jsonValue();
+    await recorded.dispose();
     const hash = execFileSync('python3', ['-c', 'from text_norm import norm_hash; print(norm_hash("Practice skills"))'],
       { cwd: path.join(REPO, 'tools'), encoding: 'utf8' }).trim();
     assert('The newline-only suggestion carries the original server-contract hash',
