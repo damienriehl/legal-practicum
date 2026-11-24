@@ -42,7 +42,6 @@ body:has(.home-cover){
   --home-masthead-height:calc(44px + 2 * var(--sp-3) + var(--rule-bold) + var(--rule) + var(--home-docket-row,0px))
 }
 @media(max-width:42rem){
-  /* On narrow screens the docket occupies its own row below the controls. */
   body:has(.home-cover){--home-docket-row:calc(var(--sp-2) + 1.65 * var(--fs-mono-xs))}
   body:has(.home-cover) .masthead__inner{
     display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2) var(--sp-3)
