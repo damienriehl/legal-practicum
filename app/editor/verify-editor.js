@@ -1262,15 +1262,15 @@ async function run() {
       return {
         pending: place(comment),
         removed: place({ ...comment, source_ref: 'data/copy/home.json#hero.removed', json_path: 'hero.removed' }),
-        declined: place({ ...comment, status: 'declined', note: 'Updated the label.' })
+        declined: place({ ...comment, status: 'declined', note: 'Updated the label. — Claude' })
       };
     });
     assert('A comment follows the eyebrow after three leaves shift its index',
       placements.pending.anchor === 'eyebrow-fixture', JSON.stringify(placements.pending));
     assert('A removed comment source falls back to its stored index',
       placements.removed.anchor === 'skills-heading-fixture', JSON.stringify(placements.removed));
-    assert('A declined comment shows Damien’s reply on the moved eyebrow',
-      placements.declined.anchor === 'eyebrow-fixture' && placements.declined.reply === 'Damien: Updated the label.',
+    assert('A declined comment shows the signed reply on the moved eyebrow',
+      placements.declined.anchor === 'eyebrow-fixture' && placements.declined.reply === 'Reply: Updated the label. — Claude',
       JSON.stringify(placements.declined));
     await page.screenshot({ path: path.join(OUT, 'editor-comment-anchor-drift.png'), fullPage: true });
     await page.close();
