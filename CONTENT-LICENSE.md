@@ -33,7 +33,7 @@ materials.
 
 Use this attribution, adapted only as needed for the medium:
 
-> Legal Practicum — John Sonsteng and Damien Riehl, with Abby Breit, Editor.
+> Legal Practicum — John Sonsteng and Damien Riehl, with Abby Breit and Elise Carlson, Editors.
 > Licensed under CC BY 4.0. Source:
 > https://github.com/damienriehl/legal-practicum
 

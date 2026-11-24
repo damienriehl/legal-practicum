@@ -29,6 +29,7 @@ import sys
 import tempfile
 import time
 import unittest
+from pathlib import Path
 from unittest import mock
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -38,6 +39,7 @@ sys.path.insert(0, TOOLS)
 import text_norm  # noqa: E402
 import apply_suggestions as ap  # noqa: E402
 import stamp_block_ids as sb  # noqa: E402
+import validate_spine as vs  # noqa: E402
 
 BID_RE = sb.BID_RE
 
@@ -742,6 +744,65 @@ class ApplyEngineTest(unittest.TestCase):
         # ... yet canonical is byte-identical (worktree discarded, nothing shipped).
         self.assertEqual(before, snapshot_data(self.root))  # canonical untouched
         self.assertEqual(self._porcelain(), "")
+
+    def test_batch_applies_edited_and_blanked_page_copy_paragraphs(self):
+        home = "data/copy/home.json"
+        schema = "data/schemas/page-copy.schema.json"
+        for relpath in (home, schema):
+            _write(self.root, relpath, (Path(TOOLS).parent / relpath).read_text(encoding="utf-8"))
+        home_path = Path(self.root) / home
+        copy = json.loads(home_path.read_text(encoding="utf-8"))
+        copy["intro"]["after_skills"]["p4"] = "Text to merge into the preceding paragraph."
+        _write(self.root, home, json.dumps(copy, indent=2) + "\n")
+        _git(["add", "--", home, schema], self.root)
+        _git(["commit", "-qm", "Add page copy fixture"], self.root)
+
+        p3, p4 = "intro.after_skills.p3", "intro.after_skills.p4"
+        spec = [*SPEC, (home, "json", {"scalars": [p3, p4]})]
+        self.index = resolve_index(self.root, spec)
+        self._add_edit("merge-text", f"{home}#{p3}", "The combined paragraph.", group_id="merge")
+        self._add_edit("blank-paragraph", f"{home}#{p4}", "", group_id="merge")
+
+        class PageCopyPipeline(FakePipeline):
+            def validate(self, worktree):
+                schemas = vs.SchemaSet(Path(worktree) / "data/schemas")
+                doc = json.loads((Path(worktree) / home).read_text(encoding="utf-8"))
+                self.errors = schemas.validate("page_copy", doc)
+                return not self.errors, {"report": {"errors": self.errors}}
+
+        self.assertTrue(vs.HAVE_JSONSCHEMA)
+        pipe = PageCopyPipeline(spec)
+        result = self._run("merge-paragraphs", pipe, deploy_plan_only=False)
+        self.assertTrue(result.committed, (result.reason, getattr(pipe, "errors", None)))
+        self.assertEqual(pipe.errors, [])
+        self.assertEqual(self.store.rows["merge-text"]["status"], "applied")
+        self.assertEqual(self.store.rows["blank-paragraph"]["status"], "applied")
+        paragraphs = json.loads(home_path.read_text(encoding="utf-8"))["intro"]["after_skills"]
+        self.assertEqual(paragraphs["p3"], "The combined paragraph.")
+        self.assertEqual(paragraphs["p4"], "")
+
+    def test_applies_newline_only_page_copy_edit(self):
+        home = "data/copy/home.json"
+        home_path = Path(self.root) / home
+        copy = json.loads((Path(TOOLS).parent / home).read_text(encoding="utf-8"))
+        copy["intro"]["skills_heading"] = "Law practice & Law practice management skills"
+        _write(self.root, home, json.dumps(copy, indent=2) + "\n")
+        _git(["add", "--", home], self.root)
+        _git(["commit", "-qm", "Add single-line page copy fixture"], self.root)
+
+        field = "intro.skills_heading"
+        spec = [*SPEC, (home, "json", {"scalars": [field]})]
+        self.index = resolve_index(self.root, spec)
+        new_text = "Law practice &\nLaw practice management skills"
+        row = self._add_edit("line-break", f"{home}#{field}", new_text)
+        self.assertEqual(row["original_hash"], text_norm.norm_hash(new_text))
+
+        result = self._run("newline-only", FakePipeline(spec), deploy_plan_only=False)
+
+        self.assertTrue(result.committed, (result.reason, result.needs_human))
+        self.assertEqual(self.store.rows["line-break"]["status"], "applied")
+        patched = json.loads(home_path.read_text(encoding="utf-8"))
+        self.assertEqual(patched["intro"]["skills_heading"], new_text)
 
     # 3) Formatted block whose SPAN TEXT is edited away -> needs_human (WP7 keeps
     #    the conservative fallback: the bold span 'bold emphasis' disappears).

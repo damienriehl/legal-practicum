@@ -12,19 +12,23 @@
     "repo_url": {"type": "string", "description": "Adopter page: the public repository URL. Empty renders no link."}
   },
   "patternProperties": {
-    "^(?!schema_version$|type$|page$|overrides$|repo_url$).+": {"$ref": "#/$defs/copyNode"}
+    "^(?!(?:schema_version|type|page|overrides|repo_url|hero|intro|who|privacy|setup|cases)$).+": {"$ref": "#/$defs/copyNode"}
   },
-  "additionalProperties": false,
+  "unevaluatedProperties": false,
   "allOf": [
-    {"if": {"properties": {"page": {"const": "home"}}}, "then": {"$ref": "#/$defs/home"}},
+    {"if": {"properties": {"page": {"const": "home"}}}, "then": {"$ref": "#/$defs/home"},
+     "else": {"properties": {"hero": {"$ref": "#/$defs/copyNode"}, "intro": {"$ref": "#/$defs/copyNode"}}}},
     {"if": {"properties": {"page": {"const": "matters"}}}, "then": {"$ref": "#/$defs/matters"}},
     {"if": {"properties": {"page": {"const": "firm"}}}, "then": {"$ref": "#/$defs/firm"}},
     {"if": {"properties": {"page": {"const": "getting-started"}}}, "then": {"$ref": "#/$defs/gettingStarted"}},
-    {"if": {"properties": {"page": {"const": "adopt"}}}, "then": {"$ref": "#/$defs/adopt"}},
+    {"if": {"properties": {"page": {"const": "adopt"}}}, "then": {"$ref": "#/$defs/adopt"},
+     "else": {"properties": {"who": {"$ref": "#/$defs/copyNode"}, "privacy": {"$ref": "#/$defs/copyNode"},
+                             "setup": {"$ref": "#/$defs/copyNode"}, "cases": {"$ref": "#/$defs/copyNode"}}}},
     {"if": {"properties": {"page": {"const": "adopt"}}}, "else": {"not": {"required": ["repo_url"]}}}
   ],
   "$defs": {
     "scalar": {"type": "string", "minLength": 1},
+    "paragraphMember": {"type": "string"},
     "overrides": {"type": "object", "propertyNames": {"pattern": "^[a-f0-9]{16}$"}, "additionalProperties": {"$ref": "#/$defs/override"}},
     "override": {
       "type": "object",
@@ -42,12 +46,12 @@
     "hero": {"type": "object", "required": ["eyebrow", "heading", "lede"], "properties": {"eyebrow": {"$ref": "#/$defs/scalar"}, "heading": {"$ref": "#/$defs/scalar"}, "lede": {"$ref": "#/$defs/scalar"}}},
     "paragraphs": {"oneOf": [
       {"$ref": "#/$defs/scalar"},
-      {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/scalar"}}
+      {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/paragraphMember"}}
     ]},
-    "homeHero": {"type": "object", "required": ["eyebrow", "heading", "lede", "adopter_link"], "properties": {"eyebrow": {"$ref": "#/$defs/scalar"}, "heading": {"$ref": "#/$defs/scalar"}, "lede": {"$ref": "#/$defs/paragraphs"}, "adopter_link": {"$ref": "#/$defs/scalar"}}},
-    "person": {"type": "object", "required": ["name", "role", "bio"], "properties": {"name": {"$ref": "#/$defs/scalar"}, "role": {"$ref": "#/$defs/scalar"}, "bio": {"$ref": "#/$defs/scalar"}}},
+    "homeHero": {"type": "object", "required": ["eyebrow", "heading", "lede", "adopter_link"], "properties": {"eyebrow": {"$ref": "#/$defs/scalar"}, "heading": {"$ref": "#/$defs/scalar"}, "lede": {"$ref": "#/$defs/paragraphs"}, "adopter_link": {"$ref": "#/$defs/scalar"}}, "additionalProperties": {"$ref": "#/$defs/copyNode"}},
+    "person": {"type": "object", "required": ["name", "role"], "properties": {"name": {"$ref": "#/$defs/scalar"}, "role": {"$ref": "#/$defs/scalar"}, "bio": {"$ref": "#/$defs/scalar"}}},
     "citation": {"type": "object", "required": ["citation"], "properties": {"citation": {"$ref": "#/$defs/scalar"}, "url": {"type": "string", "pattern": "^https://"}}},
-    "adoptSection": {"type": "object", "required": ["heading", "body"], "properties": {"heading": {"$ref": "#/$defs/scalar"}, "body": {"$ref": "#/$defs/paragraphs"}}},
+    "adoptSection": {"type": "object", "required": ["heading", "body"], "properties": {"heading": {"$ref": "#/$defs/scalar"}, "body": {"$ref": "#/$defs/paragraphs"}}, "additionalProperties": {"$ref": "#/$defs/copyNode"}},
     "adopt": {
       "type": "object", "required": ["repo_url", "hero", "who", "privacy", "setup", "cases", "prompting", "license"],
       "properties": {
@@ -69,14 +73,22 @@
       "title": {"$ref": "#/$defs/scalar"}, "byline": {"$ref": "#/$defs/scalar"}, "host": {"$ref": "#/$defs/scalar"}
     }},
     "home": {
-      "type": "object", "required": ["identity", "hero", "intro", "authors", "volumes", "explore"],
+      "type": "object", "required": ["identity", "cover", "hero", "intro", "authors", "volumes", "explore"],
       "properties": {
         "identity": {"$ref": "#/$defs/identity"},
-        "hero": {"$ref": "#/$defs/homeHero"},
-        "intro": {"type": "object", "required": ["skills_heading", "practice_heading", "management_heading", "after_skills"], "properties": {
-          "skills_heading": {"$ref": "#/$defs/scalar"}, "practice_heading": {"$ref": "#/$defs/scalar"},
-          "management_heading": {"$ref": "#/$defs/scalar"}, "after_skills": {"$ref": "#/$defs/paragraphs"}
+        "cover": {"type": "object", "required": ["title", "subtitle", "byline"], "properties": {
+          "title": {"$ref": "#/$defs/scalar"}, "subtitle": {"$ref": "#/$defs/scalar"},
+          "byline": {"$ref": "#/$defs/scalar"}
         }},
+        "hero": {"$ref": "#/$defs/homeHero"},
+        "intro": {"type": "object", "required": ["skills_heading", "practice_heading", "management_heading", "practice_groups", "after_skills"], "properties": {
+          "skills_heading": {"$ref": "#/$defs/scalar"}, "practice_heading": {"$ref": "#/$defs/scalar"},
+          "management_heading": {"$ref": "#/$defs/scalar"}, "after_skills": {"$ref": "#/$defs/paragraphs"},
+          "practice_groups": {"type": "object", "required": ["curriculum_heading", "experience_heading", "experience_start_skill_id"], "properties": {
+            "curriculum_heading": {"$ref": "#/$defs/scalar"}, "experience_heading": {"$ref": "#/$defs/scalar"},
+            "experience_start_skill_id": {"$ref": "#/$defs/scalar"}
+          }, "additionalProperties": {"$ref": "#/$defs/copyNode"}}
+        }, "additionalProperties": {"$ref": "#/$defs/copyNode"}},
         "authors": {"type": "object", "required": ["eyebrow", "heading", "people", "reading"], "properties": {
           "eyebrow": {"$ref": "#/$defs/scalar"}, "heading": {"$ref": "#/$defs/scalar"},
           "people": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/person"}},

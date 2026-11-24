@@ -13,6 +13,7 @@ for (const candidate of [process.env.PUP_DIR, 'puppeteer', '/home/damienriehl/.n
 }
 if (!puppeteer) throw new Error('Puppeteer unavailable (set PUP_DIR or install puppeteer)');
 const ROOT = path.resolve(__dirname, '..');
+const BYLINE = 'John Sonsteng and Damien Riehl, with Abby Breit and Elise Carlson, Editors';
 const out = process.argv[2] || fs.mkdtempSync(path.join(os.tmpdir(), 'brochure-firms-'));
 fs.mkdirSync(out, {recursive: true});
 async function run() {
@@ -30,12 +31,28 @@ async function run() {
     if (!condition) failures.push(label);
   }
   try {
+    const identityPage = await browser.newPage();
+    try {
+      await identityPage.goto(pathToFileURL(path.join(ROOT, 'site/index.html')).href);
+      for (const selector of ['.by', 'footer .wrap p:nth-of-type(2)']) {
+        assert(`pitch ${selector}: complete byline`, await identityPage.$eval(selector,
+          (el, expected) => el.textContent.replace(/\s+/g, ' ').trim().startsWith(expected), BYLINE));
+      }
+      await identityPage.goto(pathToFileURL(path.join(ROOT, 'site/platform/index.html')).href);
+      for (const selector of ['.hero__byline', '[data-eb-origin="data/copy/home.json#identity.byline"]']) {
+        assert(`platform ${selector}: complete byline`, await identityPage.$eval(selector,
+          (el, expected) => el.textContent.replace(/\s+/g, ' ').trim() === expected, BYLINE));
+      }
+    } finally { await identityPage.close(); }
+
     for (const name of ['brochure', 'firms']) {
       const page = await browser.newPage();
       const requests = [], errors = [];
       page.on('request', request => { if (/^https?:/.test(request.url())) requests.push(request.url()); });
       page.on('pageerror', error => errors.push(error.message));
       await page.goto(pathToFileURL(path.join(ROOT, 'site', `${name}.html`)).href, {waitUntil: 'networkidle0'});
+      assert(`${name}: complete byline`, await page.$eval('.byline',
+        (el, expected) => el.textContent.replace(/\s+/g, ' ').trim() === expected, BYLINE));
       await page.evaluate(() => document.fonts.ready);
       for (const width of [1440, 390]) {
         await page.setViewport({width, height: 1000, deviceScaleFactor: 1});
@@ -76,7 +93,7 @@ async function run() {
           assert(`brochure ${mode}: front and back content prints through the byline`,
             front.includes('Practice ready.') && front.includes('between live sessions.') &&
             back.includes('What you get') && back.includes('CC BY 4.0') && back.includes('You betcha!') &&
-            back.includes('legalpracticum.org') && back.includes('Abby Breit'));
+            back.includes('legalpracticum.org') && back.replace(/\s+/g, ' ').includes(BYLINE));
         }
       }
       await page.close();

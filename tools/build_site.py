@@ -367,14 +367,14 @@ def _copy_scalar(page, copy, json_path, context):
     for key in json_path.split("."):
         value = value[key]
     rel = data_relpath(DATA, "copy", page + ".json")
-    return value, _eb_scalar_attr(rel + "#" + json_path, value, json_path, context)
+    return value, " data-page-copy" + _eb_scalar_attr(rel + "#" + json_path, value, json_path, context)
 
 
 def _copy_paragraphs(page, copy, json_path, context, css_class=""):
     """Render a page-copy leaf that may hold several paragraphs.
 
-    A plain string renders as one <p>. An object renders one <p> per key, in
-    authored order, and each paragraph registers as its own json_scalar leaf
+    A plain string renders as one <p>. An object renders one <p> per nonempty
+    member, in authored order, each registered as its own json_scalar leaf
     (``<json_path>.<key>``) so editors change one paragraph at a time and the
     paragraph breaks survive every edit."""
     value = copy
@@ -385,7 +385,9 @@ def _copy_paragraphs(page, copy, json_path, context, css_class=""):
         text, attr = _copy_scalar(page, copy, json_path, context)
         return "<p%s%s>%s</p>" % (cls, attr, esc(text))
     out = []
-    for key in value:
+    for key, member in value.items():
+        if member == "":
+            continue
         text, attr = _copy_scalar(page, copy, "%s.%s" % (json_path, key), context)
         out.append("<p%s%s>%s</p>" % (cls, attr, esc(text)))
     return "\n  ".join(out)
@@ -1017,12 +1019,41 @@ main[tabindex]:focus{outline:none}
 .arrow-link{font-family:var(--font-mono);font-size:var(--fs-sm);letter-spacing:.04em;color:var(--claret)}
 .arrow-link::after{content:" →"}
 
-/* ---- home hero ---- */
+/* ---- home cover and hero ---- */
+body:has(.home-cover){
+  --home-masthead-height:calc(44px + 2 * var(--sp-3) + var(--rule-bold) + var(--rule) + var(--home-docket-row,0px))
+}
+@media(max-width:42rem){
+  body:has(.home-cover){--home-docket-row:calc(var(--sp-2) + 1.65 * var(--fs-mono-xs))}
+  body:has(.home-cover) .masthead__inner{
+    display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2) var(--sp-3)
+  }
+  body:has(.home-cover) .masthead__brand{line-height:1.1}
+  body:has(.home-cover) .masthead__docket{grid-column:1/-1}
+}
+main:has(>.home-cover){padding-top:0}
+.home-cover{
+  min-height:calc(100vh - var(--home-masthead-height,4.25rem));
+  min-height:calc(100svh - var(--home-masthead-height,4.25rem));
+  display:grid;grid-template-rows:1fr auto;gap:var(--sp-8);
+  padding:var(--sp-8) clamp(var(--sp-3),5vw,var(--sp-16));
+  background:var(--surface-featured);color:var(--ink);
+  border-bottom:var(--rule-bold) solid var(--brass)
+}
+.home-cover__lines{align-self:center;display:grid;gap:var(--sp-6);text-align:left;
+  font-family:var(--font-display)}
+.home-cover__lines p{margin:0}
+.home-cover__title{font-size:min(var(--fs-display),10vw);font-weight:900;letter-spacing:-.035em;line-height:1}
+.home-cover__subtitle{font-size:var(--fs-lg);font-weight:600;line-height:1.2;color:var(--claret-strong)}
+.home-cover__byline{font-size:var(--fs-md)}
+.home-cover__continue{display:flex;align-items:center;justify-self:start;min-height:44px;
+  text-decoration:underline;text-underline-offset:.2em}
 .hero{padding:var(--sp-16) 0 var(--sp-8);display:grid;gap:var(--sp-3)}
 /* John's heading is a full sentence (~190 characters), so the home hero sets
    it well below the display size other pages use: about 4 lines on a laptop
    and 7 on a phone. Scaling the token keeps large-type mode proportional. */
-.hero__proposition{font-size:calc(var(--fs-display) * .43);line-height:1.08;max-width:none;text-wrap:balance}
+.hero__proposition{font-size:calc(var(--fs-display) * .43);line-height:1.08;max-width:none;text-wrap:balance;
+  scroll-margin-top:calc(var(--home-masthead-height,4.25rem) + var(--sp-3))}
 .hero .lede{font-size:var(--fs-md);line-height:1.6;max-width:62ch}
 .volumes{display:grid;gap:var(--sp-6);grid-template-columns:repeat(auto-fit,minmax(min(15rem,100%),1fr))}
 .volume{position:relative;overflow:hidden}
@@ -1054,6 +1085,8 @@ main[tabindex]:focus{outline:none}
 .skill-columns{display:grid;gap:var(--sp-6) var(--sp-8);grid-template-columns:1fr}
 @media(min-width:40rem){.skill-columns{grid-template-columns:1fr 1fr}}
 .skill-columns__col h3{margin:0 0 var(--sp-3);font-size:var(--fs-md)}
+.skill-columns__col h4{margin:0 0 var(--sp-2);font-size:var(--fs-sm);color:var(--ink-soft)}
+.skill-columns__list+h4{margin-top:var(--sp-6)}
 .skill-columns__list{margin:0;padding-left:1.2em;display:grid;gap:var(--sp-2)}
 .skill-columns__list a{color:var(--ink);text-underline-offset:.15em}
 .intro__after .lede{line-height:1.6;max-width:62ch}
@@ -1177,6 +1210,7 @@ details.side-conf summary{cursor:pointer;font-family:var(--font-mono);font-size:
 .fact-label{font-family:var(--font-mono);font-size:var(--fs-mono-xs);overflow-wrap:anywhere}
 .fact-uses{display:block;color:var(--ink-faint-text);margin-top:var(--sp-2)}
 .fact-value{min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
+[data-page-copy]{white-space:pre-line}
 @media(max-width:42rem){
   .masthead__docket{margin-left:0}.type-toggle{margin-left:0}
   .task-block,.subtask{margin-left:0}
@@ -1244,6 +1278,8 @@ details.side-conf summary{cursor:pointer;font-family:var(--font-mono);font-size:
 @media (forced-colors: active){ .viz-pat{opacity:1} }
 
 @media print{
+  .home-cover{min-height:0;break-after:page;break-inside:avoid;background:transparent;border:0}
+  .home-cover__continue{display:none}
   .type-toggle,.viz-toggle,.viz-filter,.lib-toolbar,.cta-row,.skip-link,.downloads{display:none !important}
   .viz-tip{display:none !important}          /* tooltips never print */
   .viz-table[hidden]{display:block !important}
@@ -1553,7 +1589,8 @@ def build_home(corpus):
     values = {}
     attrs = {}
     for path in (
-        "hero.eyebrow", "hero.heading", "volumes.eyebrow", "volumes.heading",
+        "cover.title", "cover.subtitle", "cover.byline", "hero.eyebrow", "hero.heading",
+        "volumes.eyebrow", "volumes.heading",
         "explore.eyebrow", "explore.heading",
     ):
         values[path], attrs[path] = _copy_scalar("home", copy, path, "home")
@@ -1570,9 +1607,17 @@ def build_home(corpus):
 
     hero_extra = _home_hero_extra(copy, skills)
     body = """
+<section class="home-cover" aria-labelledby="home-cover-title">
+  <div class="home-cover__lines">
+    <p class="home-cover__title" id="home-cover-title"{cover_title_eb}>{cover_title}</p>
+    <p class="home-cover__subtitle"{cover_subtitle_eb}>{cover_subtitle}</p>
+    <p class="home-cover__byline"{cover_byline_eb}>{cover_byline}</p>
+  </div>
+  <a class="home-cover__continue arrow-link" href="#home-hero">Continue to the introduction</a>
+</section>
 <section class="hero reveal">
   <p class="editorial-label"{hero_eyebrow_eb}>{hero_eyebrow}</p>
-  <h1 class="hero__proposition"{hero_heading_eb}>{hero_heading}</h1>
+  <h1 id="home-hero" class="hero__proposition" tabindex="-1"{hero_heading_eb}>{hero_heading}</h1>
   {hero_byline}
   {hero_adopt}
   {hero_lede}
@@ -1675,14 +1720,28 @@ def _home_hero_extra(copy, skills):
                   % (adopt_eb, adopt))
     hero_lede = _copy_paragraphs("home", copy, "hero.lede", "home · introduction", "lede")
 
-    def column(category, heading_path):
+    def skill_list(group):
+        items = "".join('<li><a href="skills/index.html#{sid}">{name}</a></li>'.format(
+            sid=esc(skill["id"]), name=esc(skill["name"])) for skill in group)
+        return '<ul class="skill-columns__list">%s</ul>' % items
+
+    def column(heading_path, body):
         heading, heading_eb = leaf(heading_path, "home · skills columns")
-        items = "".join(
-            '<li><a href="skills/index.html#{sid}">{name}</a></li>'.format(
-                sid=esc(s["id"]), name=esc(s["name"]))
-            for s in skills if s.get("category") == category)
-        return ('<div class="skill-columns__col"><h3%s>%s</h3><ul class="skill-columns__list">%s</ul></div>'
-                % (heading_eb, heading, items))
+        return '<div class="skill-columns__col"><h3%s>%s</h3>%s</div>' % (heading_eb, heading, body)
+
+    def practice_group(heading_key, group):
+        heading, heading_eb = leaf("intro.practice_groups." + heading_key, "home · skills columns")
+        return "<h4%s>%s</h4>%s" % (heading_eb, heading, skill_list(group))
+
+    practice = [skill for skill in skills if skill.get("category") == "legal_practice"]
+    management = [skill for skill in skills if skill.get("category") == "practice_management"]
+    split_id = copy["intro"]["practice_groups"]["experience_start_skill_id"]
+    split_at = next((i for i, skill in enumerate(practice) if skill["id"] == split_id), None)
+    if split_at is None:
+        raise ValueError(f"intro.practice_groups.experience_start_skill_id {split_id!r} "
+                         "must name a legal practice skill in skills.json")
+    practice_body = (practice_group("curriculum_heading", practice[:split_at])
+                     + practice_group("experience_heading", practice[split_at:]))
 
     skills_heading, skills_heading_eb = leaf("intro.skills_heading", "home · skills columns")
     intro = """<section class="intro reveal" aria-labelledby="skills-h">
@@ -1693,24 +1752,26 @@ def _home_hero_extra(copy, skills):
   </div>
 </section>""".format(
         heb=skills_heading_eb, heading=skills_heading,
-        left=column("legal_practice", "intro.practice_heading"),
-        right=column("practice_management", "intro.management_heading"),
+        left=column("intro.practice_heading", practice_body),
+        right=column("intro.management_heading", skill_list(management)),
         after=_copy_paragraphs("home", copy, "intro.after_skills", "home · introduction", "lede"))
 
     eyebrow, eyebrow_eb = leaf("authors.eyebrow", "home · authors")
     a_heading, a_heading_eb = leaf("authors.heading", "home · authors")
     people = []
-    for key in copy["authors"]["people"]:
+    for key, person in copy["authors"]["people"].items():
         base = "authors.people.%s." % key
         name, name_eb = leaf(base + "name", "home · authors")
         role, role_eb = leaf(base + "role", "home · authors")
-        bio, bio_eb = leaf(base + "bio", "home · authors")
+        bio_paragraph = ""
+        if person.get("bio"):
+            bio, bio_eb = leaf(base + "bio", "home · authors")
+            bio_paragraph = "\n      <p%s>%s</p>" % (bio_eb, bio)
         people.append("""
     <article class="card author-card">
       <h3{neb}>{name}</h3>
-      <p class="card__meta"{reb}>{role}</p>
-      <p{beb}>{bio}</p>
-    </article>""".format(name=name, neb=name_eb, role=role, reb=role_eb, bio=bio, beb=bio_eb))
+      <p class="card__meta"{reb}>{role}</p>{bio}
+    </article>""".format(name=name, neb=name_eb, role=role, reb=role_eb, bio=bio_paragraph))
     r_heading, r_heading_eb = leaf("authors.reading.heading", "home · further reading")
     cites = []
     for key, item in copy["authors"]["reading"]["items"].items():

@@ -125,7 +125,8 @@ class NewCoverageTest(unittest.TestCase):
 
     # ---- R1: the landing pages carry their authored copy ----------------- #
     def test_authored_page_copy_counts(self):
-        self.assertEqual(len(self.pages["index.html"]), 58)
+        # Add cover title/subtitle/byline, both skills subheads, and Elise Carlson's name/role. Drop after_skills.p4.
+        self.assertEqual(len(self.pages["index.html"]), 64)
         self.assertEqual(len(self.pages["adopt/index.html"]), 30)
         self.assertEqual(len(self.pages["getting-started/index.html"]), 13)
         self.assertEqual(len(self.pages["matters/index.html"]), 13)

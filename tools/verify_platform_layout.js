@@ -50,23 +50,77 @@ async function inspect(page, hierarchy) {
     return {title:document.title,large:document.documentElement.classList.contains('type-lg'),h1:headings.filter((h)=>h.tagName==='H1').length,jumps,overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,collisions,metrics,hierarchyErrors,inaccessible};
   }, hierarchy || {});
 }
+
+async function verifyHome(page, viewport, printOnly) {
+  const state = await page.evaluate(() => {
+    const cover = document.querySelector('.home-cover');
+    const hero = document.querySelector('#home-hero');
+    const cue = cover?.querySelector('.home-cover__continue');
+    if (!cover || !hero || !cue) return null;
+    const coverBox = cover.getBoundingClientRect();
+    const masthead = document.querySelector('.masthead').getBoundingClientRect();
+    const headings = [...document.querySelectorAll('.skill-columns__col > h3')];
+    return {
+      belowMasthead: Math.abs(coverBox.top - masthead.bottom) <= 1,
+      fillsViewport: coverBox.bottom >= innerHeight - 1,
+      heroFollowsCover: cover.nextElementSibling?.contains(hero)
+        && hero.getBoundingClientRect().top >= coverBox.bottom,
+      coverFitsWidth: coverBox.left >= 0 && coverBox.right <= innerWidth
+        && [...cover.querySelectorAll('p, a')].every(el => el.scrollWidth <= el.clientWidth + 1),
+      alignedHeadings: headings.length === 2
+        && Math.abs(headings[0].getBoundingClientRect().top - headings[1].getBoundingClientRect().top) <= 1,
+      ownPrintPage: getComputedStyle(cover).breakAfter === 'page',
+      cueHidden: getComputedStyle(cue).display === 'none',
+    };
+  });
+  if (!state) return ['home cover, scroll link, or hero target missing'];
+  if (printOnly) {
+    return state.ownPrintPage && state.cueHidden ? [] : ['print cover needs its own page and no scroll link'];
+  }
+  const errors = [];
+  if (!state.belowMasthead || !state.fillsViewport) errors.push('home cover does not fill the viewport below the masthead');
+  if (!state.heroFollowsCover) errors.push('home hero does not follow the cover');
+  if (!state.coverFitsWidth) errors.push('home cover overflows horizontally');
+  if (viewport.width === 1280 && !state.alignedHeadings) errors.push('home skill column headings are not top-aligned');
+  if (viewport.width === 390 || viewport.width === 1280) {
+    await page.focus('#type-toggle');
+    await page.keyboard.press('Tab');
+    if (!await page.evaluate(() => document.activeElement.matches('.home-cover__continue'))) {
+      errors.push('home cover scroll link is missing from the keyboard tab order');
+    } else {
+      await page.keyboard.press('Enter');
+      const heroFocused = await page.evaluate(() => {
+        const heading = document.querySelector('#home-hero');
+        const masthead = document.querySelector('.masthead');
+        return document.activeElement === heading
+          && heading.getBoundingClientRect().top >= masthead.getBoundingClientRect().bottom;
+      });
+      if (!heroFocused) errors.push('home cover scroll link does not focus the hero below the masthead');
+    }
+  }
+  return errors;
+}
+
 async function run() {
   const printOnly=process.argv.includes('--print');
   const m=JSON.parse(fs.readFileSync(MATRIX_PATH,'utf8')); const initial=matrixErrors(m);
   if(initial.length){initial.forEach((x)=>console.error('FAIL matrix:',x));return 1;}
   const pup=loadPuppeteer(); const browser=await pup.launch({executablePath:process.env.CHROME_BIN||process.env.CHROMIUM_PATH||'/snap/bin/chromium',headless:process.env.HEADFUL!=='1'&&process.env.HEADLESS!=='0',userDataDir:path.join('/tmp',`sonsteng-layout-${process.pid}`),args:['--no-sandbox','--disable-dev-shm-usage','--disable-crash-reporter','--disable-breakpad']});
   let fails=0, checks=0; const report=[];
-  const pages=printOnly?m.pages.filter((p)=>p.print):m.pages.filter((p)=>!p.interactive);
+  const pages=printOnly?m.pages.filter((p)=>p.print||p.family==='home'):m.pages.filter((p)=>!p.interactive);
   const viewports=printOnly?[m.viewports.find((v)=>v.width===1280)]:m.viewports;
   for(const spec of pages) for(const vp of viewports) for(const mode of m.typeModes){
     const page=await browser.newPage(); await page.setViewport(vp); await setMode(page,mode);
-    try { await page.goto(relUrl(spec.path),{waitUntil:'domcontentloaded',timeout:30000}); if(printOnly)await page.emulateMediaType('print');
+    try { if(spec.family==='home')await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);
+      await page.goto(relUrl(spec.path),{waitUntil:'domcontentloaded',timeout:30000}); if(printOnly)await page.emulateMediaType('print');
+      if(spec.family==='home')await page.evaluate(()=>document.fonts.ready);
       const got=await inspect(page,spec.hierarchy); const errors=[];
       if(got.large!==(mode==='large'))errors.push(`type mode mismatch: expected ${mode}, class type-lg=${got.large}`);
       if(got.h1!==1)errors.push(`visible H1 count ${got.h1}`); if(got.jumps.length)errors.push(`heading jumps ${got.jumps.join(', ')}`);
       for(const role of Object.keys(spec.hierarchy||{}))if(!got.metrics[role])errors.push(`hierarchy role not rendered: ${role} (${spec.hierarchy[role]})`);
       if(got.overflow>1)errors.push(`horizontal overflow ${got.overflow}px`); if(got.collisions.length)errors.push(`overlap ${got.collisions.join('; ')}`);
       if(got.inaccessible.length)errors.push(`unnamed controls ${got.inaccessible.join('; ')}`); errors.push(...got.hierarchyErrors);
+      if(spec.family==='home')errors.push(...await verifyHome(page,vp,printOnly));
       if(printOnly){const state=await page.evaluate(()=>({main:!![...document.querySelectorAll('main')].find((e)=>{const r=e.getBoundingClientRect();return getComputedStyle(e).display!=='none'&&r.height>0}),chrome:[...document.querySelectorAll('.masthead,nav,button,.segmented-toggle')].filter((e)=>getComputedStyle(e).display!=='none'&&e.getBoundingClientRect().height>0).length}));if(!state.main)errors.push('print main content hidden');if(state.chrome)errors.push(`print interactive chrome visible (${state.chrome})`);}
       checks++;fails+=errors.length?1:0;report.push({family:spec.family,viewport:vp.name,mode,print:printOnly,errors,metrics:got.metrics});
       console.log(`${errors.length?'FAIL':'PASS'} ${spec.family} ${vp.name} ${mode}${errors.length?' — '+errors.join(' | '):''}`);
