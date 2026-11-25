@@ -87,7 +87,6 @@ main:has(>.home-cover){padding-top:0}
 .adopt-section h3{margin:var(--sp-6) 0 var(--sp-2)}
 .adopt-section a.link{display:inline-flex;align-items:center;min-height:44px}
 .adopt-section a.link p{margin:0;color:var(--claret);text-decoration:underline;text-underline-offset:.2em}
-.adopt-note{border-left:var(--rule-bold) solid var(--brass);padding-left:var(--sp-3)}
 .adopt-prompts{padding-left:var(--sp-6)}
 .adopt-prompts li{margin:0 0 var(--sp-3);font-style:italic}
 .entry-cards>.card>.arrow-link,.volumes>.card>.arrow-link{margin-top:auto;padding-top:var(--sp-3);align-self:flex-start}

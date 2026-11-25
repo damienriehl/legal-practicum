@@ -121,12 +121,11 @@ def test_semantic_heading_repairs_preserve_the_existing_visible_words():
     # John's Oct–Nov suggestions add the adopter page, the home introduction,
     # skills columns, and Authors section, and rename volumes to modules,
     # advancing every digest including the page set.
-    # Hiding the still-private source repository (Damien, 2026-11-05) drops its
-    # matter-library link and changes that line and the content-license
-    # attribution; editor blocks, reading order, and page identities stay fixed.
     # The cover link, byline, skills subheads, editor card, and November copy edits change links, blocks, and order.
     # Removing source hard wraps changes the original text stored in editor blocks.
+    # Public repository links update the Matter Library, adopter setup, and
+    # license attribution. The adopter setup also gains a new editable label.
     baseline = json.loads((TOOLS / "tests/fixtures/platform-semantic-baseline.json").read_text())
-    assert baseline["fields"]["links"] == "d556bab2247ec7c3b100362a9c1a32d9cf885f02a4caa5b768183dcb08f952aa"
-    assert baseline["fields"]["editor_blocks"] == "bb53d167b03ea4f3f326024bd00695c89dd4c0eef35c72f11bc12faa43109c0a"
-    assert baseline["fields"]["reading_order"] == "d5f938aa37ccc8417e78863ad47c643461f79eb5caafa406ed42963feddc099c"
+    assert baseline["fields"]["links"] == "4f496f5d72bde821ffe1291fe07d92cfae7f9efecf2f9cf83a90a6fe69bad559"
+    assert baseline["fields"]["editor_blocks"] == "c7335206fe08d03e55696651ec551e9dcf278cfe859deaa7296970eebe41a5c2"
+    assert baseline["fields"]["reading_order"] == "1c4fade3984ff7efb674999e33dfeb05bcc1403c7efbaccee4b61e76ef6dc081"
