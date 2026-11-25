@@ -122,3 +122,12 @@ Worker provenance: 204 + fb679798158ae66ba82f63360c04b3b9323f0c5d
 Pages provenance: 200 + fb679798158ae66ba82f63360c04b3b9323f0c5d
 DEV/production parity: SAME except build stamp (home and Module I pages, spine-build meta stripped)
 Operator: Claude (orchestrating agent) under Damien's standing deploy authorization (2026-09-20, 2026-09-30) and the 2026-09-02 pre-user lane
+
+Date (UTC): 2026-11-24
+Candidate SHA: bbafaeaf5f76b5906b4929e67198a527f566ec99 (PR #124: link the public source repository)
+Previous Worker version / Pages deployment: 6b8d158f-43ec-48e9-81ea-ee9adb865d04 / 5155068b (fb67979)
+New Worker version / Pages deployment: 885ae127-621d-4b33-99ea-77908fcf4209 / 0217e612
+Worker provenance: 204 + bbafaeaf5f76b5906b4929e67198a527f566ec99
+Pages provenance: 200 + bbafaeaf5f76b5906b4929e67198a527f566ec99
+DEV/production parity: adopter page links the repository on both; no "public soon" text on production
+Operator: Claude (orchestrating agent) under Damien's standing deploy authorization and the 2026-09-02 pre-user lane
