@@ -1,0 +1,129 @@
+name: Test and accessibility checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  merge_group:
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.12"
+  NODE_VERSION: "24"
+
+jobs:
+  python-tests:
+    name: Python tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: tools/ci/requirements.txt
+      - uses: actions/setup-node@1e60f620b9541d0c243d89e0f4c5ae81993e73c9 # v4.0.3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install Python test dependencies
+        run: python -m pip install -r tools/ci/requirements.txt
+      - name: Prepare generated inputs
+        run: bash tools/ci/prepare.sh
+      - name: Native unittest discovery
+        run: python -m unittest discover -s tools/tests -p 'test_*.py'
+      - name: Complete pytest suite
+        run: python -m pytest tools/tests/ -q
+
+  node-tests:
+    name: Node tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: actions/setup-node@1e60f620b9541d0c243d89e0f4c5ae81993e73c9 # v4.0.3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: tools/ci/package-lock.json
+      - name: Install browser tooling
+        run: |
+          npm install --prefix tools/ci --ignore-scripts
+          npx --prefix tools/ci puppeteer browsers install chrome
+      - name: Prepare generated inputs
+        run: bash tools/ci/prepare.sh
+      - name: Tools Node tests
+        run: node --test tools/tests/*.test.js
+      - name: Worker Node tests
+        env:
+          PUP_DIR: ${{ github.workspace }}/tools/ci/node_modules/puppeteer
+        run: |
+          set -o pipefail
+          cd app/worker
+          node --test --test-reporter=tap test/*.test.js | tee ../../worker-node-results.tap
+      - name: Require browser regression execution
+        run: node tools/ci/verify-node-results.mjs worker-node-results.tap
+      - name: Retain Node diagnostics after failure
+        if: ${{ failure() && hashFiles('worker-node-results.tap') != '' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: worker-node-results
+          path: worker-node-results.tap
+          retention-days: 7
+
+  accessibility:
+    name: Accessibility (${{ matrix.sweep }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sweep: [default, cost-per-credit, brochure-and-firms]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: actions/setup-node@1e60f620b9541d0c243d89e0f4c5ae81993e73c9 # v4.0.3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: tools/ci/package-lock.json
+      - name: Install browser tooling
+        run: |
+          npm install --prefix tools/ci --ignore-scripts
+          npx --prefix tools/ci puppeteer browsers install chrome
+      - name: Prepare generated inputs
+        run: bash tools/ci/prepare.sh
+      - name: Run accessibility sweep
+        env:
+          PUP_DIR: ${{ github.workspace }}/tools/ci/node_modules/puppeteer
+        run: |
+          set -o pipefail
+          export CHROME_BIN="$(node -e "console.log(require('./tools/ci/node_modules/puppeteer').executablePath())")"
+          case "${{ matrix.sweep }}" in
+            default) node tools/a11y_audit.js ;;
+            cost-per-credit) node tools/a11y_audit.js "file://$GITHUB_WORKSPACE/site/cost-per-credit.html" ;;
+            brochure-and-firms) node tools/a11y_audit.js "file://$GITHUB_WORKSPACE/site/brochure.html" "file://$GITHUB_WORKSPACE/site/firms.html" ;;
+          esac 2>&1 | tee "a11y-${{ matrix.sweep }}.log"
+      - name: Retain accessibility diagnostics after failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: a11y-${{ matrix.sweep }}
+          path: |
+            a11y-${{ matrix.sweep }}.log
+            build/a11y-audit.json
+          if-no-files-found: warn
+          retention-days: 7
